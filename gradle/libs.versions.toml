@@ -1,0 +1,15 @@
+[versions]
+coroutines = "1.5.0-native-mt"
+serialization = "1.2.1"
+ktor = "2.0.0-eap-135"
+clikt = "3.2.0"
+
+[libraries]
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
+serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
