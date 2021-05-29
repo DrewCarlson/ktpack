@@ -1,0 +1,12 @@
+[book]
+title = "Ktpack Book"
+authors = ["Drew Carlson"]
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "ayu"
+git-repository-url = "https://github.com/DrewCarlson/ktpack/"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/DrewCarlson/ktpack/edit/master/docs/{path}"
