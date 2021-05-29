@@ -31,7 +31,7 @@ kotlin {
     configure(nativeTargets) {
         compilations.named("main") {
             cinterops {
-                if (name.startsWith("linux")) {
+                if (this@configure.name.startsWith("linux")) {
                     create("subprocess") {
                         defFile("src/nativeMain/cinterop/subprocess.def")
                     }
