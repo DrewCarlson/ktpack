@@ -53,7 +53,7 @@ class BuildCommand(private val term: Terminal) : CliktCommand(
             .filter { file ->
                 val absolutePath = file.getAbsolutePath()
                 file.getName().endsWith(".kt") &&
-                    absolutePath != mainSource.getAbsolutePath() &&
+                    absolutePath != mainSource?.getAbsolutePath() &&
                     !otherBinPaths.contains(absolutePath)
             }
             .toList()
