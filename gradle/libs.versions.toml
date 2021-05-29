@@ -1,7 +1,7 @@
 [versions]
 coroutines = "1.5.0-native-mt"
 serialization = "1.2.1"
-ktor = "2.0.0-eap-135"
+ktor = "1.6.0"
 clikt = "3.2.0"
 
 [libraries]
