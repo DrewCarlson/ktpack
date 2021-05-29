@@ -27,7 +27,7 @@ kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isLinux) linuxX64() else null,
-        if (hostOs.isWindows) mingwX64() else null,
+        //if (hostOs.isWindows) mingwX64() else null,
     )
     configure(nativeTargets) {
         compilations.named("main") {
@@ -58,10 +58,8 @@ kotlin {
                 compilation.kotlinOptions {
                     val libType = buildType.name.toLowerCase(ROOT)
                     val libTarget = target.name.removeSuffix("X64")
-                    freeCompilerArgs = freeCompilerArgs + listOf(
-                        "-include-binary",
-                        "${file("build/lib/main/${libType}/${libTarget}/libtomlc99.a")}"
-                    )
+                    val libPath = file("build/lib/main/${libType}/${libTarget}/libtomlc99.a").absolutePath
+                    freeCompilerArgs = freeCompilerArgs + listOf("-include-binary", libPath)
                 }
             }
             executable {
@@ -74,6 +72,14 @@ kotlin {
         all {
             languageSettings {
                 useExperimentalAnnotation("kotlin.RequiresOptIn")
+                useExperimentalAnnotation("kotlin.time.ExperimentalTime")
+            }
+        }
+
+        named("commonMain") {
+            dependencies {
+                implementation("me.archinamon:fileio")
+                implementation("com.github.ajalt.mordant:mordant")
             }
         }
 
@@ -103,7 +109,8 @@ library {
     )
     binaries.configureEach {
         compileTask.get().apply {
-            source.from("external/tomlc99/toml.c")
+            includes("external/tomlc99")
+            source("external/tomlc99/toml.c")
             compilerArgs.addAll("-x", "c", "-std=c99")
         }
     }

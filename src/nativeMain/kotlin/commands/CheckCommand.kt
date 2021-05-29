@@ -1,10 +1,11 @@
 package ktpack.commands
 
+import com.github.ajalt.mordant.terminal.*
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.*
 import ktpack.*
 
-class CheckCommand : CliktCommand(
+class CheckCommand(private val term: Terminal) : CliktCommand(
     help = "Check a package for errors."
 ) {
 

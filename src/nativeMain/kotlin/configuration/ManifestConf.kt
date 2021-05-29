@@ -48,8 +48,12 @@ private fun parseToml(content: String): ManifestConf = memScoped {
         }
     }
     val keywordsArray = toml_array_in(moduleTable, "keywords")
-    val keywords = List(toml_array_nelem(keywordsArray)) {
-        checkNotNull(toml_string_at(keywordsArray, it).toKStringFromUtf8())
+    val keywords = if (keywordsArray == null) {
+        null
+    } else {
+        List(toml_array_nelem(keywordsArray)) {
+            checkNotNull(toml_string_at(keywordsArray, it).toKStringFromUtf8())
+        }
     }
 
     return ManifestConf(

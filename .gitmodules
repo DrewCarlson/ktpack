@@ -1,3 +1,9 @@
 [submodule "external/tomlc99"]
 	path = external/tomlc99
 	url = https://github.com/cktan/tomlc99.git
+[submodule "external/native-file-io"]
+	path = external/native-file-io
+	url = https://github.com/DrewCarlson/native-file-io.git
+[submodule "external/mordant"]
+	path = external/mordant
+	url = https://github.com/DrewCarlson/mordant.git

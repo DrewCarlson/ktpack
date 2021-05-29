@@ -1,10 +1,11 @@
 package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
+import com.github.ajalt.mordant.terminal.*
 import ktpack.*
 import ktpack.subprocess.*
 
-class RunCommand : CliktCommand(
+class RunCommand(private val term: Terminal) : CliktCommand(
     help = "Compile and run binary packages.",
 ) {
     override fun run() {

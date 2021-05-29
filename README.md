@@ -1,10 +1,4 @@
-***Not Ready for use!***
--
-Ktpack is built with Kotlin/Native, requiring more low level code than your average project.
-Interacting with the filesystem and starting processes is complex and OS dependent.
-Current efforts focus on providing the various low level tools across Linux, Windows, and macOS.
-
-To be clear: There is nothing to install/use at this time, but general suggestions and contributions to the previously described tasks are welcome.
+***Not ready for use!***
 
 Ktpack
 ===
