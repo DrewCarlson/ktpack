@@ -98,6 +98,6 @@ private val NEW_BIN_SOURCE =
 
 private val NEW_LIB_SOURCE =
     """|fun sayHello() {
-       |println("Hello, World!")
+       |    println("Hello, World!")
        |}
        |""".trimMargin()
