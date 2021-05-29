@@ -2,6 +2,7 @@
 
 Ktpack
 ===
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/drewcarlson/ktpack/Tests?label=Tests)
 
 Build, package, and distribute Kotlin software with ease.
 
