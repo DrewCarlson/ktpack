@@ -79,13 +79,6 @@ kotlin {
             dependencies {
                 implementation("me.archinamon:fileio")
                 implementation("com.github.ajalt.mordant:mordant")
-            }
-        }
-
-        val targets = nativeTargets.map(KotlinTarget::getName)
-        configure(targets.map { named("${it}Main").get() }) {
-            kotlin.srcDirs("src/nativeMain/kotlin")
-            dependencies {
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)
@@ -94,6 +87,11 @@ kotlin {
                 // TODO: Windows support is going to be annoying with curl...
                 //implementation(libs.ktor.client.curl)
             }
+        }
+
+        val targets = nativeTargets.map(KotlinTarget::getName)
+        configure(targets.map { named("${it}Main").get() }) {
+            kotlin.srcDirs("src/nativeMain/kotlin")
         }
     }
 }
