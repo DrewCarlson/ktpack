@@ -31,12 +31,6 @@ kotlin {
     configure(nativeTargets) {
         compilations.named("main") {
             cinterops {
-                if (this@configure.name.startsWith("linux")) {
-                    create("subprocess") {
-                        defFile("src/nativeMain/cinterop/subprocess.def")
-                    }
-                }
-
                 create("tomlc99") {
                     includeDirs("external/tomlc99")
                     defFile("src/nativeMain/cinterop/tomlc99.def")
@@ -79,6 +73,7 @@ kotlin {
             dependencies {
                 implementation("me.archinamon:fileio")
                 implementation("com.github.ajalt.mordant:mordant")
+                implementation("com.github.xfel.ksubprocess:ksubprocess")
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

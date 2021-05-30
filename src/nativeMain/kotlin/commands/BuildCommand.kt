@@ -2,15 +2,9 @@ package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
-import com.github.ajalt.mordant.rendering.TextColors.*
 import com.github.ajalt.mordant.terminal.*
 import ktpack.*
-import ktpack.subprocess.*
 import ktpack.util.*
-import me.archinamon.fileio.*
-import kotlin.math.*
-import kotlin.time.*
-import kotlin.time.DurationUnit.*
 
 class BuildCommand(private val term: Terminal) : CliktCommand(
     help = "Compile packages and dependencies.",

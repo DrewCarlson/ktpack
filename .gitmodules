@@ -7,3 +7,6 @@
 [submodule "external/mordant"]
 	path = external/mordant
 	url = https://github.com/DrewCarlson/mordant.git
+[submodule "external/ksubprocess"]
+	path = external/ksubprocess
+	url = https://github.com/DrewCarlson/ksubprocess.git

@@ -15,3 +15,10 @@ includeBuild("external/mordant") {
             .with(project(":mordant"))
     }
 }
+
+includeBuild("external/ksubprocess") {
+    dependencySubstitution {
+        substitute(module("com.github.xfel.ksubprocess:ksubprocess"))
+            .with(project(":"))
+    }
+}

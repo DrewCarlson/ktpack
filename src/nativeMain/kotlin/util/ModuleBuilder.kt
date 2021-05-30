@@ -1,9 +1,9 @@
 package ktpack.util
 
 import com.github.ajalt.mordant.terminal.*
+import com.github.xfel.ksubprocess.*
 import ktpack.commands.*
 import ktpack.configuration.*
-import ktpack.subprocess.*
 import me.archinamon.fileio.*
 
 class ModuleBuilder(
@@ -101,6 +101,37 @@ private fun compileBin(
     // kotlinc-native only: binary output path+name
     arg("-o")
     arg(outputPath)
+
+    if (releaseMode) {
+        arg("-opt") // kotlinc-native only: enable compilation optimizations
+    } else {
+        arg("-g") // kotlinc-native only: emit debug info
+    }
+}
+
+private fun compileLib(
+    sourceFiles: List<File>,
+    releaseMode: Boolean,
+    outputPath: String,
+): CommunicateResult = exec {
+    // TODO: actual kotlinc lookup and default selection behavior kotlinc/kotlinc-native
+    arg("/usr/local/bin/kotlinc-native")
+    //arg("%homepath%/.konan/kotlin-native-prebuilt-windows-1.5.10/bin/kotlinc-native.bat")
+
+    sourceFiles.forEach { file ->
+        arg(file.getAbsolutePath())
+    }
+
+    // kotlinc (jvm) only: output folder/ZIP/Jar path
+    //arg("-p")
+    //arg("path")
+
+    // kotlinc-native only: binary output path+name
+    arg("-o")
+    arg(outputPath)
+
+    arg("-p")
+    arg("library")
 
     if (releaseMode) {
         arg("-opt") // kotlinc-native only: enable compilation optimizations
