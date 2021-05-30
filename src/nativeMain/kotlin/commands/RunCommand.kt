@@ -3,8 +3,8 @@ package ktpack.commands
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.mordant.terminal.*
+import com.github.xfel.ksubprocess.*
 import ktpack.*
-import ktpack.subprocess.*
 import ktpack.util.*
 
 class RunCommand(private val term: Terminal) : CliktCommand(
