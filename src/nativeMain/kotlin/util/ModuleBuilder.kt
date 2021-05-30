@@ -1,81 +1,133 @@
 package ktpack.util
 
-import com.github.ajalt.mordant.terminal.*
 import com.github.xfel.ksubprocess.*
-import ktpack.commands.*
 import ktpack.configuration.*
 import me.archinamon.fileio.*
 
+sealed class ArtifactResult {
+    data class Success(
+        val artifactPath: String,
+        val compilationDuration: Double,
+    ) : ArtifactResult()
+
+    data class Error(
+        val message: String?,
+    ) : ArtifactResult()
+}
+
 class ModuleBuilder(
-    private val term: Terminal?,
-    private val manifest: ManifestConf,
-    private val releaseMode: Boolean,
-    private val targetBin: String?,
+    private val module: ModuleConf,
 ) {
 
-    fun build(): List<String> {
-        val module = manifest.module
-        val artifactPaths = mutableListOf<String>()
+    val srcFolder = File("src")
+    val srcFiles by lazy { srcFolder.listFiles().toList() }
+    val mainSource: File?
+        get() = srcFiles.find { it.getName() == "main.kt" }
 
-        val srcFolder = File("src")
+    val binFolder = File("src/bin")
+    val otherBins: List<File>
+        get() = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
+
+    // Collect other non-bin source files
+    val sourceFiles: List<File>
+        get() {
+            val otherBinPaths = otherBins.map(File::getAbsolutePath)
+            return srcFolder
+                .walkTopDown()
+                .filter { file ->
+                    val absolutePath = file.getAbsolutePath()
+                    file.getName().endsWith(".kt") &&
+                        absolutePath != mainSource?.getAbsolutePath() &&
+                        !otherBinPaths.contains(absolutePath)
+                }
+                .toList()
+        }
+
+    fun buildBin(releaseMode: Boolean, targetBin: String): ArtifactResult? {
         check(srcFolder.isDirectory()) { "Expected `src` file to be a directory." }
 
-        val srcFiles = srcFolder.listFiles()
-        val mainSource = srcFiles.find { it.getName() == "main.kt" }
-        val binFolder = File("src/bin")
-        val otherBins = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
-        val otherBinPaths = otherBins.map(File::getAbsolutePath)
+        val mainSource = mainSource
 
         val outDir = File("out/")
         if (!outDir.exists()) outDir.mkdirs()
 
-        // Collect other non-bin source files
-        val sourceFiles = srcFolder
-            .walkTopDown()
-            .filter { file ->
-                val absolutePath = file.getAbsolutePath()
-                file.getName().endsWith(".kt") &&
-                    absolutePath != mainSource?.getAbsolutePath() &&
-                    !otherBinPaths.contains(absolutePath)
+        val baseOutPath = "out"
+        val selectedBinFile = if (targetBin == module.name) {
+            checkNotNull(mainSource)
+        } else {
+            otherBins.find { it.nameWithoutExtension == targetBin }
+        }
+        return if (selectedBinFile == null) {
+            null
+        } else {
+            val outputPath = "$baseOutPath/${module.name}"
+            lateinit var result: CommunicateResult
+            val duration = measureSeconds {
+                result = compileBin(selectedBinFile, sourceFiles, releaseMode, outputPath)
             }
-            .toList()
-
-        term?.println("${success("Compiling")} ${module.name} v${module.version} (${srcFolder.getParent()})")
-        val compileDuration = measureSeconds {
-            val baseOutPath = "out"
-            val buildMain = targetBin.isNullOrBlank() || targetBin == module.name
-            if (mainSource?.exists() == true && buildMain) {
-                val outputPath = "$baseOutPath/${module.name}"
-                val result = compileBin(mainSource, sourceFiles, releaseMode, outputPath)
-                if (result.exitCode == 0) {
-                    artifactPaths.add("${outputPath}.kexe")
-                }
-            }
-            if (targetBin.isNullOrBlank()) {
-                otherBins
+            if (result.exitCode == 0) {
+                ArtifactResult.Success(
+                    artifactPath = "${outputPath}.kexe",
+                    compilationDuration = duration,
+                )
             } else {
-                listOfNotNull(otherBins.find { it.nameWithoutExtension == targetBin })
-            }.forEach { otherBin ->
-                val otherBinName = otherBin.nameWithoutExtension
-                val otherOutputPath = "$baseOutPath/$otherBinName"
-                val result = compileBin(otherBin, sourceFiles, releaseMode, otherOutputPath)
-                if (result.exitCode == 0) {
-                    artifactPaths.add("${otherOutputPath}.kexe")
-                }
+                ArtifactResult.Error(null)
+            }
+        }
+    }
+
+    fun buildLib(releaseMode: Boolean): List<ArtifactResult> {
+        return emptyList()
+    }
+
+    fun buildAllBins(releaseMode: Boolean): List<ArtifactResult> {
+        check(srcFolder.isDirectory()) { "Expected `src` file to be a directory." }
+
+        val mainSource = mainSource
+
+        val artifactPaths = mutableListOf<ArtifactResult>()
+
+        val outDir = File("out/")
+        if (!outDir.exists()) outDir.mkdirs()
+
+        val baseOutPath = "out"
+        if (mainSource?.exists() == true) {
+            val outputPath = "$baseOutPath/${module.name}"
+            lateinit var result: CommunicateResult
+            val duration = measureSeconds {
+                result = compileBin(mainSource, sourceFiles, releaseMode, outputPath)
+            }
+            if (result.exitCode == 0) {
+                artifactPaths.add(
+                    ArtifactResult.Success(
+                        artifactPath = "${outputPath}.kexe",
+                        compilationDuration = duration,
+                    )
+                )
+            }
+        }
+        otherBins.forEach { otherBin ->
+            val otherBinName = otherBin.nameWithoutExtension
+            val otherOutputPath = "$baseOutPath/$otherBinName"
+            lateinit var result: CommunicateResult
+            val duration = measureSeconds {
+                result = compileBin(otherBin, sourceFiles, releaseMode, otherOutputPath)
+            }
+            if (result.exitCode == 0) {
+                artifactPaths.add(
+                    ArtifactResult.Success(
+                        artifactPath = "${otherOutputPath}.kexe",
+                        compilationDuration = duration,
+                    )
+                )
             }
         }
 
-        term?.println(buildString {
-            append(success("Finished"))
-            if (releaseMode) {
-                append(" release [optimized] target(s)")
-            } else {
-                append(" dev [unoptimized + debuginfo] target(s)")
-            }
-            append(" in ${compileDuration}s")
-        })
-
         return artifactPaths.toList()
+    }
+
+    fun buildAll(releaseMode: Boolean): List<ArtifactResult> {
+        return emptyList()
     }
 }
 

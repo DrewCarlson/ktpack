@@ -20,14 +20,34 @@ class RunCommand(private val term: Terminal) : CliktCommand(
 
     override fun run() {
         val manifest = loadManifest(MANIFEST_NAME)
-        val moduleBuilder = ModuleBuilder(term, manifest, releaseMode, targetBin)
-        val artifactPath = moduleBuilder.build().firstOrNull()
-        if (artifactPath.isNullOrBlank()) {
-            term.println("${failed("Failed")} no binary to run")
-        } else {
-            term.println("${success("Running")} `$artifactPath`")
-            exec {
-                arg(artifactPath)
+        val moduleBuilder = ModuleBuilder(manifest.module)
+        val targetBin = targetBin ?: manifest.module.name
+
+        term.println(buildString {
+            append(success("Compiling"))
+            append(" ${manifest.module.name}")
+            append(" v${manifest.module.version}")
+            append(" (${moduleBuilder.srcFolder.getParent()})")
+        })
+        when (val result = moduleBuilder.buildBin(releaseMode, targetBin)) {
+            is ArtifactResult.Success -> {
+                term.println(buildString {
+                    append(success("Finished"))
+                    if (releaseMode) {
+                        append(" release [optimized] target(s)")
+                    } else {
+                        append(" dev [unoptimized + debuginfo] target(s)")
+                    }
+                    append(" in ${result.compilationDuration}s")
+                })
+                term.println("${success("Running")} `${result.artifactPath}`")
+                exec {
+                    arg(result.artifactPath)
+                }
+            }
+            is ArtifactResult.Error -> TODO()
+            null -> {
+                term.println("${failed("Failed")} no binary to run")
             }
         }
     }
