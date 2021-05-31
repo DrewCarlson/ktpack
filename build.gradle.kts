@@ -26,7 +26,7 @@ kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isLinux) linuxX64() else null,
-        //if (hostOs.isWindows) mingwX64() else null,
+        if (hostOs.isWindows) mingwX64("windowsX64") else null,
     )
     configure(nativeTargets) {
         compilations.named("main") {
@@ -51,8 +51,12 @@ kotlin {
                 compilation.kotlinOptions {
                     val libType = buildType.name.toLowerCase(ROOT)
                     val libTarget = target.name.removeSuffix("X64")
-                    val libPath = file("build/lib/main/${libType}/${libTarget}/libtomlc99.a").absolutePath
-                    freeCompilerArgs = freeCompilerArgs + listOf("-include-binary", libPath)
+                    val libRoot = "build/lib/main/${libType}/${libTarget}"
+                    val libName = if (hostOs.isWindows) "tomlc99.lib" else "libtomlc99.a"
+                    freeCompilerArgs = freeCompilerArgs + listOf(
+                        "-include-binary",
+                        file("$libRoot/$libName").absolutePath
+                    )
                 }
             }
             executable {
