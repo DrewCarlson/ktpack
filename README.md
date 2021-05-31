@@ -55,5 +55,5 @@ For Linux and macOS, there should be no extra steps.
 - Run the `ktpack[windowsX64]` target from Intellij
 
 Compiling native components with Gradle is generally unpleasant and difficult to control.
-Gradle does not allow manual selection of the C/C++ compiler and defaults to GCC if available.
-This results in library outputs that Kotlin/Native's toolchain cannot process, therefore we must disable GCC so Clang is selected.
+Gradle does not allow manual selection of the C/C++ compiler and defaults to Visual Studio or GCC if available.
+This results in library outputs that Kotlin/Native's toolchain cannot process, therefore we must disable GCC/Visual Studio so Clang is selected.
