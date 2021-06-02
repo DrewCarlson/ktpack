@@ -83,8 +83,8 @@ kotlin {
                 implementation(libs.serialization.json)
                 implementation(libs.clikt)
                 implementation(libs.ktor.client.core)
-                // TODO: Windows support is going to be annoying with curl...
-                //implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.serialization)
             }
         }
 

@@ -11,5 +11,6 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }

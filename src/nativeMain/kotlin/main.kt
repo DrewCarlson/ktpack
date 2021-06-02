@@ -2,16 +2,31 @@ package ktpack
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.mordant.terminal.*
+import io.ktor.client.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.json.serializer.*
 import kotlinx.cinterop.*
 import ktpack.commands.*
+import ktpack.commands.ktversions.*
 import ktpack.configuration.*
 import me.archinamon.fileio.*
 import kotlin.system.*
 
 const val MANIFEST_NAME = "manifest.toml"
 
+@ThreadLocal
+private val json = kotlinx.serialization.json.Json {
+    ignoreUnknownKeys = true
+    useAlternativeNames = false
+}
+
 fun main(args: Array<String>) {
     val term = Terminal()
+    val http = HttpClient {
+        Json {
+            serializer = KotlinxSerializer(json)
+        }
+    }
     KtpackCommand(term)
         .subcommands(
             CheckCommand(term),
@@ -22,6 +37,8 @@ fun main(args: Array<String>) {
             InitCommand(term),
             CleanCommand(term),
             VersionCommand(term),
+            KotlinVersionsCommand(term)
+                .subcommands(ListKotlinVersionsCommand(term, http)),
         )
         .main(args)
 }
