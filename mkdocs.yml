@@ -1,0 +1,45 @@
+site_name: ktpack
+site_url: https://github.com/drewcarlson/ktpack
+repo_url: https://github.com/drewcarlson/ktpack
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+docs_dir: docs
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+plugins:
+  - search
+  - markdownextradata: {}
+
+extra:
+  version: !ENV [KTPACK_VERSION, '0.0.1-test']
+  social:
+    - icon: fontawesome/solid/heart
+      link: https://github.com/sponsors/DrewCarlson
+    - icon: fontawesome/brands/github
+      link: https://github.com/DrewCarlson/ktpack
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Development: development.md
+  - Motivation: motivation.md

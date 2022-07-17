@@ -1,16 +1,40 @@
 [versions]
-coroutines = "1.5.0-native-mt"
-serialization = "1.2.1"
-ktor = "1.6.0"
-clikt = "3.2.0"
+kotlin = { strictly = "1.7.10" }
+dokka = "1.7.10"
+coroutines = "1.6.4"
+serialization = "1.3.3"
+ktorio = "2.0.3"
+binary_compat = "0.11.0"
+
+spotless = "6.8.0"
+ktlint = "0.46.1"
+
+[plugins]
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+binaryCompat = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary_compat" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+completeKotlin = { id = "com.louiscad.complete-kotlin", version = "1.1.0" }
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+coroutines-turbine = { module = "app.cash.turbine:turbine", version = "0.8.0" }
+
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
-ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorio" }
 
-clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorio" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktorio" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
+ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktorio" }
+
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.0.0-beta7" }
+ktfio = { module = "org.drewcarlson:ktfio", version = "0.0.1" }
+ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.3.0" }

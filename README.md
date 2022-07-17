@@ -2,21 +2,53 @@
 
 Ktpack
 ===
+![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/drewcarlson/ktpack?include_prereleases)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/drewcarlson/ktpack/Tests?label=Tests)
 
-Build, package, and distribute Kotlin software with ease.
+The simplest way to build and publish Kotlin software.
 
-### About
+---
+**[Installation](https://drewcarlson.github.io/ktpack/)** -
+**[Documentation](https://drewcarlson.github.io/ktpack/)**
+---
 
-Ktpack offers a simple path to creating multiplatform Kotlin packages, based heavily on [Cargo](https://doc.rust-lang.org/cargo/index.html).
+### Overview
 
-### Installation
+Ktpack is a build tool for [Kotlin Multiplatform](https://kotl.in/multiplatform) projects
+providing a comprehensive set of features with one configuration file:
 
-#### Linux
+- Multiple binary application outputs and library modules
+- Write tests and benchmarks inside or next to main source files
+- Automatic Kotlin, JVM, and JS toolchain management
+- Consume Maven dependencies (with custom repositories) or npm/yarn dependencies
+- Publishing Gradle/Maven compatible libraries to Maven Central or other repositories
 
-#### macOS
+### Feature Status
 
-#### Windows
+| Status             | Icon                   |
+|--------------------|------------------------|
+| Implemented        | :white_check_mark:     |
+| In Progress        | :large_blue_circle:    |
+| Planned            | :large_orange_diamond: |
+| Will Not Implement | :red_circle:           |
+
+| Name                     | State                   |
+|--------------------------|-------------------------|
+| Build Jvm Modules        | :large_blue_circle:     |
+| Build K/N Modules        | :large_blue_circle:     |
+| Build K/Js Modules       | :large_blue_circle:     |
+| Build Mpp Modules        | :large_blue_circle:     |
+| Manage K/Jvm Toolchain   | :large_blue_circle:     |
+| Manage K/N Toolchain     | :large_blue_circle:     |
+| Manage K/Js Toolchain    | :large_blue_circle:     |
+| Module test sources      | :large_blue_circle:     |
+| Module benchmark sources | :large_orange_diamond:  |
+| Consume Lib Dependency   | :large_orange_diamond:  |
+| Consume Maven Dependency | :large_orange_diamond:  |
+| Publish Maven Dependency | :large_orange_diamond:  |
+| CInterop Dependency      | :large_orange_diamond:  |
+| IDE Support              | :large_orange_diamond:  |
+| Android Support          | :red_circle:            |
 
 ### Usage
 
@@ -39,21 +71,6 @@ Commands:
   version  Show Ktpack version information.
 ```
 
-### Development
+### License
 
-Checkout with `git clone git@github.com:DrewCarlson/ktpack.git --recurse-submodules`
-
-_(ensure submodules are initialized and updated!! If unsure, run `git submodule update --init`)_
-
-For Linux and macOS, there should be no extra steps.
-
-#### Windows
-
-- Install [msys2](https://www.msys2.org/)
-- Add `C:\msys64\mingw64\bin` to the top of your `PATH` variable (restart intellij)
-- Open `MSYS2 MinGW 64-bit` and run `mv /mingw64/bin/gcc /mingw64/bin/gcc-disable`
-- Run the `ktpack[windowsX64]` target from Intellij
-
-Compiling native components with Gradle is generally unpleasant and difficult to control.
-Gradle does not allow manual selection of the C/C++ compiler and defaults to Visual Studio or GCC if available.
-This results in library outputs that Kotlin/Native's toolchain cannot process, therefore we must disable GCC/Visual Studio so Clang is selected.
+The repository uses the MIT license, see [LICENSE](LICENSE).
