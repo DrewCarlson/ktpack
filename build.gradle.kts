@@ -192,7 +192,7 @@ kotlin {
                     )
                     if (hostOs.isWindows) {
                         val base = System.getenv("RUNNER_TEMP").orEmpty().ifEmpty { "C:" }
-                        //linkerOpts("-L$base\\msys64\\mingw64\\lib")
+                        linkerOpts("-L$base\\msys64\\mingw64\\lib")
                         freeCompilerArgs = freeCompilerArgs + listOf(
                             "-include-binary", "$base\\msys64\\mingw64\\lib\\libcurl.dll.a",
                         )
