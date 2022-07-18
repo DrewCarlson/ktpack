@@ -32,23 +32,27 @@ providing a comprehensive set of features with one configuration file:
 | Planned            | :large_orange_diamond: |
 | Will Not Implement | :red_circle:           |
 
-| Name                     | State                   |
-|--------------------------|-------------------------|
-| Build Jvm Modules        | :large_blue_circle:     |
-| Build K/N Modules        | :large_blue_circle:     |
-| Build K/Js Modules       | :large_blue_circle:     |
-| Build Mpp Modules        | :large_blue_circle:     |
-| Manage K/Jvm Toolchain   | :large_blue_circle:     |
-| Manage K/N Toolchain     | :large_blue_circle:     |
-| Manage K/Js Toolchain    | :large_blue_circle:     |
-| Module test sources      | :large_blue_circle:     |
-| Module benchmark sources | :large_orange_diamond:  |
-| Consume Lib Dependency   | :large_orange_diamond:  |
-| Consume Maven Dependency | :large_orange_diamond:  |
-| Publish Maven Dependency | :large_orange_diamond:  |
-| CInterop Dependency      | :large_orange_diamond:  |
-| IDE Support              | :large_orange_diamond:  |
-| Android Support          | :red_circle:            |
+| Name                             | State                  | Details                                                           |
+|----------------------------------|------------------------|-------------------------------------------------------------------|
+| Linux, Windows, macOS Publishing | :white_check_mark:     |                                                                   |
+| Build Jvm Modules                | :large_blue_circle:    |                                                                   |
+| Build K/N Modules                | :large_blue_circle:    |                                                                   |
+| Build K/Js Modules               | :large_blue_circle:    |                                                                   |
+| Build Mpp Modules                | :large_blue_circle:    |                                                                   |
+| Manage K/Jvm Toolchain           | :large_blue_circle:    |                                                                   |
+| Manage K/N Toolchain             | :large_blue_circle:    |                                                                   |
+| Manage K/Js Toolchain            | :large_blue_circle:    |                                                                   |
+| Module test sources              | :large_blue_circle:    |                                                                   |
+| Compiler Plugin Support          | :large_orange_diamond: | Focus will be kx.serialization, jb-compose, and ksp support.      |
+| Consume Lib Dependency           | :large_orange_diamond: |                                                                   |
+| Consume Git Ktpack Libs          | :large_orange_diamond: | Add a dependency on git repos containing a ktpack lib.            |
+| Consume File Ktpack Libs         | :large_orange_diamond: | Add a dependency on http/local files with embedded config.        |
+| Consume Maven Dependency         | :large_orange_diamond: |                                                                   |
+| Publish Maven Dependency         | :large_orange_diamond: |                                                                   |
+| CInterop Dependency              | :large_orange_diamond: |                                                                   |
+| IDE Support                      | :large_orange_diamond: | IntelliJ will be the first target, but VSCode will be considered. |
+| Module benchmark sources         | :large_orange_diamond: |                                                                   |
+| Android Support                  | :red_circle:           |                                                                   |
 
 ### Usage
 
