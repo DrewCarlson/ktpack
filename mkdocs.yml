@@ -1,6 +1,9 @@
 site_name: ktpack
 site_url: https://github.com/drewcarlson/ktpack
 repo_url: https://github.com/drewcarlson/ktpack
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_description: The simplest tool for building and publishing Kotlin software.
 
 theme:
   name: material
@@ -11,8 +14,6 @@ theme:
 
 extra_css:
   - stylesheets/extra.css
-
-docs_dir: docs
 
 markdown_extensions:
   - admonition
@@ -39,7 +40,7 @@ extra:
       link: https://github.com/DrewCarlson/ktpack
 
 nav:
-  - Home: index.md
+  - index.md
   - Installation: installation.md
   - Development: development.md
   - Motivation: motivation.md

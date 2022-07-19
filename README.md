@@ -1,15 +1,25 @@
 ***Not ready for use!***
 
-Ktpack
-===
-![GitHub release (latest SemVer including pre-releases)](https://img.shields.io/github/v/release/drewcarlson/ktpack?include_prereleases)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/drewcarlson/ktpack/Tests?label=Tests)
+<p align="center">
+<img src="docs/img/cover-small.png" alt="Ktpack Logo"/>
+</p>
 
-The simplest way to build and publish Kotlin software.
+<h3 align="center">A simple tool for building and publishing Kotlin software.</h3>
+
+<p align="center">
+<img alt="MIT License" src="https://img.shields.io/github/license/drewcarlson/ktpack"/>
+<img src="https://img.shields.io/github/v/release/drewcarlson/ktpack?include_prereleases" alt="GitHub release (latest SemVer including pre-releases)"/>
+<img src="https://img.shields.io/github/workflow/status/drewcarlson/ktpack/Tests?label=Tests" alt="GitHub Test Workflow Status"/>
+</p>
 
 ---
-**[Installation](https://drewcarlson.github.io/ktpack/)** -
-**[Documentation](https://drewcarlson.github.io/ktpack/)**
+
+<p align="center">
+<a href="https://drewcarlson.github.io/ktpack/"><b>Installation</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/"><b>Documentation</b></a> -
+<a href="https://github.com/DrewCarlson/ktpack/releases/"><b>Releases</b></a>
+</p>
+
 ---
 
 ### Overview
