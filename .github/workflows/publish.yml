@@ -2,11 +2,8 @@ name: Publish Release
 
 on:
   push:
-    branches:
-      - 'main'
-      - 'drew/wip2'
-    tags:
-      - 'v*'
+    branches: [ main ]
+    tags: [ 'v*' ]
 
 env:
   REGISTRY: ghcr.io
