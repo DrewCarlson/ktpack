@@ -2,7 +2,6 @@ package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.mordant.terminal.*
-import ktpack.KtpackOptions
 
 class InitCommand(
     private val term: Terminal

@@ -2,12 +2,11 @@ package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.mordant.terminal.*
-import ktpack.KtpackOptions
 
-class TestCommand(
+class CleanCommand(
     private val term: Terminal
 ) : CliktCommand(
-    help = "Compile and run test suites.",
+    help = "Remove generated artifacts and folders.",
 ) {
     override fun run() {
         TODO("Not yet implemented")
