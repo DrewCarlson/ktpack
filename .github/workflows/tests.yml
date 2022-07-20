@@ -98,11 +98,11 @@ jobs:
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
-          report_paths: 'build/test-results/**/TEST-*.xml'
+          report_paths: 'ktpack/build/test-results/**/TEST-*.xml'
 
       - name: Archive test reports
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-reports
-          path: build/reports/tests/**/**
+          path: ktpack/build/reports/tests/**/**

@@ -29,7 +29,7 @@ jobs:
             build.gradle.kts
             gradle/libs.versions.toml
             gradle/kotlin-js-store/**
-            src/**/*.kt
+            ktpack/src/**/*.kt
       - name: Get changed files
         id: docs
         uses: tj-actions/changed-files@v23
@@ -105,7 +105,7 @@ jobs:
 
       - name: Compress and checksum
         run: |
-          mv build/bin/windowsX64/releaseExecutable/ktpack.exe ktpack
+          mv ktpack/build/bin/windowsX64/releaseExecutable/ktpack.exe ktpack
           7z a -tzip ktpack-windows-x64.zip ktpack
           checksum -f="ktpack-windows-x64.zip" -t sha256 > ktpack-windows-x64.zip.sha256
 
@@ -157,7 +157,7 @@ jobs:
 
       - name: Compress and checksum
         run: |
-          mv build/bin/linuxX64/releaseExecutable/ktpack.kexe ktpack
+          mv ktpack/build/bin/linuxX64/releaseExecutable/ktpack.kexe ktpack
           zip ktpack-linux-x64.zip ktpack
           shasum -a 256 ktpack-linux-x64.zip > ktpack-linux-x64.zip.sha256
 
@@ -204,10 +204,10 @@ jobs:
 
       - name: Compress and checksum
         run: |
-          mv build/bin/macosX64/releaseExecutable/ktpack.kexe ktpack
+          mv ktpack/build/bin/macosX64/releaseExecutable/ktpack.kexe ktpack
           zip ktpack-macos-x64.zip ktpack
           shasum -a 256 ktpack-macos-x64.zip > ktpack-macos-x64.zip.sha256
-          mv build/bin/macosArm64/releaseExecutable/ktpack.kexe ktpack
+          mv ktpack/build/bin/macosArm64/releaseExecutable/ktpack.kexe ktpack
           zip ktpack-macos-arm64.zip ktpack
           shasum -a 256 ktpack-macos-arm64.zip > ktpack-macos-arm64.zip.sha256
 

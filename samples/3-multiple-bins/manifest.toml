@@ -2,3 +2,4 @@
 name = "multiplebins"
 version = "0.1.0"
 authors = "todo"
+kotlin-version = "1.7.10"

@@ -1,0 +1,2 @@
+headers = zip.h
+package = libzip
