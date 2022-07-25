@@ -34,8 +34,7 @@ targets = [ "common_only" ]
 ```
 
 The [Manifest]() contains all the metadata required to operate a Ktpack project.
-
-`src/main.kt` contains our simple hello world program:
+In `src/main.kt` we have this program:
 
 ```kotlin
 fun main() {
@@ -57,12 +56,32 @@ To run the executable we compiled:
 $ ./out/linux_x64/debug/bin/hello_world.kexe
 Hello, world!
 ```
+_Note: the `linux_x64` directory could also be `macosx_[x64|arm64]` or `windows_x64` based on your operating system_
 
-Alternatively you can use the `ktpack run` command:
+Alternatively we can use the `ktpack run` command:
 
 ```shell
 $ ktpack run
+
 Compiling hello_world v1.0.0 (/users/developer/hello_world)
-Running '/users/developer/hello_world/hello_world.exe'
+Running 'out/linux_x64/debug/bin/hello_world.exe'
+Hello, World!
+```
+
+To build or run our program for a different target, use the `--target` or `-t` option with the `build` or `run` commands:
+
+```shell
+$ ktpack run --target jvm
+
+Compiling hello_world v1.0.0 (/users/developer/hello_world)
+Running 'out/jvm/debug/bin/hello_world.jar'
+Hello, World!
+```
+
+```shell
+$ ktpack run --target js_node
+
+Compiling hello_world v1.0.0 (/users/developer/hello_world)
+Running 'out/js_node/debug/bin/hello_world.js'
 Hello, World!
 ```

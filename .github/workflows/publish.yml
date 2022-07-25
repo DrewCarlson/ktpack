@@ -35,7 +35,7 @@ jobs:
         uses: tj-actions/changed-files@v23
         with:
           files: |
-            docs/**/**/*.md
+            docs/**/*.md
             mkdocs.yml
 
   publish-docs:
