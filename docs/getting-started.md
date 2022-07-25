@@ -1,7 +1,7 @@
 This page provides a brief intro to the `ktpack` command line tool.
 We will create a new project, build the source code, and run the compiled program.
 
-Create a new project with `new` command:
+Create a new project with the `new` command:
 
 ```shell
 $ ktpack new hello_world
@@ -9,6 +9,7 @@ $ ktpack new hello_world
 
 By default, the `--bin` flag is used to create a binary program.
 Alternatively the `--lib` flag can be used to create a library.
+The command generated two files:
 
 ```
 $ cd hello_world
@@ -42,7 +43,7 @@ fun main() {
 }
 ```
 
-Cargo generated this program which can be compiled into a runnable binary:
+The source file can be compiled into a binary with the `ktpack build` command:
 
 ```shell
 $ ktpack build

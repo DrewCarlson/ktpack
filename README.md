@@ -45,10 +45,7 @@ providing a comprehensive set of features with one configuration file:
 | Name                              | State                  | Details                                                           |
 |-----------------------------------|------------------------|-------------------------------------------------------------------|
 | Publish Linux, Windows, macOS CLI | :white_check_mark:     |                                                                   |
-| Build basic Jvm Modules           | :large_blue_circle:    |                                                                   |
-| Build basic K/N Modules           | :large_blue_circle:    |                                                                   |
-| Build basic K/Js Modules          | :large_blue_circle:    |                                                                   |
-| Build basic Mpp Modules           | :large_blue_circle:    |                                                                   |
+| Build basic Jvm/native/js Modules | :white_check_mark:     |                                                                   |
 | Manage K/Jvm Toolchain            | :large_blue_circle:    |                                                                   |
 | Manage K/N Toolchain              | :large_blue_circle:    |                                                                   |
 | Manage K/Js Toolchain             | :large_blue_circle:    |                                                                   |
