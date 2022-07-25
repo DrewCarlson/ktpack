@@ -1,3 +1,3 @@
 fun main() {
-    println("Hallo, Welt!")
+    println("Hallo, Welt! ${addInts(3, 7)}")
 }

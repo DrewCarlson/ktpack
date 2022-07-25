@@ -9,25 +9,33 @@ import ktpack.util.ModuleBuilder
 class CompileModuleTask(
     /** The module to compile. */
     private val moduleConf: ModuleConf,
-    /** The list of targets to compile. */
-    // private val targetList: List<Target>,
-    /** The bin/lib target name. */
-    private val target: String,
+    /** The target to compile for. */
+    private val target: Target,
+    /** The bin/lib name to compile. */
+    private val artifactName: String,
     /** Is building in release mode. */
     private val releaseMode: Boolean,
 ) : BaseTask() {
-    override val name: String = "Compile Kotlin"
+    override val name: String = buildString {
+        append("compileKotlin")
+        append(moduleConf.name.asTaskPart())
+        append(artifactName.asTaskPart())
+        append(if (releaseMode) "Release" else "Debug")
+    }
     override val description: String = "Pass source files to the Kotlin compiler and return the output."
 
     init {
         doFirst {
-            val moduleBuilder = ModuleBuilder(moduleConf, debug = true)
-            when (val result = moduleBuilder.buildBin(releaseMode, target, Target.MACOS_ARM64)) {
+            /*val moduleBuilder = ModuleBuilder(moduleConf, )
+            when (val result = moduleBuilder.buildBin(releaseMode, artifactName, target)) {
                 is ArtifactResult.Success -> {
                 }
+
                 is ArtifactResult.ProcessError -> TODO()
                 ArtifactResult.NoArtifactFound -> TODO()
-            }
+            }*/
         }
     }
 }
+
+fun String.asTaskPart(): String = lowercase().replaceFirstChar(Char::uppercase)

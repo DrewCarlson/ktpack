@@ -4,8 +4,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
 import ksubprocess.*
 import ktfio.*
+import ktpack.CliContext
 import ktpack.Ktpack
-import ktpack.commands.ktversions.KotlincInstalls
+import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.*
 
 sealed class ArtifactResult {
@@ -13,6 +14,7 @@ sealed class ArtifactResult {
         val artifactPath: String,
         val compilationDuration: Double,
         val outputText: String,
+        val target: Target,
     ) : ArtifactResult()
 
     data class ProcessError(
@@ -26,32 +28,24 @@ sealed class ArtifactResult {
 // https://kotlinlang.org/docs/compiler-reference.html
 class ModuleBuilder(
     private val module: ModuleConf,
-    private val debug: Boolean,
+    private val context: CliContext,
 ) {
 
     val srcFolder = File("src")
-    val srcFiles by lazy { srcFolder.listFiles().toList() }
-    val mainSource: File?
-        get() = srcFiles.find { it.getName() == "main.kt" }
+    private val binFolder = srcFolder.nestedFile("bin")
+    private val mainSource: File? = srcFolder.nestedFile("main.kt").takeIf(File::exists)
 
-    val binFolder = File("src${filePathSeparator}bin")
-    val otherBins: List<File>
+    private val otherBins: List<File>
         get() = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
 
     // Collect other non-bin source files
-    val sourceFiles: List<File>
-        get() {
-            val otherBinPaths = otherBins.map(File::getAbsolutePath)
-            return srcFolder
-                .walkTopDown()
-                .filter { file ->
-                    val absolutePath = file.getAbsolutePath()
-                    file.getName().endsWith(".kt") &&
-                            absolutePath != mainSource?.getAbsolutePath() &&
-                            !otherBinPaths.contains(absolutePath)
-                }
-                .toList()
-        }
+    private val sourceFiles: List<File> by lazy {
+        srcFolder
+            .walkTopDown()
+            .onEnter { it != binFolder }
+            .filter { file -> file.getName().endsWith(".kt") && file != mainSource }
+            .toList()
+    }
 
     suspend fun buildBin(
         releaseMode: Boolean,
@@ -62,21 +56,22 @@ class ModuleBuilder(
 
         val mainSource = mainSource
 
-        val outDir = File("out")
-        if (!outDir.exists()) outDir.mkdirs()
-
         val selectedBinFile = if (binName == module.name) {
-            checkNotNull(mainSource)
+            mainSource
         } else {
             otherBins.find { it.nameWithoutExtension == binName }
         } ?: return@Default ArtifactResult.NoArtifactFound
-        val outputPath = listOf(outDir.getAbsolutePath(), target.name.lowercase(), module.name)
-            .joinToString(filePathSeparator.toString())
+
+        val modeString = if (releaseMode) "release" else "debug"
+        val targetBinDir = File("out", target.name.lowercase(), modeString, "bin")
+        if (!targetBinDir.exists()) targetBinDir.mkdirs()
+        val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
         val (result, duration) = measureSeconds {
             startKotlinCompiler(selectedBinFile, sourceFiles, releaseMode, outputPath, target, true)
         }
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
+                target = target,
                 artifactPath = "$outputPath.${getExeExtension(target)}",
                 compilationDuration = duration,
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
@@ -92,19 +87,22 @@ class ModuleBuilder(
     ): ArtifactResult = Dispatchers.Default {
         check(srcFolder.isDirectory()) { "Expected `src` file to be a directory." }
 
-        val outDir = File("out")
-        if (!outDir.exists()) outDir.mkdirs()
-
         val libNames = listOf(module.name, "lib")
         val selectedBinFile = sourceFiles.firstOrNull { libNames.contains(it.nameWithoutExtension) }
             ?: return@Default ArtifactResult.NoArtifactFound
-        val outputPath = listOf(outDir.getAbsolutePath(), target.name.lowercase(), module.name)
+
+        val modeString = if (releaseMode) "release" else "debug"
+        val targetLibDir = File("out", target.name.lowercase(), modeString, "lib")
+        if (!targetLibDir.exists()) targetLibDir.mkdirs()
+
+        val outputPath = listOf(targetLibDir.getAbsolutePath(), target.name.lowercase(), module.name)
             .joinToString(filePathSeparator.toString())
         val (result, duration) = measureSeconds {
             startKotlinCompiler(selectedBinFile, sourceFiles, releaseMode, outputPath, target, false)
         }
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
+                target = target,
                 artifactPath = "$outputPath.${getExeExtension(target)}",
                 compilationDuration = duration,
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
@@ -122,10 +120,13 @@ class ModuleBuilder(
         val artifactPaths = mutableListOf<ArtifactResult>()
 
         val outDir = File("out")
-        if (!outDir.exists()) outDir.mkdirs()
+        if (!outDir.exists()) {
+            // TODO: Return error if mkdirs fails
+            outDir.mkdirs()
+        }
 
         if (mainSource?.exists() == true) {
-            artifactPaths.add(buildBin(releaseMode, target.name.lowercase(), target))
+            artifactPaths.add(buildBin(releaseMode, module.name, target))
         }
         otherBins.forEach { otherBin ->
             artifactPaths.add(buildBin(releaseMode, otherBin.nameWithoutExtension, target))
@@ -145,6 +146,7 @@ class ModuleBuilder(
             Target.WINDOWS_X64 -> "exe"
             Target.JS_NODE,
             Target.JS_BROWSER -> "js"
+
             Target.MACOS_ARM64,
             Target.MACOS_X64,
             Target.LINUX_X64 -> "kexe"
@@ -162,11 +164,12 @@ class ModuleBuilder(
         val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
 
         when (target) {
+            Target.COMMON_ONLY -> throw IllegalArgumentException("COMMON_ONLY is not a supported compile target.")
             Target.JVM -> {
                 val targetOutPath = "${outputPath}.${getExeExtension(target)}"
                 arg(KotlincInstalls.findKotlincJvm(kotlinVersion))
 
-                args("-d", targetOutPath) //  output folder/ZIP/Jar path
+                args("-d", targetOutPath) // output folder/ZIP/Jar path
 
                 // arg("-Xjdk-release=$version")
                 // args("-jvm-target", "1.8")
@@ -174,13 +177,13 @@ class ModuleBuilder(
                 // args("-jdk-home", "")
                 // args("-classpath", "") // entries separated by ; on Windows and : on macOS/Linux
             }
+
             Target.JS_NODE, Target.JS_BROWSER -> {
                 val targetOutPath = "${outputPath}.${getExeExtension(target)}"
                 arg(KotlincInstalls.findKotlincJs(kotlinVersion))
 
                 args("-output", targetOutPath) // output js file
-
-                args("-main", "call") // or noCall
+                args("-main", if (isBinary) "call" else "noCall")
 
                 if (!isBinary) {
                     arg("-meta-info")
@@ -192,7 +195,7 @@ class ModuleBuilder(
 
                 args("-module-kind", "umd") // umd|commonjs|amd|plain
             }
-            Target.COMMON_ONLY -> throw IllegalArgumentException("COMMON_ONLY is not a supported compile target.")
+
             Target.MACOS_ARM64,
             Target.MACOS_X64,
             Target.WINDOWS_X64,
@@ -256,8 +259,14 @@ class ModuleBuilder(
 
         arg("-Xmulti-platform")
 
+        //arg("-Xplugin=\$KOTLIN_HOME/lib/kotlinx-serialization-compiler-plugin.jar")
+
         // args("-kotlin-home", path)
         // args("-opt-in", <class>)
-        println(arguments.joinToString(" "))
+
+        if (context.debug) {
+            println("Launching Kotlin compiler: ")
+            println(arguments.joinToString(" "))
+        }
     }
 }

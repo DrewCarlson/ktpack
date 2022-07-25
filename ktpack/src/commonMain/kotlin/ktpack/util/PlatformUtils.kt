@@ -15,16 +15,12 @@ val EXE_EXTENSION by lazy {
 }
 
 @SharedImmutable
-val USER_HOME by lazy {
-    checkNotNull(getHomePath()) {
-        "Failed to find user home path."
-    }
+val USER_HOME = checkNotNull(getHomePath()) {
+    "Failed to find user home path."
 }
 
 @SharedImmutable
-val KONAN_ROOT by lazy {
-    "${USER_HOME}$filePathSeparator.konan"
-}
+val KONAN_ROOT = "${USER_HOME}$filePathSeparator.konan"
 
 @SharedImmutable
 val ARCH by lazy {

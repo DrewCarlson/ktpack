@@ -64,27 +64,6 @@ providing a comprehensive set of features with one configuration file:
 | Module benchmark sources          | :large_orange_diamond: |                                                                   |
 | Android Support                   | :red_circle:           |                                                                   |
 
-### Usage
-
-```
-Usage: ktpack [OPTIONS] COMMAND [ARGS]...
-
-  Build, package, and distribute Kotlin software with ease.
-
-Options:
-  -h, --help  Show this message and exit
-
-Commands:
-  check    Check a package for errors.
-  build    Compile packages and dependencies.
-  run      Compile and run binary packages.
-  test     Compile and run test suites.
-  new      Create a new package.
-  init     Create a new package in an existing directory.
-  clean    Remove generated artifacts and folders.
-  version  Show Ktpack version information.
-```
-
 ### License
 
 The repository uses the MIT license, see [LICENSE](LICENSE).

@@ -1,8 +1,8 @@
-package ktpack.commands.ktversions
+package ktpack.commands.kotlin
 
 import com.github.ajalt.clikt.core.*
 
-class InstallKotlinVersionsCommand : CliktCommand(
+class InstallKotlinCommand : CliktCommand(
     name = "install",
     help = "Install a new Kotlin Compiler version.",
 ) {

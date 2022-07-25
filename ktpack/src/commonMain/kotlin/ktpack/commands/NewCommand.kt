@@ -8,7 +8,8 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.terminal.*
 import ktfio.*
 import ktpack.Ktpack
-import ktpack.KtpackContext
+import ktpack.CliContext
+import ktpack.MANIFEST_NAME
 import ktpack.configuration.ManifestConf
 import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
@@ -88,7 +89,7 @@ class NewCommand : CliktCommand(
     private val repository by option("--repository")
         .help("Module version control repository location")
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     // Splits `name = bob` into 1:name and 2:bob
     private val gitconfigRegex = """^\s*([A-Za-z]*)\s?=\s?(.*)$""".toRegex()
@@ -98,7 +99,7 @@ class NewCommand : CliktCommand(
         checkDirDoesNotExist(targetDir)
         checkMakeDir(targetDir)
 
-        val manifest = File("${targetDir.getAbsolutePath()}/manifest.toml")
+        val manifest = targetDir.nestedFile(MANIFEST_NAME)
         val conf = generateManifestConf()
         if (manifest.createNewFile()) {
             manifest.writeText(newManifestSource(conf))

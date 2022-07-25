@@ -6,8 +6,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
 import ktfio.File
 import ktfio.deleteRecursively
-import ktfio.filePathSeparator
-import ktpack.KtpackContext
+import ktpack.CliContext
 import ktpack.configuration.Target
 import ktpack.util.failed
 import ktpack.util.success
@@ -17,20 +16,20 @@ class CleanCommand : CliktCommand(
     help = "Remove generated artifacts and folders.",
 ) {
 
-    private val targetPlatform by option("--target")
+    private val userTarget by option("--target", "-t")
         .help("The target platform to clean.")
         .enum<Target>()
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     override fun run() {
-        val targetPlatform = targetPlatform
-        val outDir = if (targetPlatform == null) {
+        val userTarget = userTarget
+        val outDir = if (userTarget == null) {
             File("out")
         } else {
-            File("out${filePathSeparator}$targetPlatform")
+            File("out", userTarget.name.lowercase())
         }
-        tryDeleteDirectory(outDir, targetPlatform)
+        tryDeleteDirectory(outDir, userTarget)
     }
 
     private fun tryDeleteDirectory(outDir: File, target: Target?) {

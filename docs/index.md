@@ -14,6 +14,7 @@
 
 <p align="center">
 <a href="https://drewcarlson.github.io/ktpack/"><b>Installation</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/"><b>Getting Started</b></a> -
 <a href="https://drewcarlson.github.io/ktpack/"><b>Documentation</b></a> -
 <a href="https://github.com/DrewCarlson/ktpack/releases/"><b>Releases</b></a>
 </p>

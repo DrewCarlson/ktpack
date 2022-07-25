@@ -1,4 +1,4 @@
-package ktpack.commands.ktversions
+package ktpack.commands.kotlin
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
@@ -9,8 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import ktpack.KtpackContext
+import ktpack.CliContext
 import ktpack.util.*
 import kotlin.system.*
 
@@ -18,7 +17,7 @@ private enum class Channel {
     RELEASE, RC, EAP, ALL
 }
 
-class FindKotlinVersionsCommand : CliktCommand(
+class FindKotlinCommand : CliktCommand(
     name = "find",
     help = "Find available Kotlin compiler versions.",
 ) {
@@ -28,7 +27,7 @@ class FindKotlinVersionsCommand : CliktCommand(
         .enum<Channel> { it.name.lowercase() }
         .default(Channel.RELEASE)
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     override fun run(): Unit = runBlocking {
         val releases = try {
@@ -71,18 +70,3 @@ private fun List<GhRelease>.filterBy(channel: Channel) = filter { release ->
 private suspend fun HttpClient.getCompilerReleases(): List<GhRelease> {
     return get("https://api.github.com/repos/Jetbrains/kotlin/releases").body()
 }
-
-@Serializable
-private data class GhRelease(
-    @SerialName("tag_name")
-    val tagName: String,
-    val assets: List<GhAsset>,
-)
-
-@Serializable
-private data class GhAsset(
-    val name: String,
-    val size: Long,
-    @SerialName("browser_download_url")
-    val downloadUrl: String,
-)

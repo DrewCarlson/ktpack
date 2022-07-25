@@ -42,5 +42,6 @@ extra:
 nav:
   - index.md
   - Installation: installation.md
+  - Getting Started: getting-started.md
   - Development: development.md
   - Motivation: motivation.md

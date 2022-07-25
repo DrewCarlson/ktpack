@@ -1,9 +1,9 @@
-package ktpack.commands.jdkversions
+package ktpack.commands.jdk
 
 import com.github.ajalt.clikt.core.*
 
-class JdkVersionsCommand : CliktCommand(
-    name = "jdk-versions",
+class JdkCommand : CliktCommand(
+    name = "jdk",
     help = "Install and manage JDK versions.",
 ) {
 

@@ -2,13 +2,15 @@ package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.*
+import com.github.ajalt.clikt.parameters.options.help
 import ktpack.*
 
 class CheckCommand : CliktCommand(
     help = "Check a package for errors."
 ) {
 
-    private val filePath by argument("file", help = "The manifest file to validate.")
+    private val filePath by argument("file")
+        .help("The manifest file to validate.")
         .default(MANIFEST_NAME)
 
     override fun run() {

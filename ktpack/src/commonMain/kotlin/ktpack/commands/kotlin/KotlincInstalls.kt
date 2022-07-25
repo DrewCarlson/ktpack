@@ -1,4 +1,4 @@
-package ktpack.commands.ktversions
+package ktpack.commands.kotlin
 
 import ktfio.filePathSeparator
 import ktpack.util.ARCH

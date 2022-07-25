@@ -1,9 +1,9 @@
-package ktpack.commands.ktversions
+package ktpack.commands.kotlin
 
 import com.github.ajalt.clikt.core.*
 
-class KotlinVersionsCommand : CliktCommand(
-    name = "kotlin-versions",
+class KotlinCommand : CliktCommand(
+    name = "kotlin",
     help = "Install and manage Kotlin Compiler versions.",
 ) {
 

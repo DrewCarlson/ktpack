@@ -1,49 +1,45 @@
-package ktpack.commands.jdkversions
+package ktpack.commands.jdk
 
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.arguments.help
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
 import ktfio.File
 import ktfio.deleteRecursively
-import ktfio.filePathSeparator
-import ktpack.KtpackContext
+import ktpack.CliContext
 import ktpack.util.*
 
-class RemoveJdkVersionsCommand : CliktCommand(
+class RemoveJdkCommand : CliktCommand(
     name = "remove",
     help = "Remove an existing JDK version.",
 ) {
 
-    private val version by argument(
-        help = "The Jdk version to remove, can be a partial version string."
-    )
+    private val version by argument()
+        .help("The JDK version to remove, can be a partial version string.")
 
-    private val distribution by option(
-        help = "The Jdk distribution to remove."
-    ).enum<JdkDistribution>()
+    private val distribution by option("--distribution", "-d")
+        .help("The JDK distribution to remove.")
+        .enum<JdkDistribution>()
 
-    private val path by option(
-        help = "The folder path where JDKs are stored."
-    ).convert { File(it) }
-        .default(File("$USER_HOME$filePathSeparator.jdks"))
+    private val path by option()
+        .help("The folder path where JDKs are stored.")
+        .convert { File(it) }
+        .defaultLazy { JdkInstalls.defaultJdksRoot }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     override fun run() {
         // Find all JDKs in the selected path
         val installs = JdkInstalls.discover(path)
         if (installs.isEmpty()) {
-            context.term.println("${failed("Failed")} No existing JDKs found in '${path}'")
+            context.term.println("${failed("Failed")} No existing JDKs found in '$path'")
             return
         }
 
@@ -94,7 +90,7 @@ class RemoveJdkVersionsCommand : CliktCommand(
     }
 
     private fun userSelectInstall(matches: List<InstallationDetails>): InstallationDetails? {
-        context.term.println("Found ${info(matches.size.toString())} similar JDK installss :")
+        context.term.println("Found ${info(matches.size.toString())} similar JDK installs:")
         context.term.printJdkSelectionTable(matches)
         context.term.println()
         val index = prompt("Enter install id or cancel with any other value")?.toIntOrNull()

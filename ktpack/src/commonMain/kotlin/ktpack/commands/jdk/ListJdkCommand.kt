@@ -1,35 +1,25 @@
-package ktpack.commands.jdkversions
+package ktpack.commands.jdk
 
 import com.github.ajalt.clikt.core.*
-import com.github.ajalt.clikt.parameters.options.convert
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.validate
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.mordant.rendering.OverflowWrap
-import com.github.ajalt.mordant.rendering.TextAlign
-import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.grid
-import com.github.ajalt.mordant.table.table
 import kotlinx.coroutines.*
 import ktfio.File
-import ktfio.filePathSeparator
-import ktpack.KtpackContext
-import ktpack.util.USER_HOME
+import ktpack.CliContext
 import ktpack.util.info
-import ktpack.util.success
-import ktpack.util.title
 
-class ListJdkVersionsCommand : CliktCommand(
+class ListJdkCommand : CliktCommand(
     name = "list",
-    help = "List installed Jdk versions.",
+    help = "List installed JDK versions.",
 ) {
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
-    private val path by option(
-        help = "The folder path where Jdk installs are located."
-    ).convert { File(it) }
-        .default(File("${USER_HOME}$filePathSeparator.jdks"))
+    private val path by option()
+        .help("The folder path where JDK installs are located.")
+        .convert { File(it) }
+        .defaultLazy { JdkInstalls.defaultJdksRoot }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }

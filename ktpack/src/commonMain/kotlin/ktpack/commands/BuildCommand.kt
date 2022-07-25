@@ -3,19 +3,18 @@ package ktpack.commands
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.invoke
+import com.github.ajalt.mordant.rendering.TextColors.cyan
 import kotlinx.coroutines.runBlocking
 import ktpack.*
+import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
-import ktpack.tasks.CompileModuleTask
 import ktpack.util.*
 import kotlin.system.*
 
 class BuildCommand : CliktCommand(
     help = "Compile packages and dependencies.",
 ) {
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     private val releaseMode by option("--release")
         .help("Build artifacts in release mode, with optimizations")
@@ -32,14 +31,18 @@ class BuildCommand : CliktCommand(
         .help("Build all binaries")
         .flag(default = false)
 
-    private val targetPlatform by option("--target")
+    private val userTarget by option("--target", "-t")
         .help("The target platform to build for.")
         .enum<Target>()
+
+    private val allTargets by option("--all-targets", "-a")
+        .help("Build all targets supported by this host.")
+        .flag()
 
     override fun run() = runBlocking {
         val manifest = loadManifest(MANIFEST_NAME)
         val module = manifest.module
-        val moduleBuilder = ModuleBuilder(module, context.debug)
+        val moduleBuilder = ModuleBuilder(module, context)
 
         context.term.println(
             buildString {
@@ -60,64 +63,46 @@ class BuildCommand : CliktCommand(
             else -> error("Unsupported host operating system")
         }
 
-        val target = if (module.targets.size == 1 || module.targets.contains(Target.COMMON_ONLY)) {
+        val targetBuildList = if (allTargets) {
             if (module.targets.contains(Target.COMMON_ONLY)) {
-                targetPlatform ?: hostTarget
+                getHostSupportedTargets()
             } else {
-                // Make sure we're selecting when the user wants
-                val target = module.targets.first()
-                if (targetPlatform != null && target != targetPlatform) {
-                    context.term.println("${failed("Error")} Selected target '$targetPlatform' but only '$target' is defined")
-                    return@runBlocking
-                }
-                target
+                getHostSupportedTargets().filter(module.targets::contains)
             }
-        } else if (targetPlatform == null) {
-            context.term.println("${failed("Error")} Selected target '$targetPlatform' but can only build for '$hostTarget'")
-            return@runBlocking
-        } else if (module.targets.contains(targetPlatform)) {
-            checkNotNull(targetPlatform)
         } else {
-            context.term.println("${failed("Error")} Selected target '$targetPlatform' but choices are '${module.targets.joinToString()}'")
-            return@runBlocking
+            listOf(module.validateTargetOrAlternative(context, hostTarget, userTarget) ?: return@runBlocking)
         }
-
-        val results = Dispatchers.Default {
-            when {
-                libOnly -> listOf(moduleBuilder.buildLib(releaseMode, target))
-                binsOnly -> moduleBuilder.buildAllBins(releaseMode, target)
-                !targetBin.isNullOrBlank() -> {
-                    context.taskRunner.addTask(
-                        CompileModuleTask(
-                            moduleConf = module,
-                            target = checkNotNull(targetBin),
-                            releaseMode = releaseMode,
-                        )
-                    )
-
-                    listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
+        context.term.println("${info("Building")} for ${targetBuildList.joinToString { verbose(it.name.lowercase()) }}")
+        val results: List<ArtifactResult> =
+            targetBuildList
+                .flatMap { target ->
+                    context.term.println("${info("Building")} Starting compilation for ${verbose(target.name.lowercase())}")
+                    when {
+                        !targetBin.isNullOrBlank() -> listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
+                        libOnly -> listOf(moduleBuilder.buildLib(releaseMode, target))
+                        binsOnly -> moduleBuilder.buildAllBins(releaseMode, target)
+                        else -> moduleBuilder.buildAll(releaseMode, target)
+                    }.onEach { artifact ->
+                        when (artifact) {
+                            is ArtifactResult.Success -> logArtifactSuccess(artifact)
+                            is ArtifactResult.ProcessError -> {
+                                logArtifactError(artifact)
+                                exitProcess(-1)
+                            }
+                            ArtifactResult.NoArtifactFound -> Unit // Ignore, handle when all artifacts a resolved
+                        }
+                    }
                 }
-                else -> moduleBuilder.buildAll(releaseMode, target)
-            }
-        }
+                .toList()
 
-        val failedResults = results.filterIsInstance<ArtifactResult.ProcessError>()
-        if (failedResults.isNotEmpty()) {
-            context.term.println(
-                buildString {
-                    append(failed("Failed"))
-                    append(" failed to compile selected target(s)")
-                    appendLine()
-                    failedResults.map { it.message }.forEach(::appendLine)
-                }
-            )
-            exitProcess(-1)
-        } else if (results.contains(ArtifactResult.NoArtifactFound)) {
+        if (results.all { it == ArtifactResult.NoArtifactFound }) {
             context.term.println("${failed("Failed")} Could not find artifact to build")
             return@runBlocking
         }
 
-        val totalDuration = results.sumOf { (it as ArtifactResult.Success).compilationDuration }
+        val totalDuration = results
+            .filterIsInstance<ArtifactResult.Success>()
+            .sumOf { it.compilationDuration }
 
         context.term.println(
             buildString {
@@ -130,5 +115,85 @@ class BuildCommand : CliktCommand(
                 append(" in ${totalDuration}s")
             }
         )
+    }
+
+    private fun logArtifactError(artifact: ArtifactResult.ProcessError) {
+        context.term.println(
+            buildString {
+                append(failed("Failed"))
+                append(" failed to compile selected target(s)")
+                appendLine()
+                artifact.message?.lines()?.forEach(::appendLine)
+            }
+        )
+    }
+
+    private fun logArtifactSuccess(artifact: ArtifactResult.Success) {
+        context.term.println(
+            buildString {
+                append(cyan("Building"))
+                append(" Completed build for ")
+                append(verbose(artifact.target.name.lowercase()))
+                append(" in ${artifact.compilationDuration}s")
+            }
+        )
+    }
+
+    /**
+     * Produce a list of [Target]s that are supported as build
+     * targets for the host system.
+     */
+    private fun getHostSupportedTargets() = Target.values().filter { target ->
+        when (target) {
+            Target.COMMON_ONLY -> false
+            Target.JVM,
+            Target.JS_NODE,
+            Target.JS_BROWSER -> true
+
+            Target.MACOS_ARM64,
+            Target.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
+
+            Target.WINDOWS_X64 -> Platform.osFamily == OsFamily.WINDOWS ||
+                    Platform.osFamily == OsFamily.MACOSX
+
+            Target.LINUX_X64 -> Platform.osFamily == OsFamily.LINUX ||
+                    Platform.osFamily == OsFamily.MACOSX ||
+                    Platform.osFamily == OsFamily.WINDOWS
+        }
+    }
+}
+
+/**
+ * Given a non-null [requestedTarget], ensure that [hostTarget]
+ * supports building for the target or return null.  When no
+ * target is requested ([requestedTarget] is null), return a
+ * target supported by [hostTarget] or null.
+ */
+fun ModuleConf.validateTargetOrAlternative(
+    context: CliContext,
+    hostTarget: Target,
+    requestedTarget: Target?,
+): Target? {
+    return if (targets.size == 1 || targets.contains(Target.COMMON_ONLY)) {
+        if (targets.contains(Target.COMMON_ONLY)) {
+            requestedTarget ?: hostTarget
+        } else {
+            // Make sure we're selecting when the user wants
+            val target = targets.first()
+            if (requestedTarget != null && target != requestedTarget) {
+                context.term.println("${failed("Error")} Selected target '$requestedTarget' but only '$target' is defined")
+                null
+            } else {
+                target
+            }
+        }
+    } else if (requestedTarget == null) {
+        context.term.println("${failed("Error")} Selected target '$requestedTarget' but can only build for '$hostTarget'")
+        null
+    } else if (targets.contains(requestedTarget)) {
+        requestedTarget
+    } else {
+        context.term.println("${failed("Error")} Selected target '$requestedTarget' but choices are '${targets.joinToString()}'")
+        null
     }
 }

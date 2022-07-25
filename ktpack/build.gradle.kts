@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.konan.target.Family
 import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.Locale.*
+import java.io.ByteArrayOutputStream
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -24,7 +25,7 @@ val testGenSrcPath = "build/ktgen/config"
 
 val installTestConfig by tasks.creating {
     val configFile = file("${testGenSrcPath}/config.kt")
-    onlyIf { !configFile.exists() }
+    onlyIf { !configFile.exists() || gradle.startParameter.taskNames.contains("publish") }
     doFirst {
         file(testGenSrcPath).mkdirs()
         if (!configFile.exists()) {
@@ -49,10 +50,7 @@ val installTestConfig by tasks.creating {
                 import ktfio.File
                 val KTPACK = File("${buildDir.resolve("bin/${target}/debugExecutable/ktpack.$extension").absolutePath}")
                 fun getSample(vararg name: String): File {
-                    return File(
-                        (listOf("${file("samples").absolutePath}") + name)
-                            .joinToString("${File.separator}")
-                    )
+                    return File("${file("samples").absolutePath}", name)
                 }
                 fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
                 """.trimIndent().replace("\\", "\\\\")
@@ -66,19 +64,30 @@ val buildRuntimeConstants by tasks.creating {
     onlyIf { !constantsFile.exists() }
     doFirst {
         file(mainGenSrcPath).mkdirs()
+        val git = if (hostOs.isWindows) "git.exe" else "git"
+        val sha = ByteArrayOutputStream().also { out ->
+            exec {
+                commandLine(git, "rev-parse", "HEAD")
+                standardOutput = out
+            }.assertNormalExitValue()
+        }.toString(Charsets.UTF_8).trim()
+        val isDirty = exec {
+            commandLine(git, "diff", "--quiet")
+            isIgnoreExitValue = true
+        }.exitValue == 1
         constantsFile.writeText(
-            """
-            package ktpack
-            
-            object Ktpack {
-                const val VERSION = "$version"
-                const val KOTLIN_VERSION = "${libs.versions.kotlin.get()}"
-                const val KTOR_VERSION = "${libs.versions.ktorio.get()}"
-                const val COROUTINES_VERSION = "${libs.versions.coroutines.get()}"
-                const val SERIALIZATION_VERSION = "${libs.versions.serialization.get()}"
-                const val BUILD_DATE = "${OffsetDateTime.now(Clock.systemUTC())}"
-            }
-            """.trimIndent()
+            """|package ktpack
+               |
+               |object Ktpack {
+               |    const val VERSION = "$version"
+               |    const val BUILD_SHA = "$sha${if (isDirty) "-dirty" else ""}"
+               |    const val BUILD_DATE = "${OffsetDateTime.now(Clock.systemUTC())}"
+               |    const val KOTLIN_VERSION = "${libs.versions.kotlin.get()}"
+               |    const val KTOR_VERSION = "${libs.versions.ktorio.get()}"
+               |    const val COROUTINES_VERSION = "${libs.versions.coroutines.get()}"
+               |    const val SERIALIZATION_VERSION = "${libs.versions.serialization.get()}"
+               |}
+               |""".trimMargin()
         )
     }
 }
@@ -164,7 +173,8 @@ kotlin {
                 val libLinks = compilation.cinterops.map { it.name }
                     .flatMap { lib ->
                         val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                        val filePath = rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName").absolutePath
+                        val filePath =
+                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName").absolutePath
                         listOf("-include-binary", filePath)
                     }
                 compilation.apply {

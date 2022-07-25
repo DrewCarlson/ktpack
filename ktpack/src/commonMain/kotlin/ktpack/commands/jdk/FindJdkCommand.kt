@@ -1,17 +1,15 @@
-package ktpack.commands.jdkversions
+package ktpack.commands.jdk
 
 import com.github.ajalt.clikt.core.*
-import com.github.ajalt.mordant.terminal.*
-import io.ktor.client.*
 import kotlinx.coroutines.*
-import ktpack.KtpackContext
+import ktpack.CliContext
 
-class FindJdkVersionsCommand : CliktCommand(
+class FindJdkCommand : CliktCommand(
     name = "find",
-    help = "Find Jdk versions to add.",
+    help = "Find JDK versions to add.",
 ) {
 
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     override fun run(): Unit = runBlocking {
         /*val releases = try {

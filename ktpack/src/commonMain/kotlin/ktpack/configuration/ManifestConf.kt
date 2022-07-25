@@ -1,9 +1,11 @@
 package ktpack.configuration
 
 import kotlinx.cinterop.*
+import kotlinx.serialization.Serializable
 import tomlc99.*
 import kotlin.system.*
 
+@Serializable
 data class ManifestConf(
     val module: ModuleConf,
 ) {

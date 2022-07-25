@@ -1,25 +1,17 @@
 package ktpack.commands
 
 import com.github.ajalt.clikt.core.*
-import ktpack.KtpackContext
-import ktpack.util.failed
-import ktpack.util.warn
-import kotlin.system.exitProcess
+import ktpack.CliContext
+import ktpack.Ktpack
+import ktpack.util.info
+import ktpack.util.verbose
 
 class VersionCommand : CliktCommand(
     help = "Show Ktpack version information."
 ) {
-    private val context by requireObject<KtpackContext>()
+    private val context by requireObject<CliContext>()
 
     override fun run() {
-        context.term.println(
-            buildString {
-                append(failed("Failed"))
-                append(" Command ")
-                append(warn(this@VersionCommand.commandName))
-                append(" is not implemented.")
-            }
-        )
-        exitProcess(-1)
+        context.term.println("${verbose("Ktpack")} version ${info(Ktpack.VERSION)}")
     }
 }
