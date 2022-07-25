@@ -28,7 +28,7 @@ The project is described in `manifest.toml`:
 ```toml
 [module]
 name = "hello_world"
-version = "0.0.1"
+version = "1.0.0"
 kotlin-version = "1.7.10"
 targets = [ "common_only" ]
 ```
