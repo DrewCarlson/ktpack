@@ -229,7 +229,7 @@ kotlin {
 
         val windowsX64Main by getting {
             dependencies {
-                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.winhttp)
             }
         }
 

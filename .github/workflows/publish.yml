@@ -69,17 +69,10 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
-            mingw-w64-x86_64-clang mingw-w64-x86_64-curl
+            mingw-w64-x86_64-clang
       - run: choco install checksum 7zip
       - name: Disable Visual Studio
         run: move "C:\Program Files\Microsoft Visual Studio" "C:\Program Files\Microsoft Visual Studio2"
-      - name: Patch Ktor/Curl build issue (https://youtrack.jetbrains.com/issue/KTOR-4307)
-        shell: cmd
-        run: |
-          ren "${{ runner.temp }}\msys64\mingw64\lib" lib2
-          mkdir "${{ runner.temp }}\msys64\mingw64\lib"
-          move "${{ runner.temp }}\msys64\mingw64\lib2\libcurl.a" "${{ runner.temp }}\msys64\mingw64\lib\libcurl.a"
-          move "${{ runner.temp }}\msys64\mingw64\lib2\libcurl.dll.a" "${{ runner.temp }}\msys64\mingw64\lib\libcurl.dll.a"
       - name: Checkout repository
         uses: actions/checkout@v3
         with:

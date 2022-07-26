@@ -33,6 +33,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorio" }
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorio" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktorio" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktorio" }
 
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.0.0-beta7" }

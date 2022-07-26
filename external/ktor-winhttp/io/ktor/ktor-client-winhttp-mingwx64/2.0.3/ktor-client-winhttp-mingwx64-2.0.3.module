@@ -1,0 +1,79 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../ktor-client-winhttp/2.0.3/ktor-client-winhttp-2.0.3.module",
+    "group": "io.ktor",
+    "module": "ktor-client-winhttp",
+    "version": "2.0.3",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "mingwX64ApiElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "mingw_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "dependencies": [
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "2.0.3"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-http-cio",
+          "version": {
+            "requires": "2.0.3"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.6.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "atomicfu",
+          "version": {
+            "requires": "0.17.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "ktor-client-winhttp.klib",
+          "url": "ktor-client-winhttp-mingwx64-2.0.3.klib",
+          "size": 87088,
+          "sha512": "7ee82e907aaf8f54429020c07fbb13a45a750ddf80a815991d6f519e1d24e8e873355c2986645be4bd34e649fde9e1645f3630fd1e72d5c67cc51cd1b38e06ab",
+          "sha256": "b818ae726e220618dee578752b4bc53011f1085871775d678f33b18f7dbc36fb",
+          "sha1": "651a6c5c06089f013bcaffe1c0f184a8b3b8d9ba",
+          "md5": "e126735ebe1d0969bb90ab9acee22b2a"
+        },
+        {
+          "name": "ktor-client-winhttp-cinterop-winhttp.klib",
+          "url": "ktor-client-winhttp-mingwx64-2.0.3-cinterop-winhttp.klib",
+          "size": 23604,
+          "sha512": "94e2ecbd0f7a17484ddc14cc4b2777159000e65b9bb5af89f0a43aefed3fad7d64bcba36adbfa8ed919a21ccfb55b61dc93ff64075ba0b7400a17f06c95ae80f",
+          "sha256": "a89cf96ef549a72b94714d76865944173c1fd12d79053441ddde0c989f72a4d3",
+          "sha1": "725aaa13b2e4afbadae43798a0828f4e4a969bd6",
+          "md5": "ef83030fb7e4dcffbd1c5802fe5bf5cf"
+        }
+      ]
+    }
+  ]
+}
