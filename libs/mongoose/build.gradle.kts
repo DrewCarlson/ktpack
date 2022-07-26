@@ -27,30 +27,37 @@ library {
 }
 
 fun Task.assembleMacosArm64(type: String) {
+    val typeCapitalized = type.first().toUpperCase() + type.drop(1)
     val outPath = "build/lib/main/${type}/macos/arm64"
-    inputs.files(
-        rootProject.file("external/mongoose/mongoose.c"),
-        rootProject.file("external/mongoose/mongoose.h"),
-    )
-    outputs.files(file("$outPath/libmongoose.a"))
+    val mongooseC = rootProject.file("external/mongoose/mongoose.c")
+    val compileOpts = file("build/tmp/compile${typeCapitalized}MacosX86-64Cpp/options.txt")
+    dependsOn("assemble${typeCapitalized}MacosX86-64")
     doFirst {
-        val execResult = exec {
+        val objBuildFile = file("build/obj/main/${type}/macos/arm64/mongoose.o")
+        val libBuildFile = file("$outPath/libmongoose.a")
+        objBuildFile.delete()
+        libBuildFile.delete()
+        objBuildFile.parentFile.mkdirs()
+        libBuildFile.parentFile.mkdirs()
+        exec {
             workingDir(rootProject.file("external/mongoose"))
-            commandLine("make", "CFLAGS=--target=arm64-apple-macos11", "clean", "all")
+            commandLine(
+                "clang++",
+                "@${compileOpts.absolutePath}",
+                "-m64",
+                mongooseC.absolutePath,
+                "-o",
+                objBuildFile.absolutePath,
+                "--target=arm64-apple-macos11",
+            )
             if (type == "debug") {
                 environment("DEBUG", "1")
             }
-        }
-        if (execResult.exitValue == 0) {
-            copy {
-                from(rootProject.file("external/mongoose"))
-                into(file(outPath))
-                include("mongoose.a")
-                rename { "libmongoose.a" }
-            }
-        } else {
-            error("Failed to build mongoose")
-        }
+        }.assertNormalExitValue()
+        exec {
+            workingDir(file(outPath))
+            commandLine("ar", "-rcs", libBuildFile.absolutePath, objBuildFile.absolutePath)
+        }.assertNormalExitValue()
     }
 }
 
