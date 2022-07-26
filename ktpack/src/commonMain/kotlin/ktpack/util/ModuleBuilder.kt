@@ -141,7 +141,6 @@ class ModuleBuilder(
 
     private fun getExeExtension(target: Target): String {
         return when (target) {
-            Target.COMMON_ONLY -> throw IllegalArgumentException("COMMON_ONLY is not a supported executable target.")
             Target.JVM -> "jar"
             Target.WINDOWS_X64 -> "exe"
             Target.JS_NODE,
@@ -164,7 +163,6 @@ class ModuleBuilder(
         val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
 
         when (target) {
-            Target.COMMON_ONLY -> throw IllegalArgumentException("COMMON_ONLY is not a supported compile target.")
             Target.JVM -> {
                 val targetOutPath = "${outputPath}.${getExeExtension(target)}"
                 arg(KotlincInstalls.findKotlincJvm(kotlinVersion))

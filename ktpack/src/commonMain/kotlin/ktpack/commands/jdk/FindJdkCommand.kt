@@ -16,7 +16,7 @@ class FindJdkCommand : CliktCommand(
             http.getCompilerReleases()
         } catch (e: Throwable) {
             term.println("${failed("Error")} ${e.message}")
-            exitProcess(-1)
+            exitProcess(1)
         }
 
         term.println(

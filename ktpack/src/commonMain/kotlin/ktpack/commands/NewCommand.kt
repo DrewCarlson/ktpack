@@ -70,7 +70,7 @@ class NewCommand : CliktCommand(
     private val targets by option("--target", "-t")
         .help("The supported Target platforms")
         .enum<Target>()
-        .multiple(listOf(Target.COMMON_ONLY))
+        .multiple()
 
     private val publish by option("--publish", "-p")
         .help("Module publishing will be enabled when this flag is set")
@@ -105,13 +105,13 @@ class NewCommand : CliktCommand(
             manifest.writeText(newManifestSource(conf))
         } else {
             context.term.println("${failed("Failed")} manifest could not be generated for `${manifest.getAbsolutePath()}`.")
-            exitProcess(-1)
+            exitProcess(1)
         }
 
         val srcDir = targetDir.nestedFile("src")
         if (!srcDir.mkdirs()) {
             context.term.println("${failed("Failed")} source folder could not be created for `${srcDir.getAbsolutePath()}`.")
-            exitProcess(-1)
+            exitProcess(1)
         }
 
         when (template) {
@@ -135,14 +135,14 @@ class NewCommand : CliktCommand(
     private fun checkDirDoesNotExist(targetDir: File) {
         if (targetDir.exists() && targetDir.listFiles().isNotEmpty()) {
             context.term.println("${failed("Failed")} path already exists for `$folder`.")
-            exitProcess(-1)
+            exitProcess(1)
         }
     }
 
     private fun checkMakeDir(targetDir: File) {
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             context.term.println("${failed("Failed")} path could not be generated for `$folder`.")
-            exitProcess(-1)
+            exitProcess(1)
         }
     }
 
@@ -171,7 +171,7 @@ class NewCommand : CliktCommand(
             targets = targets.takeUnless { interactive == true } ?: run {
                 val targetStrings = Target.values().joinToString { info(it.name.lowercase()) }
                 context.term.println("${verbose("Available targets")}: $targetStrings")
-                val response = prompt("Comma separated list of targets", default = Target.COMMON_ONLY.name.lowercase())
+                val response = prompt("Comma separated list of targets")
                 checkNotNull(response).split(", ", ",").map { Target.valueOf(it.uppercase()) }
             }
         )
@@ -228,7 +228,7 @@ fun File.generateSourceFile(term: Terminal, fileName: String, contents: String) 
         sourceFile.writeText(contents)
     } else {
         term.println("${failed("Failed")} source could not be created at `${sourceFile.getAbsolutePath()}`.")
-        exitProcess(-1)
+        exitProcess(1)
     }
 }
 

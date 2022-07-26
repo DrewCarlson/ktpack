@@ -1,5 +1,4 @@
 import org.gradle.nativeplatform.platform.internal.*
-import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.konan.target.Architecture
 import org.jetbrains.kotlin.konan.target.Family
@@ -16,8 +15,6 @@ plugins {
     //alias(libs.plugins.completeKotlin)
 }
 
-yarn.lockFileDirectory = file("gradle/kotlin-js-store")
-
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 val mainGenSrcPath = "build/ktgen-main"
@@ -29,19 +26,11 @@ val installTestConfig by tasks.creating {
     doFirst {
         file(testGenSrcPath).mkdirs()
         if (!configFile.exists()) {
-            val extension = when {
-                hostOs.isWindows -> "exe"
-                else -> "kexe"
-            }
+            val extension = if (hostOs.isWindows) "exe" else "kexe"
             val target = when {
                 hostOs.isWindows -> "windowsX64"
                 hostOs.isLinux -> "linuxX64"
-                hostOs.isMacOsX -> if (System.getProperty("os.arch") == "aarch64") {
-                    "macosArm64"
-                } else {
-                    "macosX64"
-                }
-
+                hostOs.isMacOsX -> if (System.getProperty("os.arch") == "aarch64") "macosArm64" else "macosX64"
                 else -> error("Unsupported host operating system")
             }
             configFile.writeText(
@@ -122,7 +111,7 @@ kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
-        linuxX64(),
+        if (hostOs.isMacOsX || hostOs.isLinux) linuxX64() else null,
         mingwX64("windowsX64"),
     )
 
@@ -133,10 +122,14 @@ kotlin {
                     includeDirs(rootProject.file("external/tomlc99"))
                     defFile("src/commonMain/cinterop/tomlc99.def")
                 }
+                create("mongoose") {
+                    includeDirs(rootProject.file("external/mongoose"))
+                    defFile("src/commonMain/cinterop/mongoose.def")
+                }
                 if (hostOs.isWindows) {
                     create("zip") {
                         includeDirs(rootProject.file("external/zip/src"))
-                        defFile("src/commonMain/cinterop/libzip.def")
+                        defFile("src/commonMain/cinterop/zip.def")
                     }
                 }
             }
@@ -160,6 +153,9 @@ kotlin {
         }
 
         binaries {
+            executable {
+                entryPoint = "ktpack.main"
+            }
             all {
                 val libType = buildType.name.toLowerCase(ROOT)
                 val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
@@ -169,29 +165,17 @@ kotlin {
                     Architecture.ARM64 -> "arm64"
                     else -> error("Unsupported host operating system")
                 }
-
                 val libLinks = compilation.cinterops.map { it.name }
                     .flatMap { lib ->
                         val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                        val filePath =
-                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName").absolutePath
-                        listOf("-include-binary", filePath)
+                        val file = rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
+                        if (file.exists()) listOf("-include-binary", file.absolutePath) else emptyList()
                     }
                 compilation.apply {
                     kotlinOptions {
                         freeCompilerArgs = freeCompilerArgs + libLinks
-                        if (hostOs.isWindows) {
-                            val base = System.getenv("RUNNER_TEMP").orEmpty().ifEmpty { "C:" }
-                            linkerOpts("-L$base\\msys64\\mingw64\\lib")
-                            freeCompilerArgs = freeCompilerArgs + listOf(
-                                "-include-binary", "$base\\msys64\\mingw64\\lib\\libcurl.dll.a",
-                            )
-                        }
                     }
                 }
-            }
-            executable {
-                entryPoint = "ktpack.main"
             }
         }
     }
@@ -233,18 +217,18 @@ kotlin {
             }
         }
 
-        val posixMain by creating {
-            dependsOn(commonMain)
-        }
-
-        val linuxX64Main by getting {
-            dependsOn(posixMain)
-            dependencies {
-                implementation(libs.ktor.client.curl)
+        if (hostOs.isLinux || hostOs.isMacOsX) {
+            val posixMain by creating {
+                dependsOn(commonMain)
             }
-        }
 
-        if (hostOs.isMacOsX) {
+            val linuxX64Main by getting {
+                dependsOn(posixMain)
+                dependencies {
+                    implementation(libs.ktor.client.curl)
+                }
+            }
+
             val darwinMain by creating {
                 dependsOn(posixMain)
                 dependencies {

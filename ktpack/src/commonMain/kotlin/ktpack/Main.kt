@@ -61,7 +61,7 @@ fun main(args: Array<String>) {
         if (command.stacktrace) {
             term.println(e.stackTraceToString())
         }
-        exitProcess(-1)
+        exitProcess(1)
     }
 }
 
@@ -71,13 +71,13 @@ fun loadManifest(path: String): ManifestConf = memScoped {
         if (file.exists()) file.readText() else null
     } catch (e: FileNotFoundException) {
         println("Failed to find '$path'.")
-        exitProcess(-1)
+        exitProcess(1)
     } catch (e: IllegalFileAccess) {
         println("Failed to read '$path', check file permissions.")
-        exitProcess(-1)
+        exitProcess(1)
     } ?: run {
         println("No $MANIFEST_NAME in ${file.getAbsolutePath().substringBeforeLast(filePathSeparator)}")
-        exitProcess(-1)
+        exitProcess(1)
     }
 
     return ManifestConf.fromToml(manifestContent)

@@ -15,7 +15,7 @@ The command generated two files:
 $ cd hello_world
 $ tree .
 .
-├── manifest.toml
+├── package.main.kts
 └── src
     └── main.kt
 
@@ -23,17 +23,16 @@ $ tree .
 ```
 
 This is a basic, yet fully functional Ktpack project.
-The project is described in `manifest.toml`:
+The project is described in `package.main.kts`:
 
-```toml
-[module]
-name = "hello_world"
-version = "1.0.0"
-kotlin-version = "1.7.10"
-targets = [ "common_only" ]
+```kotlin
+module("hello_world") {
+    version = "1.0.0"
+    kotlinVersion = "1.7.10"
+}
 ```
 
-The [Manifest]() contains all the metadata required to operate a Ktpack project.
+The [Package Script]() contains all the metadata required to operate a Ktpack project.
 In `src/main.kt` we have this program:
 
 ```kotlin
@@ -42,7 +41,7 @@ fun main() {
 }
 ```
 
-The source file can be compiled into a binary with the `ktpack build` command:
+The source file can be compiled into a binary with the `build` command:
 
 ```shell
 $ ktpack build
@@ -56,9 +55,10 @@ To run the executable we compiled:
 $ ./out/linux_x64/debug/bin/hello_world.kexe
 Hello, world!
 ```
+
 _Note: the `linux_x64` directory could also be `macosx_[x64|arm64]` or `windows_x64` based on your operating system_
 
-Alternatively we can use the `ktpack run` command:
+Alternatively we can use the `run` command:
 
 ```shell
 $ ktpack run
@@ -68,7 +68,8 @@ Running 'out/linux_x64/debug/bin/hello_world.exe'
 Hello, World!
 ```
 
-To build or run our program for a different target, use the `--target` or `-t` option with the `build` or `run` commands:
+To build or run our program for a different target, use the `--target` or `-t` option with the `build` or `run`
+commands:
 
 ```shell
 $ ktpack run --target jvm
@@ -84,4 +85,14 @@ $ ktpack run --target js_node
 Compiling hello_world v1.0.0 (/users/developer/hello_world)
 Running 'out/js_node/debug/bin/hello_world.js'
 Hello, World!
+```
+
+For the `js_browser` target, an HTTP Server is started which provides your program at the URL:
+
+```shell
+$ ktpack run --target js_browser
+
+Compiling hello_world v1.0.0 (/users/developer/hello_world)
+Running 'out/js_browser/debug/bin/hello_world.js'
+Http Server Available at http://localhost:9543
 ```

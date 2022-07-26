@@ -34,7 +34,7 @@ class FindKotlinCommand : CliktCommand(
             context.http.getCompilerReleases()
         } catch (e: Throwable) {
             context.term.println("${failed("Error")} ${e.message}")
-            exitProcess(-1)
+            exitProcess(1)
         }
 
         val selectedReleases = releases.filterBy(channel)

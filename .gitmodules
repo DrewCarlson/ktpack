@@ -4,3 +4,6 @@
 [submodule "external/zip"]
 	path = external/zip
 	url = git@github.com:kuba--/zip.git
+[submodule "external/mongoose"]
+	path = external/mongoose
+	url = git@github.com:cesanta/mongoose.git

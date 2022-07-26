@@ -29,7 +29,7 @@ private fun parseToml(content: String): ManifestConf = memScoped {
     val moduleTable = toml_table_in(rootTable, "module")
     if (moduleTable == null) {
         println("Missing [module] definition")
-        exitProcess(-1)
+        exitProcess(1)
     }
 
     val moduleName = toml_string_in(moduleTable, "name").toKStringFromUtf8()
@@ -85,7 +85,7 @@ private fun parseToml(content: String): ManifestConf = memScoped {
             kotlinVersion = checkNotNull(kotlinVersion) {
                 "Module '$moduleName' does not contain a valid `kotlin-version`."
             },
-            targets = targets ?: listOf(Target.COMMON_ONLY),
+            targets = targets.orEmpty(),
         )
     )
 }

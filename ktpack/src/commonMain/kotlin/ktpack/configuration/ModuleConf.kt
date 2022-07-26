@@ -22,8 +22,6 @@ data class ModuleConf(
 
 @Serializable
 enum class Target {
-    @SerialName("common_only")
-    COMMON_ONLY,
     @SerialName("jvm")
     JVM,
     @SerialName("js_node")

@@ -58,13 +58,14 @@ class BuildCommand : CliktCommand(
             } else {
                 Target.MACOS_X64
             }
+
             OsFamily.LINUX -> Target.LINUX_X64
             OsFamily.WINDOWS -> Target.WINDOWS_X64
             else -> error("Unsupported host operating system")
         }
 
         val targetBuildList = if (allTargets) {
-            if (module.targets.contains(Target.COMMON_ONLY)) {
+            if (module.targets.isEmpty()) {
                 getHostSupportedTargets()
             } else {
                 getHostSupportedTargets().filter(module.targets::contains)
@@ -87,8 +88,9 @@ class BuildCommand : CliktCommand(
                             is ArtifactResult.Success -> logArtifactSuccess(artifact)
                             is ArtifactResult.ProcessError -> {
                                 logArtifactError(artifact)
-                                exitProcess(-1)
+                                exitProcess(1)
                             }
+
                             ArtifactResult.NoArtifactFound -> Unit // Ignore, handle when all artifacts a resolved
                         }
                     }
@@ -145,7 +147,6 @@ class BuildCommand : CliktCommand(
      */
     private fun getHostSupportedTargets() = Target.values().filter { target ->
         when (target) {
-            Target.COMMON_ONLY -> false
             Target.JVM,
             Target.JS_NODE,
             Target.JS_BROWSER -> true
@@ -173,27 +174,11 @@ fun ModuleConf.validateTargetOrAlternative(
     context: CliContext,
     hostTarget: Target,
     requestedTarget: Target?,
-): Target? {
-    return if (targets.size == 1 || targets.contains(Target.COMMON_ONLY)) {
-        if (targets.contains(Target.COMMON_ONLY)) {
-            requestedTarget ?: hostTarget
-        } else {
-            // Make sure we're selecting when the user wants
-            val target = targets.first()
-            if (requestedTarget != null && target != requestedTarget) {
-                context.term.println("${failed("Error")} Selected target '$requestedTarget' but only '$target' is defined")
-                null
-            } else {
-                target
-            }
-        }
-    } else if (requestedTarget == null) {
-        context.term.println("${failed("Error")} Selected target '$requestedTarget' but can only build for '$hostTarget'")
-        null
-    } else if (targets.contains(requestedTarget)) {
-        requestedTarget
-    } else {
-        context.term.println("${failed("Error")} Selected target '$requestedTarget' but choices are '${targets.joinToString()}'")
-        null
-    }
+): Target? = if (targets.isEmpty() && requestedTarget == null) {
+    hostTarget
+} else if (targets.isEmpty() || targets.contains(requestedTarget)) {
+    requestedTarget
+} else {
+    context.term.println("${failed("Error")} Selected target '$requestedTarget' but choices are '${targets.joinToString()}'")
+    null
 }
