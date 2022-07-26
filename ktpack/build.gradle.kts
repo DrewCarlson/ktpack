@@ -228,18 +228,19 @@ kotlin {
                     implementation(libs.ktor.client.curl)
                 }
             }
-
-            val darwinMain by creating {
-                dependsOn(posixMain)
-                dependencies {
-                    implementation(libs.ktor.client.darwin)
+            if (!hostOs.isLinux/* i.e. isMacos */) {
+                val darwinMain by creating {
+                    dependsOn(posixMain)
+                    dependencies {
+                        implementation(libs.ktor.client.darwin)
+                    }
                 }
+                val darwinTest by creating { dependsOn(commonTest) }
+                val macosX64Main by getting { dependsOn(darwinMain) }
+                val macosX64Test by getting { dependsOn(darwinTest) }
+                val macosArm64Main by getting { dependsOn(darwinMain) }
+                val macosArm64Test by getting { dependsOn(darwinTest) }
             }
-            val darwinTest by creating { dependsOn(commonTest) }
-            val macosX64Main by getting { dependsOn(darwinMain) }
-            val macosX64Test by getting { dependsOn(darwinTest) }
-            val macosArm64Main by getting { dependsOn(darwinMain) }
-            val macosArm64Test by getting { dependsOn(darwinTest) }
         }
     }
 }
