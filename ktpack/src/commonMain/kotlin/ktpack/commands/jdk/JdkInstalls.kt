@@ -16,6 +16,7 @@ import ktfio.File
 import ktfio.appendBytes
 import ktfio.filePathSeparator
 import ktfio.nestedFile
+import ktpack.CliContext
 import ktpack.util.*
 import platform.posix.getenv
 
@@ -31,9 +32,9 @@ data class InstallationDetails(
 
 private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
-object JdkInstalls {
-
-    val defaultJdksRoot by lazy { File(USER_HOME, ".jdks") }
+class JdkInstalls(
+    private val context: CliContext,
+) {
 
     private val packageExtension by lazy {
         when (Platform.osFamily) {
@@ -41,6 +42,14 @@ object JdkInstalls {
             OsFamily.LINUX, OsFamily.MACOSX -> ".tar.gz"
             else -> error("Unsupported host platform: ${Platform.osFamily} ${Platform.cpuArchitecture}")
         }
+    }
+
+    fun getDefaultJdk(): InstallationDetails? {
+        return findJdk(
+            File(checkNotNull(context.config.jdkRootPath)),
+            context.config.jdkVersion,
+            context.config.jdkDistribution
+        )
     }
 
     /**
@@ -113,13 +122,8 @@ object JdkInstalls {
             return JdkInstallResult.AlreadyInstalled(existingInstallation)
         }
 
-        val tempRoot = checkNotNull(
-            getenv("TEMP")?.toKString()
-                ?: getenv("TMPDIR")?.toKString()
-                ?: "/tmp".takeIf { Platform.osFamily == OsFamily.LINUX }
-        ) { "TEMP, TMPDIR env variables is missing, unable to find temp directory" }
-        val tempArchiveFile = File(tempRoot, archiveName)
-        val tempExtractedFolder = File(tempRoot, archiveName.substringBeforeLast(packageExtension))
+        val tempArchiveFile = File(TEMP_DIR, archiveName)
+        val tempExtractedFolder = File(TEMP_DIR, archiveName.substringBeforeLast(packageExtension))
         if (!tempArchiveFile.createNewFile() && !(tempArchiveFile.delete() && tempArchiveFile.createNewFile())) {
             return JdkInstallResult.FileIOError(tempArchiveFile, "Unable to create temp file")
         }

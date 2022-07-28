@@ -1,18 +1,26 @@
 package ktpack
 
+import com.appmattus.crypto.Algorithm
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.mordant.terminal.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.runBlocking
-import ktfio.*
+import kotlinx.coroutines.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import ktfio.File
+import ktfio.readBytes
+import ktfio.readText
+import ktfio.writeText
 import ktpack.commands.*
 import ktpack.commands.jdk.*
 import ktpack.commands.kotlin.*
 import ktpack.configuration.*
+import ktpack.util.TEMP_DIR
 import ktpack.util.failed
+import ktpack.util.measureSeconds
 import kotlin.system.*
 
-const val MANIFEST_NAME = "manifest.toml"
+const val MANIFEST_NAME = "package.main.kts"
 
 @SharedImmutable
 val json = kotlinx.serialization.json.Json {
@@ -65,20 +73,29 @@ fun main(args: Array<String>) {
     }
 }
 
-fun loadManifest(path: String): ManifestConf = memScoped {
-    val file = File(path)
-    val manifestContent = try {
-        if (file.exists()) file.readText() else null
-    } catch (e: FileNotFoundException) {
-        println("Failed to find '$path'.")
-        exitProcess(1)
-    } catch (e: IllegalFileAccess) {
-        println("Failed to read '$path', check file permissions.")
-        exitProcess(1)
-    } ?: run {
-        println("No $MANIFEST_NAME in ${file.getAbsolutePath().substringBeforeLast(filePathSeparator)}")
-        exitProcess(1)
+suspend fun loadManifest(context: CliContext, path: String): ManifestConf {
+    val digest = Algorithm.MD5.createDigest().apply { update(File(path).readBytes()) }.digest().toHexString()
+    val cacheKey = File(TEMP_DIR, ".ktpack-manifest-cache-$digest")
+    val (module, duration) = measureSeconds {
+        if (cacheKey.exists()) {
+            //println("Reading manifest from cache")
+            Json.decodeFromString(cacheKey.readText())
+        } else {
+            //println("Processing manifest")
+            // TODO: Log in debug only
+            Dispatchers.Default { executePackage(context, path) }.also { manifestConf ->
+                //println(cacheKey.getAbsolutePath())
+                if (cacheKey.createNewFile()) {
+                    //println("Caching new manifest output")
+                    cacheKey.writeText(Json.encodeToString(manifestConf))
+                }
+            }
+        }
     }
+    println("Manifest loaded in ${duration}s: $path")
+    return module
+}
 
-    return ManifestConf.fromToml(manifestContent)
+private fun ByteArray.toHexString(): String {
+    return joinToString("") { (0xFF and it.toInt()).toString(16).padStart(2, '0') }
 }

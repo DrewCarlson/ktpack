@@ -8,11 +8,21 @@ import com.github.ajalt.mordant.terminal.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import ktfio.File
+import ktfio.readText
+import ktfio.writeText
 import ktpack.Ktpack
 import ktpack.CliContext
+import ktpack.KtpackUserConfig
+import ktpack.commands.jdk.JdkInstalls
 import ktpack.task.TaskRunner
+import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
 import ktpack.util.verbose
+import kotlin.system.exitProcess
 
 class KtpackCommand(
     override val term: Terminal,
@@ -27,6 +37,23 @@ class KtpackCommand(
             }
         }
     }
+
+    override val config: KtpackUserConfig by lazy {
+        File(KTPACK_ROOT, "config.json").run {
+            if (!exists()) {
+                if (createNewFile()) {
+                    writeText(Json.encodeToString(KtpackUserConfig()))
+                } else {
+                    println("Failed to write: ${getAbsolutePath()}")
+                    exitProcess(1)
+                }
+            }
+
+            Json.decodeFromString(readText())
+        }
+    }
+
+    override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
 
     override val stacktrace: Boolean by option()
         .help("Print the stacktrace in the case of an unhandled exception.")

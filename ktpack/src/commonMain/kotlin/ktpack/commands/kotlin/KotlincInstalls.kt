@@ -6,7 +6,7 @@ import ktpack.util.KONAN_ROOT
 
 object KotlincInstalls {
 
-    private fun findNoneNativeBin(version: String): String = buildString {
+    private fun findNonNativeBin(version: String): String = buildString {
         append(KONAN_ROOT)
         append(filePathSeparator)
         append("kotlin-compiler-prebuilt-")
@@ -17,15 +17,15 @@ object KotlincInstalls {
     }
 
     fun findKotlincJvm(version: String): String = buildString {
-        append(findNoneNativeBin(version))
-        append("kotlinc")
+        append(findNonNativeBin(version))
+        append("kotlinc-jvm")
         if (Platform.osFamily == OsFamily.WINDOWS) {
             append(".bat")
         }
     }
 
     fun findKotlincJs(version: String): String = buildString {
-        append(findNoneNativeBin(version))
+        append(findNonNativeBin(version))
         append("kotlinc-js")
         if (Platform.osFamily == OsFamily.WINDOWS) {
             append(".bat")

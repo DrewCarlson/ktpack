@@ -14,12 +14,11 @@ import ksubprocess.*
 import ktfio.File
 import ktfio.filePathSeparator
 import ktpack.*
-import ktpack.commands.jdk.JdkDistribution
-import ktpack.commands.jdk.JdkInstalls
 import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
 import ktpack.util.*
 import mongoose.*
+import platform.windows.MAX_PATH
 import kotlin.system.exitProcess
 
 class RunCommand : CliktCommand(
@@ -45,8 +44,11 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val manifest = loadManifest(MANIFEST_NAME)
-        val moduleBuilder = ModuleBuilder(manifest.module, context)
+        val launchPath = memScoped {
+            allocArray<ByteVar>(MAX_PATH).apply { platform.posix.getcwd(this, MAX_PATH) }.toKString()
+        }
+        val manifest = loadManifest(context, MANIFEST_NAME)
+        val moduleBuilder = ModuleBuilder(manifest.module, context, launchPath)
         val targetBin = targetBin ?: manifest.module.name
 
         context.term.println(
@@ -124,7 +126,7 @@ class RunCommand : CliktCommand(
             when (target) {
                 Target.JS_BROWSER -> error("Unsupported run target: $target")
                 Target.JVM -> {
-                    val jdkInstallation = JdkInstalls.findJdk(JdkInstalls.defaultJdksRoot, "11", JdkDistribution.Zulu)
+                    val jdkInstallation = context.jdkInstalls.getDefaultJdk()
                     if (jdkInstallation == null) {
                         context.term.println("${failed("Failed")} Could not find JDK installation.")
                         exitProcess(1)

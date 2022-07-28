@@ -1,6 +1,8 @@
 package ktpack.util
 
+import kotlinx.cinterop.toKString
 import ktfio.filePathSeparator
+import platform.posix.getenv
 
 /**
  * Attempt to find the user's home directory first by the
@@ -20,7 +22,20 @@ val USER_HOME = checkNotNull(getHomePath()) {
 }
 
 @SharedImmutable
-val KONAN_ROOT = "${USER_HOME}$filePathSeparator.konan"
+val KONAN_ROOT = "${USER_HOME}${filePathSeparator}.konan"
+
+@SharedImmutable
+val KTPACK_ROOT = "${USER_HOME}${filePathSeparator}.ktpack"
+
+@SharedImmutable
+val TEMP_DIR by lazy {
+    checkNotNull(
+        (getenv("TEMP")?.toKString()
+            ?: getenv("TMPDIR")?.toKString()
+            ?: "/tmp".takeIf { Platform.osFamily == OsFamily.LINUX })
+            ?.takeUnless(String::isBlank)
+    ) { "TEMP, TMPDIR env variables is missing, unable to find temp directory" }
+}
 
 @SharedImmutable
 val ARCH by lazy {

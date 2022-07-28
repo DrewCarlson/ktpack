@@ -1,6 +1,3 @@
-[submodule "external/tomlc99"]
-	path = external/tomlc99
-	url = https://github.com/cktan/tomlc99.git
 [submodule "external/zip"]
 	path = external/zip
 	url = git@github.com:kuba--/zip.git

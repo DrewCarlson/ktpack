@@ -28,7 +28,7 @@ class RemoveJdkCommand : CliktCommand(
     private val path by option()
         .help("The folder path where JDKs are stored.")
         .convert { File(it) }
-        .defaultLazy { JdkInstalls.defaultJdksRoot }
+        .defaultLazy { File(checkNotNull(context.config.jdkRootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
@@ -37,7 +37,7 @@ class RemoveJdkCommand : CliktCommand(
 
     override fun run() {
         // Find all JDKs in the selected path
-        val installs = JdkInstalls.discover(path)
+        val installs = context.jdkInstalls.discover(path)
         if (installs.isEmpty()) {
             context.term.println("${failed("Failed")} No existing JDKs found in '$path'")
             return

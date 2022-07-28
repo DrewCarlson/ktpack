@@ -173,7 +173,7 @@ class NewCommand : CliktCommand(
                 context.term.println("${verbose("Available targets")}: $targetStrings")
                 val response = prompt("Comma separated list of targets")
                 checkNotNull(response).split(", ", ",").map { Target.valueOf(it.uppercase()) }
-            }
+            },
         )
     )
 
@@ -235,21 +235,24 @@ fun File.generateSourceFile(term: Terminal, fileName: String, contents: String) 
 private fun newManifestSource(
     manifestConf: ManifestConf,
 ): String = buildString {
-    val targetList = manifestConf.module.targets.joinToString(", ") { target ->
-        "\"${target.name.lowercase()}\""
+    val targetList = manifestConf.module.targets.joinToString("\n") { target ->
+        "targets += \"${target.name.lowercase()}\""
     }
-    val authorsList = manifestConf.module.authors.joinToString(", ") { "\"${it}\"" }
-    return """|[module]
-              |name = "${manifestConf.module.name}"
-              |${manifestConf.module.description?.let { "description = \"$it\"" }}
-              |version = "${manifestConf.module.version}"
-              |authors = [ $authorsList ]
-              |kotlin-version = "${manifestConf.module.kotlinVersion}"
-              |targets = [ $targetList ]
-              |${manifestConf.module.publish.takeIf { it }?.let { "publish = $it" }}
-              |${manifestConf.module.license?.let { "license = \"$it\"" }}
-              |${manifestConf.module.repository?.let { "repository = \"$it\"" }}
+    val authorsList = manifestConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
+    return """|module("${manifestConf.module.name}") {
+              |  version = "${manifestConf.module.version}"
+              |  kotlin-version = "${manifestConf.module.kotlinVersion}"
+              |  ${manifestConf.module.description?.let { "description = \"$it\"" }}
+              |  ${authorsList.takeIf(String::isNotBlank)}
+              |  ${targetList.takeIf(String::isNotBlank)}
+              |  ${manifestConf.module.publish.takeIf { it }?.let { "publish = $it" }}
+              |  ${manifestConf.module.license?.let { "license = \"$it\"" }}
+              |  ${manifestConf.module.repository?.let { "repository = \"$it\"" }}
+              |}
               |
+              |dependencies {
+              |
+              |}
             """.trimMargin().replace("\nnull", "")
 }
 

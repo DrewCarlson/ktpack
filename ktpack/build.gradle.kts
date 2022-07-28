@@ -80,7 +80,34 @@ val buildRuntimeConstants by tasks.creating {
         )
     }
 }
-evaluationDependsOn(":libs:tomlc99")
+
+fun createBuildRuntimeBundleTask(debug: Boolean): Task {
+    return tasks.register("buildRuntimeBundle") {
+        val bundledFile = file("${mainGenSrcPath}/manifest.kt")
+        onlyIf { !bundledFile.exists() || !debug }
+        dependsOn(":ktpack-manifest:shadowJar")
+        doFirst {
+            file(mainGenSrcPath).mkdirs()
+            val jar = rootProject.file("ktpack-manifest/build/libs/ktpack-manifest.jar")
+            val pathValue = if (debug) {
+                """"${jar.absolutePath.replace("\\", "\\\\")}""""
+            } else {
+                """USER_HOME, ".ktpack", "manifest-builder", "ktpack-manifest-${version}.jar""""
+            }
+            bundledFile.writeText(
+                """|package ktpack
+                   |import ktfio.File
+                   |import ktpack.util.USER_HOME
+                   |
+                   |const val ktpackManifestJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-manifest.jar"
+                   |val ktpackManifestJarPath by lazy { File($pathValue) }
+                   |""".trimMargin()
+            )
+        }
+    }.get()
+}
+
+evaluationDependsOn(":libs:mongoose")
 evaluationDependsOn(":libs:zip")
 
 afterEvaluate {
@@ -118,10 +145,6 @@ kotlin {
     configure(nativeTargets) {
         compilations.named("main") {
             cinterops {
-                create("tomlc99") {
-                    includeDirs(rootProject.file("external/tomlc99"))
-                    defFile("src/commonMain/cinterop/tomlc99.def")
-                }
                 create("mongoose") {
                     includeDirs(rootProject.file("external/mongoose"))
                     defFile("src/commonMain/cinterop/mongoose.def")
@@ -137,7 +160,10 @@ kotlin {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xallocator=mimalloc")
             }
-            compileKotlinTask.dependsOn(buildRuntimeConstants)
+            compileKotlinTask.dependsOn(
+                buildRuntimeConstants,
+                createBuildRuntimeBundleTask((version as String).endsWith("-SNAPSHOT"))
+            )
         }
         compilations.named("test") {
             val osName = when {
@@ -185,6 +211,7 @@ kotlin {
             languageSettings {
                 optIn("kotlin.time.ExperimentalTime")
                 optIn("kotlinx.coroutines.FlowPreview")
+                optIn("kotlinx.serialization.ExperimentalSerializationApi")
             }
         }
 
@@ -195,6 +222,7 @@ kotlin {
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)
                 implementation(libs.clikt)
+                implementation(libs.cryptohash)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

@@ -3,6 +3,7 @@ package ktpack.commands
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.*
 import com.github.ajalt.clikt.parameters.options.help
+import kotlinx.coroutines.runBlocking
 import ktpack.*
 
 class CheckCommand : CliktCommand(
@@ -13,8 +14,10 @@ class CheckCommand : CliktCommand(
         .help("The manifest file to validate.")
         .default(MANIFEST_NAME)
 
-    override fun run() {
-        val manifest = loadManifest(filePath)
+    private val context by requireObject<CliContext>()
+
+    override fun run() = runBlocking {
+        val manifest = loadManifest(context, filePath)
         // TODO: Validate all manifest properties
         println(manifest)
     }

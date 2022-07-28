@@ -14,6 +14,8 @@ class InstallJdkCommand : CliktCommand(
     help = "Install a new JDK version.",
 ) {
 
+    private val context by requireObject<CliContext>()
+
     private val version by argument()
         .help("The JDK version to install, can be a partial or full version. Example: 8 or 8.0.342.")
         .check({ "JDK version must be 8 or higher (11+ is recommended)." }) { version ->
@@ -28,15 +30,13 @@ class InstallJdkCommand : CliktCommand(
     private val path by option()
         .help("The root path to store the JDK installation.")
         .convert { File(it) }
-        .defaultLazy { JdkInstalls.defaultJdksRoot }
+        .defaultLazy { File(checkNotNull(context.config.jdkRootPath)) }
         .check({ "JDK root path must exist." }) { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
 
-    private val context by requireObject<CliContext>()
-
     override fun run() = runBlocking {
-        val existingInstalls = JdkInstalls.discover(path)
+        val existingInstalls = context.jdkInstalls.discover(path)
         val matchedInstall = existingInstalls.firstOrNull { it.distribution == distribution && it.version == version }
         if (matchedInstall != null) {
             context.term.println("${warn("Warning")} Existing installation found at ${matchedInstall.path}, nothing to do")
@@ -46,7 +46,7 @@ class InstallJdkCommand : CliktCommand(
         context.term.println("${info("JDKs")} Fetching available $distribution JDK versions")
 
         val (installResult, duration) = measureSeconds {
-            JdkInstalls.findAndInstallJdk(context.http, path, version, distribution) { state ->
+            context.jdkInstalls.findAndInstallJdk(context.http, path, version, distribution) { state ->
                 when (state) {
                     is JdkInstallProgress.Started -> context.term.println("${info("Downloading")} ${state.downloadUrl}")
                     is JdkInstallProgress.Download -> context.term.println("${info("Downloading")} ${state.completed}%")

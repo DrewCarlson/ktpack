@@ -19,13 +19,13 @@ class ListJdkCommand : CliktCommand(
     private val path by option()
         .help("The folder path where JDK installs are located.")
         .convert { File(it) }
-        .defaultLazy { JdkInstalls.defaultJdksRoot }
+        .defaultLazy { File(checkNotNull(context.config.jdkRootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
 
     override fun run(): Unit = runBlocking {
-        val installations = JdkInstalls.discover(path)
+        val installations = context.jdkInstalls.discover(path)
         context.term.println("Found ${info(installations.size.toString())} JDK installation(s)")
         context.term.println()
         context.term.println(

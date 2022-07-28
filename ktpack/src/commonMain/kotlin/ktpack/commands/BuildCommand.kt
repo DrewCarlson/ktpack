@@ -4,11 +4,18 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.rendering.TextColors.cyan
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
 import kotlinx.coroutines.runBlocking
+import ktfio.File
 import ktpack.*
 import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
 import ktpack.util.*
+import platform.posix.getcwd
+import platform.windows.MAX_PATH
 import kotlin.system.*
 
 class BuildCommand : CliktCommand(
@@ -40,9 +47,12 @@ class BuildCommand : CliktCommand(
         .flag()
 
     override fun run() = runBlocking {
-        val manifest = loadManifest(MANIFEST_NAME)
+        val launchPath = memScoped {
+            allocArray<ByteVar>(MAX_PATH).apply { getcwd(this, MAX_PATH) }.toKString()
+        }
+        val manifest = loadManifest(context, MANIFEST_NAME)
         val module = manifest.module
-        val moduleBuilder = ModuleBuilder(module, context)
+        val moduleBuilder = ModuleBuilder(module, context, launchPath)
 
         context.term.println(
             buildString {
@@ -77,12 +87,24 @@ class BuildCommand : CliktCommand(
         val results: List<ArtifactResult> =
             targetBuildList
                 .flatMap { target ->
-                    context.term.println("${info("Building")} Starting compilation for ${verbose(target.name.lowercase())}")
+                    context.term.print("${info("Building")} Starting compilation for ")
                     when {
-                        !targetBin.isNullOrBlank() -> listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
-                        libOnly -> listOf(moduleBuilder.buildLib(releaseMode, target))
-                        binsOnly -> moduleBuilder.buildAllBins(releaseMode, target)
-                        else -> moduleBuilder.buildAll(releaseMode, target)
+                        !targetBin.isNullOrBlank() -> {
+                            context.term.println("bin ${verbose(targetBin!!)} ${verbose(target.name.lowercase())}")
+                            listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
+                        }
+                        libOnly -> {
+                            context.term.println("lib ${verbose(target.name.lowercase())}")
+                            listOf(moduleBuilder.buildLib(releaseMode, target))
+                        }
+                        binsOnly -> {
+                            context.term.println("all bins ${verbose(target.name.lowercase())}")
+                            moduleBuilder.buildAllBins(releaseMode, target)
+                        }
+                        else -> {
+                            context.term.println("all bins and libs ${verbose(target.name.lowercase())}")
+                            moduleBuilder.buildAll(releaseMode, target)
+                        }
                     }.onEach { artifact ->
                         when (artifact) {
                             is ArtifactResult.Success -> logArtifactSuccess(artifact)
@@ -174,11 +196,19 @@ fun ModuleConf.validateTargetOrAlternative(
     context: CliContext,
     hostTarget: Target,
     requestedTarget: Target?,
-): Target? = if (targets.isEmpty() && requestedTarget == null) {
-    hostTarget
-} else if (targets.isEmpty() || targets.contains(requestedTarget)) {
-    requestedTarget
-} else {
-    context.term.println("${failed("Error")} Selected target '$requestedTarget' but choices are '${targets.joinToString()}'")
-    null
+): Target? {
+    return if (requestedTarget == null) {
+        if (targets.isEmpty() || targets.contains(hostTarget)) {
+            hostTarget
+        } else {
+            targets.firstOrNull { it == Target.JS_BROWSER || it == Target.JS_NODE || it == Target.JVM }
+        } ?: error("No supported build targets.")
+    } else {
+        if (targets.isEmpty() || targets.contains(requestedTarget)) {
+            requestedTarget
+        } else {
+            context.term.println("${failed("Error")} Selected target '$requestedTarget' but choices are '${targets.joinToString()}'")
+            null
+        }
+    }
 }
