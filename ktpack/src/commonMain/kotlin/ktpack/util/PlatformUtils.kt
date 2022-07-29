@@ -11,6 +11,8 @@ import platform.posix.getenv
  */
 expect fun getHomePath(): String?
 
+expect val workingDirectory: String
+
 @SharedImmutable
 val EXE_EXTENSION by lazy {
     if (Platform.osFamily == OsFamily.WINDOWS) "exe" else "kexe"
@@ -31,7 +33,7 @@ val KTPACK_ROOT = "${USER_HOME}${filePathSeparator}.ktpack"
 val TEMP_DIR by lazy {
     checkNotNull(
         (getenv("TEMP")?.toKString()
-            ?: getenv("TMPDIR")?.toKString()
+            ?: getenv("TMPDIR")?.toKString()?.trimEnd('/')
             ?: "/tmp".takeIf { Platform.osFamily == OsFamily.LINUX })
             ?.takeUnless(String::isBlank)
     ) { "TEMP, TMPDIR env variables is missing, unable to find temp directory" }
@@ -52,3 +54,6 @@ val ARCH by lazy {
         else -> error("Unsupported Host ${Platform.osFamily} ${Platform.cpuArchitecture}")
     }
 }
+
+@SharedImmutable
+val CPSEP = if (Platform.osFamily == OsFamily.WINDOWS) ";" else ":"

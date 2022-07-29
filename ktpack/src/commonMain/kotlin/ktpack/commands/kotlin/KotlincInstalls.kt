@@ -16,6 +16,14 @@ object KotlincInstalls {
         append(filePathSeparator)
     }
 
+    fun findKotlinHome(version: String): String = buildString {
+        append(KONAN_ROOT)
+        append(filePathSeparator)
+        append("kotlin-compiler-prebuilt-")
+        append(version)
+        append(filePathSeparator)
+    }
+
     fun findKotlincJvm(version: String): String = buildString {
         append(findNonNativeBin(version))
         append("kotlinc-jvm")

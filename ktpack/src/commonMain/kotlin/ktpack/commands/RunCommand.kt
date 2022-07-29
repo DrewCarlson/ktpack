@@ -18,7 +18,6 @@ import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
 import ktpack.util.*
 import mongoose.*
-import platform.windows.MAX_PATH
 import kotlin.system.exitProcess
 
 class RunCommand : CliktCommand(
@@ -44,11 +43,8 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val launchPath = memScoped {
-            allocArray<ByteVar>(MAX_PATH).apply { platform.posix.getcwd(this, MAX_PATH) }.toKString()
-        }
         val manifest = loadManifest(context, MANIFEST_NAME)
-        val moduleBuilder = ModuleBuilder(manifest.module, context, launchPath)
+        val moduleBuilder = ModuleBuilder(manifest.module, context, workingDirectory)
         val targetBin = targetBin ?: manifest.module.name
 
         context.term.println(
@@ -91,7 +87,7 @@ class RunCommand : CliktCommand(
                 context.term.println("${success("Running")} '${result.artifactPath}'")
                 try {
                     val (exitCode, duration) = measureSeconds {
-                        runBuildArtifact(manifest.module, target, result.artifactPath)
+                        runBuildArtifact(manifest.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     if (exitCode == 0) {
                         context.term.println("${success("Finished")} Program completed successfully in ${duration}s")
@@ -117,7 +113,12 @@ class RunCommand : CliktCommand(
         }
     }
 
-    private suspend fun runBuildArtifact(module: ModuleConf, target: Target, artifactPath: String): Int {
+    private suspend fun runBuildArtifact(
+        module: ModuleConf,
+        target: Target,
+        artifactPath: String,
+        dependencyArtifacts: List<String>,
+    ): Int {
         if (target == Target.JS_BROWSER) {
             runJsBrowserArtifact(module, artifactPath)
             return 1
@@ -132,8 +133,7 @@ class RunCommand : CliktCommand(
                         exitProcess(1)
                     }
                     arg(File(jdkInstallation.path, "bin", "java").getAbsolutePath())
-                    arg("-cp")
-                    arg(artifactPath)
+                    args("-classpath", (dependencyArtifacts + artifactPath).joinToString(CPSEP))
                     arg("MainKt") // TODO: get main class from artifact
                 }
 

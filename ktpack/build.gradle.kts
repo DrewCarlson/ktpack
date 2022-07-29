@@ -81,30 +81,29 @@ val buildRuntimeConstants by tasks.creating {
     }
 }
 
-fun createBuildRuntimeBundleTask(debug: Boolean): Task {
-    return tasks.register("buildRuntimeBundle") {
-        val bundledFile = file("${mainGenSrcPath}/manifest.kt")
-        onlyIf { !bundledFile.exists() || !debug }
-        dependsOn(":ktpack-manifest:shadowJar")
-        doFirst {
-            file(mainGenSrcPath).mkdirs()
-            val jar = rootProject.file("ktpack-manifest/build/libs/ktpack-manifest.jar")
-            val pathValue = if (debug) {
-                """"${jar.absolutePath.replace("\\", "\\\\")}""""
-            } else {
-                """USER_HOME, ".ktpack", "manifest-builder", "ktpack-manifest-${version}.jar""""
-            }
-            bundledFile.writeText(
-                """|package ktpack
-                   |import ktfio.File
-                   |import ktpack.util.USER_HOME
-                   |
-                   |const val ktpackManifestJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-manifest.jar"
-                   |val ktpackManifestJarPath by lazy { File($pathValue) }
-                   |""".trimMargin()
-            )
+val buildRuntimeBundle by tasks.creating {
+    val debug = (version as String).endsWith("-SNAPSHOT")
+    val bundledFile = file("${mainGenSrcPath}/manifest.kt")
+    onlyIf { !bundledFile.exists() || !debug }
+    dependsOn(":ktpack-manifest:shadowJar")
+    doFirst {
+        file(mainGenSrcPath).mkdirs()
+        val jar = rootProject.file("ktpack-manifest/build/libs/ktpack-manifest.jar")
+        val pathValue = if (debug) {
+            """"${jar.absolutePath.replace("\\", "\\\\")}""""
+        } else {
+            """USER_HOME, ".ktpack", "manifest-builder", "ktpack-manifest-${version}.jar""""
         }
-    }.get()
+        bundledFile.writeText(
+            """|package ktpack
+               |import ktfio.File
+               |import ktpack.util.USER_HOME
+               |
+               |const val ktpackManifestJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-manifest.jar"
+               |val ktpackManifestJarPath by lazy { File($pathValue) }
+               |""".trimMargin()
+        )
+    }
 }
 
 evaluationDependsOn(":libs:mongoose")
@@ -162,7 +161,7 @@ kotlin {
             }
             compileKotlinTask.dependsOn(
                 buildRuntimeConstants,
-                createBuildRuntimeBundleTask((version as String).endsWith("-SNAPSHOT"))
+                buildRuntimeBundle,
             )
         }
         compilations.named("test") {
@@ -223,6 +222,7 @@ kotlin {
                 implementation(libs.mordant)
                 implementation(libs.clikt)
                 implementation(libs.cryptohash)
+                implementation(libs.xmlutil.serialization)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

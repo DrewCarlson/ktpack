@@ -13,3 +13,9 @@ actual fun getHomePath(): String? {
         } else null
     }
 }
+
+actual val workingDirectory: String by lazy {
+    memScoped {
+        allocArray<ByteVar>(MAX_PATH).apply { getcwd(this, MAX_PATH) }.toKString()
+    }
+}

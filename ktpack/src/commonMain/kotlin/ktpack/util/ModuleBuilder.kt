@@ -6,14 +6,15 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import ksubprocess.*
 import ktfio.*
 import ktpack.*
 import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.*
 import ktpack.gradle.GradleModule
+import ktpack.maven.*
 import kotlin.system.exitProcess
 
 sealed class ArtifactResult {
@@ -22,6 +23,7 @@ sealed class ArtifactResult {
         val compilationDuration: Double,
         val outputText: String,
         val target: Target,
+        val dependencyArtifacts: List<String>,
     ) : ArtifactResult()
 
     data class ProcessError(
@@ -39,6 +41,7 @@ class ModuleBuilder(
     private val basePath: String,
 ) {
 
+    private val cacheRoot = File(KTPACK_ROOT, "maven-cache")
     private val moduleFolder = File(basePath)
     val outFolder = moduleFolder.nestedFile("out")
     val srcFolder = moduleFolder.nestedFile("src")
@@ -85,8 +88,9 @@ class ModuleBuilder(
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
                 target = target,
-                artifactPath = "$outputPath.${getExeExtension(target)}",
                 compilationDuration = duration,
+                dependencyArtifacts = resolvedLibs,
+                artifactPath = "${outputPath}${getExeExtension(target)}",
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
             )
         } else {
@@ -118,9 +122,10 @@ class ModuleBuilder(
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
                 target = target,
-                artifactPath = "$outputPath.${getLibExtension(target)}",
+                artifactPath = "${outputPath}${getLibExtension(target)}",
                 compilationDuration = duration,
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
+                dependencyArtifacts = resolvedLibs,
             )
         } else {
             ArtifactResult.ProcessError(result.exitCode, result.errors.ifBlank { result.output })
@@ -158,16 +163,37 @@ class ModuleBuilder(
         releaseMode: Boolean,
         target: Target,
     ): RootDependencyNode {
-        val localDependencies = root.children
-            .filter { it.ktpackDependency is KtpackDependency.LocalPathDependency }
-            .map { child -> buildChildDependency(child, releaseMode, target) }
-        val mavenDependencies = root.children
-            .filter { it.ktpackDependency is KtpackDependency.MavenDependency }
-            .map { child -> fetchMavenDependency(child, releaseMode, target) }
-        return root.copy(
-            children = localDependencies + mavenDependencies,
-            artifacts = localDependencies.flatMap { it.artifacts } + mavenDependencies.flatMap { it.artifacts },
-        )
+        val (newRoot, duration) = measureSeconds {
+            val (mavenDependencies, mavenDuration) = measureSeconds {
+                root.children
+                    .filter { it.ktpackDependency is KtpackDependency.MavenDependency }
+                    .map { child -> fetchMavenDependency(child, releaseMode, target, true) }
+            }
+
+            if (context.debug) {
+                context.term.println("Assembled maven dependencies in ${mavenDuration}s")
+            }
+
+            val (localDependencies, localDuration) = measureSeconds {
+                root.children
+                    .filter { it.ktpackDependency is KtpackDependency.LocalPathDependency }
+                    .map { child -> buildChildDependency(child, releaseMode, target) }
+            }
+
+            if (context.debug) {
+                context.term.println("Assembled local dependencies in ${localDuration}s")
+            }
+            root.copy(
+                children = localDependencies + mavenDependencies,
+                artifacts = localDependencies.flatMap { it.artifacts } + mavenDependencies.flatMap { it.artifacts },
+            )
+        }
+
+        if (context.debug) {
+            context.term.println("Assembled dependencies in ${duration}s")
+        }
+
+        return newRoot
     }
 
     private suspend fun buildChildDependency(
@@ -200,13 +226,19 @@ class ModuleBuilder(
 
     val mavenRepoUrl = "https://repo1.maven.org/maven2"
 
+    private val mavenDepCache = mutableMapOf<String, ChildDependencyNode>()
+
     private suspend fun fetchMavenDependency(
         child: ChildDependencyNode,
         releaseMode: Boolean,
         target: Target,
+        downloadArtifacts: Boolean,
     ): ChildDependencyNode {
-        val cacheRoot = File(KTPACK_ROOT, "maven-cache")
         val dependency = child.ktpackDependency as KtpackDependency.MavenDependency
+        if (mavenDepCache.containsKey(dependency.toMavenString())) {
+            return child
+        }
+
         val artifactRemotePath = dependency.groupId.split('.')
             .plus(dependency.artifactId)
             .plus(dependency.version)
@@ -216,8 +248,16 @@ class ModuleBuilder(
             .nestedFile(artifactRemotePath.replace('/', filePathSeparator))
             .nestedFile(artifactModuleName)
 
-        val gradleModule: GradleModule =
+        if (context.debug) {
+            println("Fetching maven dependency: ${dependency.toMavenString()}")
+        }
+
+        val gradleModule: GradleModule? =
             fetchGradleModule(artifactModuleCacheFile, artifactRemotePath, artifactModuleName)
+        if (gradleModule == null) {
+            return fetchPomDependency(dependency, artifactRemotePath, releaseMode, target, child, downloadArtifacts)
+                .also { mavenDepCache[dependency.toMavenString()] = it }
+        }
         val variant = if (target.isNative) {
             val knTarget = when (target) {
                 Target.JVM -> null
@@ -230,44 +270,52 @@ class ModuleBuilder(
             }
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "native" &&
-                        variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
+                    variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
             }
         } else if (target == Target.JVM) {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "jvm" &&
-                        variant.attributes.orgGradleLibraryelements == "jar"
+                    variant.attributes.orgGradleLibraryelements == "jar"
             }
         } else {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinJsCompiler == "ir" &&
-                        variant.attributes.orgJetbrainsKotlinPlatformType == "js"
+                    variant.attributes.orgJetbrainsKotlinPlatformType == "js"
             }
         }
         variant ?: error("Could not find variant for $target in $artifactModuleName")
 
-        val artifactTargetModuleFileName = "${variant.availableAt?.module}-${variant.availableAt?.version}.module"
-        val artifactTargetModuleRemotePath = dependency.groupId.split('.')
-            .plus(variant.availableAt?.module ?: error("Variant issue: $variant"))
-            .plus(variant.availableAt.version)
-            .joinToString("/")
-        val artifactTargetModuleCacheFile = cacheRoot
-            .nestedFile(artifactTargetModuleRemotePath.replace('/', filePathSeparator))
-            .nestedFile(artifactTargetModuleFileName)
+        val (targetVariant, files) = if (variant.availableAt == null) {
+            variant to variant.files.map { file ->
+                fetchArtifactFromMetadata(file, dependency, dependency.artifactId, dependency.version)
+                    .getAbsolutePath()
+            }
+        } else {
+            val artifactTargetModuleFileName = "${variant.availableAt.module}-${variant.availableAt.version}.module"
+            val artifactTargetModuleRemotePath = dependency.groupId.split('.')
+                .plus(variant.availableAt.module)
+                .plus(variant.availableAt.version)
+                .joinToString("/")
+            val artifactTargetModuleCacheFile = cacheRoot
+                .nestedFile(artifactTargetModuleRemotePath.replace('/', filePathSeparator))
+                .nestedFile(artifactTargetModuleFileName)
 
-        val targetGradleModule: GradleModule =
-            fetchGradleModule(
-                artifactTargetModuleCacheFile,
-                artifactTargetModuleRemotePath,
-                artifactTargetModuleFileName
-            )
-
-        val targetVariant = targetGradleModule.variants.first()
-        val files = targetVariant.files.map { file ->
-            fetchArtifact(file, dependency, variant.availableAt, cacheRoot).getAbsolutePath()
+            val targetGradleModule: GradleModule =
+                fetchGradleModule(
+                    artifactTargetModuleCacheFile,
+                    artifactTargetModuleRemotePath,
+                    artifactTargetModuleFileName
+                ) ?: error("Expected to find artifact target module")
+            val targetVariant = targetGradleModule.variants.first()
+            val moduleName = variant.availableAt.module
+            val version = variant.availableAt.version
+            targetVariant to targetVariant.files.map { file ->
+                fetchArtifactFromMetadata(file, dependency, moduleName, version).getAbsolutePath()
+            }
         }
 
         val newChildDeps = targetVariant.dependencies
-            .filter { !it.module.startsWith("kotlin-stdlib") }
+            .filter { !it.module.startsWith("kotlin-stdlib") && !it.module.endsWith("-bom") }
             .map { gradleDep ->
                 val newNode = ChildDependencyNode(
                     localModule = null,
@@ -280,25 +328,113 @@ class ModuleBuilder(
                     children = emptyList(),
                     artifacts = emptyList(),
                 )
-                fetchMavenDependency(newNode, releaseMode, target)
+                fetchMavenDependency(newNode, releaseMode, target, downloadArtifacts)
             }
 
         return child.copy(
             children = newChildDeps,
-            artifacts = files + newChildDeps.flatMap { it.artifacts },
+            artifacts = (files + newChildDeps.flatMap { it.artifacts }).distinct(),
+        ).also { mavenDepCache[dependency.toMavenString()] = it }
+    }
+
+    private suspend fun fetchPomDependency(
+        dependency: KtpackDependency.MavenDependency,
+        artifactRemotePath: String,
+        releaseMode: Boolean,
+        target: Target,
+        child: ChildDependencyNode,
+        downloadArtifacts: Boolean,
+    ): ChildDependencyNode {
+        val pomFileName = "${dependency.artifactId}-${dependency.version}.pom"
+        val pomFileNameCacheFile = cacheRoot
+            .nestedFile(artifactRemotePath.replace('/', filePathSeparator))
+            .nestedFile(pomFileName)
+
+        val pom: MavenProject = if (pomFileNameCacheFile.exists()) {
+            xml.decodeFromString(pomFileNameCacheFile.readText())
+        } else {
+            val pomUrl = "${mavenRepoUrl.trimEnd('/')}/${artifactRemotePath}/$pomFileName"
+            val response = context.http.get(pomUrl)
+            if (!response.status.isSuccess()) {
+                context.term.println("${failed("Failed")} Could not find pom at $pomUrl")
+                exitProcess(1)
+            }
+
+            val pomBody = response.bodyAsText()
+            pomFileNameCacheFile.apply {
+                getParentFile()?.mkdirs()
+                createNewFile()
+                writeText(pomBody)
+            }
+
+            xml.decodeFromString(pomBody)
+        }
+
+        val artifactFile = if (downloadArtifacts) fetchArtifact(dependency).getAbsolutePath() else null
+
+        val childDeps = pom.dependencies
+            .filter { it.scope != "test" }
+            .map { mavenDep ->
+                val newChild = ChildDependencyNode(
+                    localModule = null,
+                    ktpackDependency = KtpackDependency.MavenDependency(
+                        groupId = mavenDep.groupId,
+                        artifactId = mavenDep.artifactId,
+                        version = mavenDep.version,
+                        scope = when (mavenDep.scope) {
+                            "compile" -> DependencyScope.COMPILE
+                            "runtime" -> DependencyScope.IMPLEMENTATION
+                            else -> DependencyScope.IMPLEMENTATION
+                        }
+                    ),
+                    children = emptyList(),
+                    artifacts = emptyList(),
+                )
+                fetchMavenDependency(newChild, releaseMode, target, downloadArtifacts)
+            }
+        return child.copy(
+            children = childDeps,
+            artifacts = childDeps.flatMap { it.artifacts } + listOfNotNull(artifactFile),
         )
     }
 
-    private suspend fun fetchArtifact(
+    private suspend fun fetchArtifact(dependency: KtpackDependency.MavenDependency) : File {
+        val actualArtifactName = "${dependency.artifactId}-${dependency.version}.jar"
+        val actualArtifactPath = dependency.groupId.split('.')
+            .plus(dependency.artifactId)
+            .plus(dependency.version)
+            .plus(actualArtifactName)
+            .joinToString("/")
+        val actualArtifactCacheFile = cacheRoot.nestedFile(actualArtifactPath.replace('/', filePathSeparator))
+
+        if (!actualArtifactCacheFile.exists()) {
+            val moduleUrl = "${mavenRepoUrl.trimEnd('/')}/$actualArtifactPath"
+            val response = context.http.get(moduleUrl)
+            if (!response.status.isSuccess()) {
+                context.term.println("${failed("Failed")} Could not find module at $moduleUrl")
+                exitProcess(1)
+            }
+
+            actualArtifactCacheFile.apply {
+                getParentFile()?.mkdirs()
+                createNewFile()
+                writeBytes(response.bodyAsChannel().toByteArray())
+            }
+        }
+
+        return actualArtifactCacheFile
+    }
+
+    private suspend fun fetchArtifactFromMetadata(
         targetFile: GradleModule.Variant.File,
         dependency: KtpackDependency.MavenDependency,
-        availableAt: GradleModule.Variant.AvailableAt,
-        cacheRoot: File
+        moduleName: String,
+        version: String,
     ): File {
         val actualArtifactName = targetFile.url
         val actualArtifactPath = dependency.groupId.split('.')
-            .plus(availableAt.module)
-            .plus(availableAt.version)
+            .plus(moduleName)
+            .plus(version)
             .plus(actualArtifactName)
             .joinToString("/")
         val actualArtifactCacheFile = cacheRoot.nestedFile(actualArtifactPath.replace('/', filePathSeparator))
@@ -324,24 +460,23 @@ class ModuleBuilder(
         artifactModuleCacheFile: File,
         artifactRemotePath: String,
         artifactModuleName: String
-    ): GradleModule = if (artifactModuleCacheFile.exists()) {
-        Json.decodeFromString(artifactModuleCacheFile.readText())
+    ): GradleModule? = if (artifactModuleCacheFile.exists()) {
+        json.decodeFromString(artifactModuleCacheFile.readText())
     } else {
         val moduleUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactRemotePath/$artifactModuleName"
         val response = context.http.get(moduleUrl)
-        if (!response.status.isSuccess()) {
-            context.term.println("${failed("Failed")} Could not find module at $moduleUrl")
-            exitProcess(1)
+        if (response.status.isSuccess()) {
+            val bodyText = response.bodyAsText()
+            artifactModuleCacheFile.apply {
+                getParentFile()?.mkdirs()
+                createNewFile()
+                writeText(bodyText)
+            }
+            json.decodeFromString(bodyText)
+        } else {
+            null
         }
-        val bodyText = response.bodyAsText()
-        artifactModuleCacheFile.apply {
-            getParentFile()?.mkdirs()
-            createNewFile()
-            writeText(bodyText)
-        }
-        Json.decodeFromString(bodyText)
     }
-
 
     suspend fun resolveDependencyTree(root: ModuleConf, rootFolder: File, targets: List<Target>): RootDependencyNode {
         val dependencies = root.dependencies
@@ -389,27 +524,27 @@ class ModuleBuilder(
 
     private fun getExeExtension(target: Target): String {
         return when (target) {
-            Target.JVM -> "jar"
-            Target.WINDOWS_X64 -> "exe"
+            Target.JVM -> ".jar"
+            Target.WINDOWS_X64 -> ".exe"
             Target.JS_NODE,
-            Target.JS_BROWSER -> "js"
+            Target.JS_BROWSER -> ".js"
 
             Target.MACOS_ARM64,
             Target.MACOS_X64,
-            Target.LINUX_X64 -> "kexe"
+            Target.LINUX_X64 -> ".kexe"
         }
     }
 
     private fun getLibExtension(target: Target): String {
         return when (target) {
-            Target.JVM -> "jar"
+            Target.JVM -> ".jar"
             Target.JS_NODE,
-            Target.JS_BROWSER -> "js"
+            Target.JS_BROWSER -> ""
 
             Target.WINDOWS_X64,
             Target.MACOS_ARM64,
             Target.MACOS_X64,
-            Target.LINUX_X64 -> "klib"
+            Target.LINUX_X64 -> ".klib"
         }
     }
 
@@ -426,20 +561,23 @@ class ModuleBuilder(
 
         when (target) {
             Target.JVM -> {
-                val targetOutPath = "${outputPath}.${getExeExtension(target)}"
+                val targetOutPath = "${outputPath}${getExeExtension(target)}"
                 arg(KotlincInstalls.findKotlincJvm(kotlinVersion))
-
-                args("-d", targetOutPath) // output folder/ZIP/Jar path
 
                 // arg("-Xjdk-release=$version")
                 // args("-jvm-target", "1.8")
-                // arg("-include-runtime")
+                arg("-include-runtime")
                 // args("-jdk-home", "")
-                // args("-classpath", "") // entries separated by ; on Windows and : on macOS/Linux
+
+                if (!libs.isNullOrEmpty()) {
+                    args("-classpath", libs.joinToString(CPSEP))
+                }
+
+                args("-d", targetOutPath) // output folder/ZIP/Jar path
             }
 
             Target.JS_NODE, Target.JS_BROWSER -> {
-                val targetOutPath = "${outputPath}.${getExeExtension(target)}"
+                val targetOutPath = "${outputPath}${getExeExtension(target)}"
                 arg(KotlincInstalls.findKotlincJs(kotlinVersion))
 
                 args("-output", targetOutPath) // output js file
@@ -454,6 +592,15 @@ class ModuleBuilder(
                 // arg("-no-stdlib")
 
                 args("-module-kind", "umd") // umd|commonjs|amd|plain
+
+                if (!libs.isNullOrEmpty()) {
+                    val jsLibFiles = libs
+                        .filter { !it.endsWith(".jar") && !it.endsWith(".klib") }
+                        .map { libPath -> File("${libPath}.meta.js").getAbsolutePath() }
+                    val archiveLibFiles = libs
+                        .filter { it.endsWith(".jar") || it.endsWith(".klib") }
+                    args("-libraries", (jsLibFiles + archiveLibFiles).joinToString(CPSEP))
+                }
             }
 
             Target.MACOS_ARM64,
@@ -461,7 +608,7 @@ class ModuleBuilder(
             Target.WINDOWS_X64,
             Target.LINUX_X64 -> {
                 val targetOutPath = if (isBinary) {
-                    "${outputPath}.${getExeExtension(target)}"
+                    "${outputPath}${getExeExtension(target)}"
                 } else {
                     outputPath // library suffix will be added be the compiler
                 }
@@ -472,9 +619,9 @@ class ModuleBuilder(
                 //args("-entry", "") // TODO: Handle non-root package main funcs
 
                 if (isBinary) {
-                    args("-produce", "program") // program, static, dynamic, framework, library, bitcode
+                    args("-produce", "program")
                 } else {
-                    args("-produce", "library")
+                    args("-produce", "library") // static, dynamic, framework, library, bitcode
                 }
 
                 if (releaseMode) {
@@ -512,21 +659,21 @@ class ModuleBuilder(
                 args("-target", konanTarget)
             }
         }
-
-        mainSource?.getAbsolutePath()?.run(::arg)
-        sourceFiles.forEach { file ->
-            arg(file.getAbsolutePath())
-        }
         arg("-verbose")
         // arg("-nowarn")
         // arg("-Werror")
 
         arg("-Xmulti-platform")
 
-        //arg("-Xplugin=\$KOTLIN_HOME/lib/kotlinx-serialization-compiler-plugin.jar")
+        arg("-Xplugin=${KotlincInstalls.findKotlinHome(kotlinVersion)}/lib/kotlinx-serialization-compiler-plugin.jar")
 
         // args("-kotlin-home", path)
         // args("-opt-in", <class>)
+
+        mainSource?.getAbsolutePath()?.run(::arg)
+        sourceFiles.forEach { file ->
+            arg(file.getAbsolutePath())
+        }
 
         if (context.debug) {
             println("Launching Kotlin compiler: ")
@@ -535,6 +682,7 @@ class ModuleBuilder(
     }
 }
 
+@Serializable
 data class RootDependencyNode(
     val targets: List<Target>,
     val module: ModuleConf,
@@ -557,6 +705,7 @@ data class RootDependencyNode(
     }
 }
 
+@Serializable
 data class ChildDependencyNode(
     val localModule: ModuleConf?,
     val ktpackDependency: KtpackDependency,

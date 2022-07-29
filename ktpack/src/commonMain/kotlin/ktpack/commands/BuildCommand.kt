@@ -4,18 +4,11 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.rendering.TextColors.cyan
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toKString
 import kotlinx.coroutines.runBlocking
-import ktfio.File
 import ktpack.*
 import ktpack.configuration.ModuleConf
 import ktpack.configuration.Target
 import ktpack.util.*
-import platform.posix.getcwd
-import platform.windows.MAX_PATH
 import kotlin.system.*
 
 class BuildCommand : CliktCommand(
@@ -47,12 +40,9 @@ class BuildCommand : CliktCommand(
         .flag()
 
     override fun run() = runBlocking {
-        val launchPath = memScoped {
-            allocArray<ByteVar>(MAX_PATH).apply { getcwd(this, MAX_PATH) }.toKString()
-        }
         val manifest = loadManifest(context, MANIFEST_NAME)
         val module = manifest.module
-        val moduleBuilder = ModuleBuilder(module, context, launchPath)
+        val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
         context.term.println(
             buildString {

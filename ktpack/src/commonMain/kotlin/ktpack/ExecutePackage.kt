@@ -7,7 +7,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import ksubprocess.Process
 import ktfio.appendBytes
 import ktpack.commands.kotlin.KotlincInstalls
@@ -60,7 +59,7 @@ suspend fun executePackage(context: CliContext, path: String): ManifestConf = co
         stdoutLines
             .run { if (context.debug) onEach { println(it) } else this }
             .mapNotNull { it.substringAfter("ktpack-module:", "").takeUnless(String::isBlank) }
-            .map { Json.decodeFromString<ModuleConf>(it) }
+            .map { json.decodeFromString<ModuleConf>(it) }
             .toList()
     }.firstOrNull() ?: error("No modules declared in $path")
 

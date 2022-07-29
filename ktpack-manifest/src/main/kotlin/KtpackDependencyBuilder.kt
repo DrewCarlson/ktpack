@@ -174,7 +174,7 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         return try {
             split(':').apply { check(size == 3) }
         } catch (e: Throwable) {
-            error("Maven coordinates must use the `org.jetbrains.kotlinx:kotlin-stdlib:1.7.10` format.")
+            error("Maven coordinates must use the `org.jetbrains.kotlinx:kotlin-stdlib:1.7.10` format.\n$this")
         }
     }
 }

@@ -27,9 +27,11 @@ sealed class KtpackDependency {
     data class MavenDependency(
         val groupId: String,
         val artifactId: String,
-        val version: String?,
+        val version: String,
         override val scope: DependencyScope,
-    ) : KtpackDependency()
+    ) : KtpackDependency() {
+        fun toMavenString(): String = "$groupId:$artifactId:$version"
+    }
 
     @Serializable
     data class NpmDependency(

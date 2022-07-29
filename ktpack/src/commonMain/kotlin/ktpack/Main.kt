@@ -6,7 +6,6 @@ import com.github.ajalt.mordant.terminal.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import ktfio.File
 import ktfio.readBytes
 import ktfio.readText
@@ -18,6 +17,8 @@ import ktpack.configuration.*
 import ktpack.util.TEMP_DIR
 import ktpack.util.failed
 import ktpack.util.measureSeconds
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.*
 import kotlin.system.*
 
 const val MANIFEST_NAME = "package.main.kts"
@@ -26,6 +27,12 @@ const val MANIFEST_NAME = "package.main.kts"
 val json = kotlinx.serialization.json.Json {
     ignoreUnknownKeys = true
     useAlternativeNames = false
+}
+
+@OptIn(ExperimentalXmlUtilApi::class)
+@SharedImmutable
+val xml = XML {
+    unknownChildHandler = UnknownChildHandler { _, _, _, _, _ -> emptyList() }
 }
 
 fun main(args: Array<String>) {
@@ -79,7 +86,7 @@ suspend fun loadManifest(context: CliContext, path: String): ManifestConf {
     val (module, duration) = measureSeconds {
         if (cacheKey.exists()) {
             //println("Reading manifest from cache")
-            Json.decodeFromString(cacheKey.readText())
+            json.decodeFromString(cacheKey.readText())
         } else {
             //println("Processing manifest")
             // TODO: Log in debug only
@@ -87,7 +94,7 @@ suspend fun loadManifest(context: CliContext, path: String): ManifestConf {
                 //println(cacheKey.getAbsolutePath())
                 if (cacheKey.createNewFile()) {
                     //println("Caching new manifest output")
-                    cacheKey.writeText(Json.encodeToString(manifestConf))
+                    cacheKey.writeText(json.encodeToString(manifestConf))
                 }
             }
         }

@@ -124,7 +124,7 @@ class JdkInstalls(
 
         val tempArchiveFile = File(TEMP_DIR, archiveName)
         val tempExtractedFolder = File(TEMP_DIR, archiveName.substringBeforeLast(packageExtension))
-        if (!tempArchiveFile.createNewFile() && !(tempArchiveFile.delete() && tempArchiveFile.createNewFile())) {
+        if (!tempArchiveFile.createNewFile()) {
             return JdkInstallResult.FileIOError(tempArchiveFile, "Unable to create temp file")
         }
 
@@ -143,6 +143,7 @@ class JdkInstalls(
         val lastFileIndex = (fileCount - 1).toDouble()
         var lastReportedProgress = 0
         check(tempArchiveFile.exists()) { "Downloaded temp archive does not exist." }
+        tempExtractedFolder.mkdirs()
         compressor.extract(archivePath, tempExtractedFolder.getAbsolutePath())
             .flowOn(Dispatchers.Default)
             .collectIndexed { index, _ ->
@@ -284,7 +285,8 @@ class JdkInstalls(
         val release = releases.asSequence()
             .filter { release -> release.tagName.startsWith(tagFilter) }
             .firstOrNull() ?: return Triple(null, null, null)
-        val packageName = "amazon-corretto-${release.tagName}-${osName}-${arch}-jdk$packageExtension"
+        val packageSuffix = if (Platform.osFamily == OsFamily.MACOSX) "" else "-jdk"
+        val packageName = "amazon-corretto-${release.tagName}-${osName}-${arch}-${packageSuffix}$packageExtension"
         val downloadUrl = "https://corretto.aws/downloads/resources/${release.tagName}/$packageName"
         val actualJdkVersion = if (majorVersion == 8) {
             val tagParts = release.tagName.split('.')

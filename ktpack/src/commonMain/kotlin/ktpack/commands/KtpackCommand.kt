@@ -10,19 +10,15 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import ktfio.File
 import ktfio.readText
 import ktfio.writeText
-import ktpack.Ktpack
-import ktpack.CliContext
-import ktpack.KtpackUserConfig
+import ktpack.*
 import ktpack.commands.jdk.JdkInstalls
 import ktpack.task.TaskRunner
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
 import ktpack.util.verbose
-import kotlin.system.exitProcess
 
 class KtpackCommand(
     override val term: Terminal,
@@ -33,7 +29,7 @@ class KtpackCommand(
     override val http: HttpClient by lazy {
         HttpClient {
             install(ContentNegotiation) {
-                json(ktpack.json)
+                json(json)
             }
         }
     }
@@ -41,15 +37,18 @@ class KtpackCommand(
     override val config: KtpackUserConfig by lazy {
         File(KTPACK_ROOT, "config.json").run {
             if (!exists()) {
+                check(File(KTPACK_ROOT).mkdirs()) {
+                    "Failed to create Ktpack folder $KTPACK_ROOT"
+                }
+                println(getAbsolutePath())
                 if (createNewFile()) {
-                    writeText(Json.encodeToString(KtpackUserConfig()))
+                    writeText(json.encodeToString(KtpackUserConfig()))
                 } else {
-                    println("Failed to write: ${getAbsolutePath()}")
-                    exitProcess(1)
+                    error("Failed to write: ${getAbsolutePath()}")
                 }
             }
 
-            Json.decodeFromString(readText())
+            json.decodeFromString(readText())
         }
     }
 
