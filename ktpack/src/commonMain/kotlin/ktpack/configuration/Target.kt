@@ -18,8 +18,8 @@ enum class Target(
     MACOS_ARM64(true),
     @SerialName("macos_x64")
     MACOS_X64(true),
-    @SerialName("windows_x64")
-    WINDOWS_X64(true),
+    @SerialName("mingw_x64")
+    MINGW_X64(true),
     @SerialName("linux_x64")
     LINUX_X64(true);
 }

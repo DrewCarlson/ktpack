@@ -18,8 +18,8 @@ enum class Target {
     @SerialName("macos_x64")
     MACOS_X64,
 
-    @SerialName("windows_x64")
-    WINDOWS_X64,
+    @SerialName("mingw_x64")
+    MINGW_X64,
 
     @SerialName("linux_x64")
     LINUX_X64,

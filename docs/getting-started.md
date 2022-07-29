@@ -56,7 +56,7 @@ $ ./out/linux_x64/debug/bin/hello_world.kexe
 Hello, world!
 ```
 
-_Note: the `linux_x64` directory could also be `macosx_[x64|arm64]` or `windows_x64` based on your operating system_
+_Note: the `linux_x64` directory could also be `macosx_[x64|arm64]` or `mingw_x64` based on your operating system_
 
 Alternatively we can use the `run` command:
 

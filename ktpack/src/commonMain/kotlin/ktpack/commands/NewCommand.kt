@@ -241,31 +241,36 @@ private fun newManifestSource(
     val authorsList = manifestConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
     return """|module("${manifestConf.module.name}") {
               |  version = "${manifestConf.module.version}"
-              |  kotlin-version = "${manifestConf.module.kotlinVersion}"
+              |  kotlinVersion = "${manifestConf.module.kotlinVersion}"
               |  ${manifestConf.module.description?.let { "description = \"$it\"" }}
               |  ${authorsList.takeIf(String::isNotBlank)}
               |  ${targetList.takeIf(String::isNotBlank)}
               |  ${manifestConf.module.publish.takeIf { it }?.let { "publish = $it" }}
               |  ${manifestConf.module.license?.let { "license = \"$it\"" }}
               |  ${manifestConf.module.repository?.let { "repository = \"$it\"" }}
-              |}
               |
-              |dependencies {
+              |  dependencies {
               |
+              |  }
               |}
-            """.trimMargin().replace("\nnull", "")
+              |""".trimMargin().replace("\n  null", "")
 }
 
 private val NEW_BIN_SOURCE =
     """|fun main() {
-       |    println("Hello, World!")
+       |  println("Hello, World!")
        |}
-       |
-    """.trimMargin()
+       |""".trimMargin()
 
 private val NEW_LIB_SOURCE =
     """|fun sayHello() {
-       |    println("Hello, World!")
+       |  println("Hello, World!")
        |}
-       |
-    """.trimMargin()
+       |""".trimMargin()
+
+private val NEW_GITIGNORE_SOURCE =
+    """|out/
+       |.idea/
+       |*.hprof
+       |.DS_Store
+       |""".trimMargin()

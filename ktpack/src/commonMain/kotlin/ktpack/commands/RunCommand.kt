@@ -63,7 +63,7 @@ class RunCommand : CliktCommand(
             }
 
             OsFamily.LINUX -> Target.LINUX_X64
-            OsFamily.WINDOWS -> Target.WINDOWS_X64
+            OsFamily.WINDOWS -> Target.MINGW_X64
             else -> error("Unsupported host operating system")
         }
 

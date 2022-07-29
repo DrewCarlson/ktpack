@@ -21,7 +21,6 @@ object KotlincInstalls {
         append(filePathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
-        append(filePathSeparator)
     }
 
     fun findKotlincJvm(version: String): String = buildString {

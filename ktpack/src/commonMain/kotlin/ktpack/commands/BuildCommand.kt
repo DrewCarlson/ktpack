@@ -60,7 +60,7 @@ class BuildCommand : CliktCommand(
             }
 
             OsFamily.LINUX -> Target.LINUX_X64
-            OsFamily.WINDOWS -> Target.WINDOWS_X64
+            OsFamily.WINDOWS -> Target.MINGW_X64
             else -> error("Unsupported host operating system")
         }
 
@@ -166,7 +166,7 @@ class BuildCommand : CliktCommand(
             Target.MACOS_ARM64,
             Target.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
 
-            Target.WINDOWS_X64 -> Platform.osFamily == OsFamily.WINDOWS ||
+            Target.MINGW_X64 -> Platform.osFamily == OsFamily.WINDOWS ||
                     Platform.osFamily == OsFamily.MACOSX
 
             Target.LINUX_X64 -> Platform.osFamily == OsFamily.LINUX ||

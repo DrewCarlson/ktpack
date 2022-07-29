@@ -7,7 +7,6 @@ import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import ksubprocess.*
 import ktfio.*
 import ktpack.*
@@ -81,7 +80,7 @@ class ModuleBuilder(
         val targetBinDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "bin")
         if (!targetBinDir.exists()) targetBinDir.mkdirs()
         val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target).artifacts
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
         val (result, duration) = measureSeconds {
             startKotlinCompiler(selectedBinFile, sourceFiles, releaseMode, outputPath, target, true, resolvedLibs)
         }
@@ -113,7 +112,7 @@ class ModuleBuilder(
         val targetLibDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "lib")
         if (!targetLibDir.exists()) targetLibDir.mkdirs()
 
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target).artifacts
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
         val outputPath = listOf(targetLibDir.getAbsolutePath(), module.name)
             .joinToString(filePathSeparator.toString())
         val (result, duration) = measureSeconds {
@@ -142,7 +141,7 @@ class ModuleBuilder(
             error("Could not create build folder: ${outFolder.getAbsolutePath()}")
         }
 
-        val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target)
+        val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
 
         val mainSource = mainSource
         return listOfNotNull(
@@ -162,12 +161,13 @@ class ModuleBuilder(
         root: RootDependencyNode,
         releaseMode: Boolean,
         target: Target,
+        downloadArtifacts: Boolean,
     ): RootDependencyNode {
         val (newRoot, duration) = measureSeconds {
             val (mavenDependencies, mavenDuration) = measureSeconds {
                 root.children
                     .filter { it.ktpackDependency is KtpackDependency.MavenDependency }
-                    .map { child -> fetchMavenDependency(child, releaseMode, target, true) }
+                    .map { child -> fetchMavenDependency(child, releaseMode, target, downloadArtifacts) }
             }
 
             if (context.debug) {
@@ -177,7 +177,7 @@ class ModuleBuilder(
             val (localDependencies, localDuration) = measureSeconds {
                 root.children
                     .filter { it.ktpackDependency is KtpackDependency.LocalPathDependency }
-                    .map { child -> buildChildDependency(child, releaseMode, target) }
+                    .map { child -> buildChildDependency(child, releaseMode, target, downloadArtifacts) }
             }
 
             if (context.debug) {
@@ -200,6 +200,7 @@ class ModuleBuilder(
         child: ChildDependencyNode,
         releaseMode: Boolean,
         target: Target,
+        downloadArtifacts: Boolean,
         libs: List<String>? = null
     ): ChildDependencyNode {
         val childPath = "${basePath}${filePathSeparator}${child.localModule!!.name}"
@@ -208,19 +209,21 @@ class ModuleBuilder(
         val innerDepNodes = child.children
             .filter { it.ktpackDependency is KtpackDependency.LocalPathDependency }
             .map { innerChild ->
-                childBuilder.buildChildDependency(innerChild, releaseMode, target)
+                childBuilder.buildChildDependency(innerChild, releaseMode, target, downloadArtifacts)
             }
 
         val innerLibs = innerDepNodes.flatMap { it.artifacts } + libs.orEmpty()
-        val result = when (val result = childBuilder.buildLib(releaseMode, target, innerLibs)) {
-            is ArtifactResult.Success -> result.artifactPath
-            ArtifactResult.NoArtifactFound -> error("No artifact found at $childPath")
-            is ArtifactResult.ProcessError -> error(result.message.orEmpty())
-        }
+        val result = if (downloadArtifacts) {
+            when (val result = childBuilder.buildLib(releaseMode, target, innerLibs)) {
+                is ArtifactResult.Success -> result.artifactPath
+                ArtifactResult.NoArtifactFound -> error("No artifact found at $childPath")
+                is ArtifactResult.ProcessError -> error(result.message.orEmpty())
+            }
+        } else null
 
         return child.copy(
             children = innerDepNodes,
-            artifacts = innerLibs + result
+            artifacts = innerLibs + listOfNotNull(result)
         )
     }
 
@@ -265,22 +268,22 @@ class ModuleBuilder(
                 Target.JS_BROWSER -> null
                 Target.MACOS_ARM64 -> "macos_arm64"
                 Target.MACOS_X64 -> "macos_x64"
-                Target.WINDOWS_X64 -> "mingw_x64"
+                Target.MINGW_X64 -> "mingw_x64"
                 Target.LINUX_X64 -> "linux_x64"
             }
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "native" &&
-                    variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
+                        variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
             }
         } else if (target == Target.JVM) {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "jvm" &&
-                    variant.attributes.orgGradleLibraryelements == "jar"
+                        variant.attributes.orgGradleLibraryelements == "jar"
             }
         } else {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinJsCompiler == "ir" &&
-                    variant.attributes.orgJetbrainsKotlinPlatformType == "js"
+                        variant.attributes.orgJetbrainsKotlinPlatformType == "js"
             }
         }
         variant ?: error("Could not find variant for $target in $artifactModuleName")
@@ -373,15 +376,15 @@ class ModuleBuilder(
         val artifactFile = if (downloadArtifacts) fetchArtifact(dependency).getAbsolutePath() else null
 
         val childDeps = pom.dependencies
-            .filter { it.scope != "test" }
+            .filter { it.scope?.value != "test" && it.version != null }
             .map { mavenDep ->
                 val newChild = ChildDependencyNode(
                     localModule = null,
                     ktpackDependency = KtpackDependency.MavenDependency(
-                        groupId = mavenDep.groupId,
-                        artifactId = mavenDep.artifactId,
-                        version = mavenDep.version,
-                        scope = when (mavenDep.scope) {
+                        groupId = mavenDep.groupId.value,
+                        artifactId = mavenDep.artifactId.value,
+                        version = checkNotNull(mavenDep.version).value,
+                        scope = when (mavenDep.scope?.value) {
                             "compile" -> DependencyScope.COMPILE
                             "runtime" -> DependencyScope.IMPLEMENTATION
                             else -> DependencyScope.IMPLEMENTATION
@@ -398,7 +401,7 @@ class ModuleBuilder(
         )
     }
 
-    private suspend fun fetchArtifact(dependency: KtpackDependency.MavenDependency) : File {
+    private suspend fun fetchArtifact(dependency: KtpackDependency.MavenDependency): File {
         val actualArtifactName = "${dependency.artifactId}-${dependency.version}.jar"
         val actualArtifactPath = dependency.groupId.split('.')
             .plus(dependency.artifactId)
@@ -498,11 +501,15 @@ class ModuleBuilder(
         rootFolder: File,
         targets: List<Target>
     ): ChildDependencyNode {
-
-        return ChildDependencyNode(
-            localModule = null,
-            ktpackDependency = ktpackDependency,
-            children = emptyList(),
+        return fetchMavenDependency(
+            ChildDependencyNode(
+                localModule = null,
+                ktpackDependency = ktpackDependency,
+                children = emptyList(),
+            ),
+            releaseMode = false,
+            target = targets.firstOrNull() ?: Target.JVM, // TODO:
+            downloadArtifacts = false,
         )
     }
 
@@ -525,7 +532,7 @@ class ModuleBuilder(
     private fun getExeExtension(target: Target): String {
         return when (target) {
             Target.JVM -> ".jar"
-            Target.WINDOWS_X64 -> ".exe"
+            Target.MINGW_X64 -> ".exe"
             Target.JS_NODE,
             Target.JS_BROWSER -> ".js"
 
@@ -541,7 +548,7 @@ class ModuleBuilder(
             Target.JS_NODE,
             Target.JS_BROWSER -> ""
 
-            Target.WINDOWS_X64,
+            Target.MINGW_X64,
             Target.MACOS_ARM64,
             Target.MACOS_X64,
             Target.LINUX_X64 -> ".klib"
@@ -605,7 +612,7 @@ class ModuleBuilder(
 
             Target.MACOS_ARM64,
             Target.MACOS_X64,
-            Target.WINDOWS_X64,
+            Target.MINGW_X64,
             Target.LINUX_X64 -> {
                 val targetOutPath = if (isBinary) {
                     "${outputPath}${getExeExtension(target)}"
@@ -652,11 +659,7 @@ class ModuleBuilder(
                 // args("-generate-worker-test-runner", "")
                 // args("-generate-no-exit-test-runner", "")
 
-                val konanTarget = when (target) {
-                    Target.WINDOWS_X64 -> "mingw_x64"
-                    else -> target.name.lowercase()
-                }
-                args("-target", konanTarget)
+                args("-target", target.name.lowercase())
             }
         }
         arg("-verbose")
@@ -665,7 +668,9 @@ class ModuleBuilder(
 
         arg("-Xmulti-platform")
 
-        arg("-Xplugin=${KotlincInstalls.findKotlinHome(kotlinVersion)}/lib/kotlinx-serialization-compiler-plugin.jar")
+        val serializationPlugin = File(KotlincInstalls.findKotlinHome(kotlinVersion), "lib")
+            .nestedFile("kotlinx-serialization-compiler-plugin.jar")
+        //arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
 
         // args("-kotlin-home", path)
         // args("-opt-in", <class>)
@@ -715,7 +720,7 @@ data class ChildDependencyNode(
     override fun toString(): String = when (ktpackDependency) {
         is KtpackDependency.LocalPathDependency -> "local: module=${localModule?.name} path=${ktpackDependency.path}"
         is KtpackDependency.GitDependency -> "git: module=${localModule?.name} url=${ktpackDependency.gitUrl}"
-        is KtpackDependency.MavenDependency -> "maven: ${ktpackDependency.artifactId}"
+        is KtpackDependency.MavenDependency -> "maven: ${ktpackDependency.toMavenString()}"
         is KtpackDependency.NpmDependency -> "npm: name=${ktpackDependency.name} dev=${ktpackDependency.isDev}"
     }
 }
