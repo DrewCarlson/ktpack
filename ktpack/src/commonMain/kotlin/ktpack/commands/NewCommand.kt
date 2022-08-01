@@ -12,7 +12,7 @@ import ktpack.CliContext
 import ktpack.MANIFEST_NAME
 import ktpack.configuration.ManifestConf
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.Target
+import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 import kotlin.system.*
 
@@ -69,7 +69,7 @@ class NewCommand : CliktCommand(
 
     private val targets by option("--target", "-t")
         .help("The supported Target platforms")
-        .enum<Target>()
+        .enum<KotlinTarget>()
         .multiple()
 
     private val publish by option("--publish", "-p")
@@ -169,10 +169,10 @@ class NewCommand : CliktCommand(
                 listOf(flagOrUserPrompt("Author", defaultAuthor) { defaultAuthor })
             },
             targets = targets.takeUnless { interactive == true } ?: run {
-                val targetStrings = Target.values().joinToString { info(it.name.lowercase()) }
+                val targetStrings = KotlinTarget.values().joinToString { info(it.name.lowercase()) }
                 context.term.println("${verbose("Available targets")}: $targetStrings")
                 val response = prompt("Comma separated list of targets")
-                checkNotNull(response).split(", ", ",").map { Target.valueOf(it.uppercase()) }
+                checkNotNull(response).split(", ", ",").map { KotlinTarget.valueOf(it.uppercase()) }
             },
         )
     )

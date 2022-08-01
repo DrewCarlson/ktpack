@@ -17,7 +17,7 @@ class CheckCommand : CliktCommand(
     private val context by requireObject<CliContext>()
 
     override fun run() = runBlocking {
-        val manifest = loadManifest(context, filePath)
+        val manifest = context.loadManifest(filePath)
         // TODO: Validate all manifest properties
         println(manifest)
     }

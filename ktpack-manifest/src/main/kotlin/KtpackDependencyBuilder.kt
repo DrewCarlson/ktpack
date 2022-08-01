@@ -1,20 +1,18 @@
 package ktpack.configuration
 
-import Target
+open class KtpackDependencyBuilder(private val targets: List<KotlinTarget>) {
+    private val dependencies = mutableListOf<DependencyConf>()
 
-open class KtpackDependencyBuilder(private val targets: List<Target>) {
-    private val dependencies = mutableListOf<KtpackDependency>()
-
-    protected fun add(dep: KtpackDependency) {
+    protected fun add(dep: DependencyConf) {
         dependencies.add(dep)
     }
 
-    fun local(path: String, version: String? = null) {
-        add(KtpackDependency.LocalPathDependency(path, version, DependencyScope.IMPLEMENTATION))
+    fun local(path: String) {
+        add(DependencyConf.LocalPathDependency(path, DependencyScope.IMPLEMENTATION))
     }
 
     fun git(url: String, tag: String? = null, branch: String? = null, version: String? = null) = add(
-        KtpackDependency.GitDependency(
+        DependencyConf.GitDependency(
             gitUrl = url,
             tag = tag,
             branch = branch,
@@ -26,7 +24,7 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     fun maven(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -35,9 +33,9 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         )
     }
 
-    fun maven(groupId: String, artifactId: String, version: String?) {
+    fun maven(groupId: String, artifactId: String, version: String) {
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -46,13 +44,13 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         )
     }
 
-    fun localApi(path: String, version: String? = null) {
-        add(KtpackDependency.LocalPathDependency(path, version, DependencyScope.API))
+    fun localApi(path: String) {
+        add(DependencyConf.LocalPathDependency(path, DependencyScope.API))
     }
 
     fun gitApi(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
-            KtpackDependency.GitDependency(
+            DependencyConf.GitDependency(
                 gitUrl = url,
                 tag = tag,
                 branch = branch,
@@ -65,7 +63,7 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     fun mavenApi(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -74,9 +72,9 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         )
     }
 
-    fun mavenApi(groupId: String, artifactId: String, version: String?) {
+    fun mavenApi(groupId: String, artifactId: String, version: String) {
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -86,12 +84,12 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     }
 
     fun localCompile(path: String, version: String? = null) {
-        add(KtpackDependency.LocalPathDependency(path, version, DependencyScope.COMPILE))
+        add(DependencyConf.LocalPathDependency(path, DependencyScope.COMPILE))
     }
 
     fun gitCompile(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
-            KtpackDependency.GitDependency(
+            DependencyConf.GitDependency(
                 gitUrl = url,
                 tag = tag,
                 branch = branch,
@@ -104,7 +102,7 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     fun mavenCompile(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -113,9 +111,9 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         )
     }
 
-    fun mavenCompile(groupId: String, artifactId: String, version: String?) {
+    fun mavenCompile(groupId: String, artifactId: String, version: String) {
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -125,12 +123,12 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     }
 
     fun localTest(path: String, version: String? = null) {
-        add(KtpackDependency.LocalPathDependency(path, version, DependencyScope.TEST))
+        add(DependencyConf.LocalPathDependency(path, DependencyScope.TEST))
     }
 
     fun gitTest(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
-            KtpackDependency.GitDependency(
+            DependencyConf.GitDependency(
                 gitUrl = url,
                 tag = tag,
                 branch = branch,
@@ -143,7 +141,7 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
     fun mavenTest(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
@@ -152,9 +150,9 @@ open class KtpackDependencyBuilder(private val targets: List<Target>) {
         )
     }
 
-    fun mavenTest(groupId: String, artifactId: String, version: String?) {
+    fun mavenTest(groupId: String, artifactId: String, version: String) {
         add(
-            KtpackDependency.MavenDependency(
+            DependencyConf.MavenDependency(
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,

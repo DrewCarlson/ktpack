@@ -5,21 +5,28 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-enum class Target(
-    val isNative: Boolean
+enum class KotlinTarget(
+    val isNative: Boolean = false,
+    val isJs: Boolean = false,
 ) {
     @SerialName("jvm")
-    JVM(false),
+    JVM,
+
     @SerialName("js_node")
-    JS_NODE(false),
+    JS_NODE(isJs = true),
+
     @SerialName("js_browser")
-    JS_BROWSER(false),
+    JS_BROWSER(isJs = true),
+
     @SerialName("macos_arm64")
-    MACOS_ARM64(true),
+    MACOS_ARM64(isNative = true),
+
     @SerialName("macos_x64")
-    MACOS_X64(true),
+    MACOS_X64(isNative = true),
+
     @SerialName("mingw_x64")
-    MINGW_X64(true),
+    MINGW_X64(isNative = true),
+
     @SerialName("linux_x64")
-    LINUX_X64(true);
+    LINUX_X64(isNative = true);
 }

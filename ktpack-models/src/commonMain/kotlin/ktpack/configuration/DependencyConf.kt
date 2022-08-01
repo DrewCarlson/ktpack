@@ -3,16 +3,15 @@ package ktpack.configuration
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class KtpackDependency {
+sealed class DependencyConf {
 
     abstract val scope: DependencyScope
 
     @Serializable
     data class LocalPathDependency(
         val path: String,
-        val version: String?,
         override val scope: DependencyScope,
-    ) : KtpackDependency()
+    ) : DependencyConf()
 
     @Serializable
     data class GitDependency(
@@ -21,7 +20,7 @@ sealed class KtpackDependency {
         val branch: String?,
         val version: String?,
         override val scope: DependencyScope,
-    ) : KtpackDependency()
+    ) : DependencyConf()
 
     @Serializable
     data class MavenDependency(
@@ -29,7 +28,7 @@ sealed class KtpackDependency {
         val artifactId: String,
         val version: String,
         override val scope: DependencyScope,
-    ) : KtpackDependency() {
+    ) : DependencyConf() {
         fun toMavenString(): String = "$groupId:$artifactId:$version"
     }
 
@@ -39,5 +38,5 @@ sealed class KtpackDependency {
         val version: String,
         val isDev: Boolean,
         override val scope: DependencyScope,
-    ) : KtpackDependency()
+    ) : DependencyConf()
 }

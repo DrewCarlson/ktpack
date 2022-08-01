@@ -217,6 +217,7 @@ kotlin {
         val commonMain by getting {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
+                implementation(project(":ktpack-models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)

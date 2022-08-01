@@ -2,6 +2,7 @@ package ktpack.util
 
 import kotlinx.cinterop.toKString
 import ktfio.filePathSeparator
+import ktpack.configuration.KotlinTarget
 import platform.posix.getenv
 
 /**
@@ -57,3 +58,31 @@ val ARCH by lazy {
 
 @SharedImmutable
 val CPSEP = if (Platform.osFamily == OsFamily.WINDOWS) ";" else ":"
+
+
+object PlatformUtils {
+
+    fun getHostTarget(): KotlinTarget {
+        return when (Platform.osFamily) {
+            OsFamily.LINUX -> KotlinTarget.LINUX_X64
+            OsFamily.WINDOWS -> KotlinTarget.MINGW_X64
+            OsFamily.MACOSX -> if (Platform.cpuArchitecture == CpuArchitecture.ARM64) {
+                KotlinTarget.MACOS_ARM64
+            } else {
+                KotlinTarget.MACOS_X64
+            }
+
+            else -> error("Unsupported host os: ${Platform.osFamily}")
+        }
+    }
+
+    fun canHostBuildFor(target: KotlinTarget): Boolean {
+        return when (target) {
+            KotlinTarget.JVM, KotlinTarget.JS_NODE, KotlinTarget.JS_BROWSER, KotlinTarget.LINUX_X64 -> true
+            KotlinTarget.MINGW_X64 -> Platform.osFamily != OsFamily.LINUX
+            KotlinTarget.MACOS_ARM64, KotlinTarget.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
+        }
+    }
+
+    fun getHostSupportedTargets() = KotlinTarget.values().filter(::canHostBuildFor)
+}

@@ -1,16 +1,14 @@
 package ktpack.tasks
 
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.Target
+import ktpack.configuration.KotlinTarget
 import ktpack.task.BaseTask
-import ktpack.util.ArtifactResult
-import ktpack.util.ModuleBuilder
 
 class CompileModuleTask(
     /** The module to compile. */
     private val moduleConf: ModuleConf,
     /** The target to compile for. */
-    private val target: Target,
+    private val target: KotlinTarget,
     /** The bin/lib name to compile. */
     private val artifactName: String,
     /** Is building in release mode. */

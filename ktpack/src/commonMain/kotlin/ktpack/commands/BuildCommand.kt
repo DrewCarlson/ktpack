@@ -6,8 +6,10 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.rendering.TextColors.cyan
 import kotlinx.coroutines.runBlocking
 import ktpack.*
+import ktpack.compilation.ArtifactResult
+import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.Target
+import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 import kotlin.system.*
 
@@ -33,14 +35,14 @@ class BuildCommand : CliktCommand(
 
     private val userTarget by option("--target", "-t")
         .help("The target platform to build for.")
-        .enum<Target>()
+        .enum<KotlinTarget>()
 
     private val allTargets by option("--all-targets", "-a")
         .help("Build all targets supported by this host.")
         .flag()
 
     override fun run() = runBlocking {
-        val manifest = loadManifest(context, MANIFEST_NAME)
+        val manifest = context.loadManifest()
         val module = manifest.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
@@ -52,26 +54,15 @@ class BuildCommand : CliktCommand(
                 append(" (${moduleBuilder.srcFolder.getParent()})")
             }
         )
-        val hostTarget = when (Platform.osFamily) {
-            OsFamily.MACOSX -> if (Platform.cpuArchitecture == CpuArchitecture.ARM64) {
-                Target.MACOS_ARM64
-            } else {
-                Target.MACOS_X64
-            }
-
-            OsFamily.LINUX -> Target.LINUX_X64
-            OsFamily.WINDOWS -> Target.MINGW_X64
-            else -> error("Unsupported host operating system")
-        }
 
         val targetBuildList = if (allTargets) {
             if (module.targets.isEmpty()) {
-                getHostSupportedTargets()
+                PlatformUtils.getHostSupportedTargets()
             } else {
-                getHostSupportedTargets().filter(module.targets::contains)
+                PlatformUtils.getHostSupportedTargets().filter(module.targets::contains)
             }
         } else {
-            listOf(module.validateTargetOrAlternative(context, hostTarget, userTarget) ?: return@runBlocking)
+            listOf(module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking)
         }
         context.term.println("${info("Building")} for ${targetBuildList.joinToString { verbose(it.name.lowercase()) }}")
         val results: List<ArtifactResult> =
@@ -152,28 +143,6 @@ class BuildCommand : CliktCommand(
             }
         )
     }
-
-    /**
-     * Produce a list of [Target]s that are supported as build
-     * targets for the host system.
-     */
-    private fun getHostSupportedTargets() = Target.values().filter { target ->
-        when (target) {
-            Target.JVM,
-            Target.JS_NODE,
-            Target.JS_BROWSER -> true
-
-            Target.MACOS_ARM64,
-            Target.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
-
-            Target.MINGW_X64 -> Platform.osFamily == OsFamily.WINDOWS ||
-                    Platform.osFamily == OsFamily.MACOSX
-
-            Target.LINUX_X64 -> Platform.osFamily == OsFamily.LINUX ||
-                    Platform.osFamily == OsFamily.MACOSX ||
-                    Platform.osFamily == OsFamily.WINDOWS
-        }
-    }
 }
 
 /**
@@ -184,14 +153,14 @@ class BuildCommand : CliktCommand(
  */
 fun ModuleConf.validateTargetOrAlternative(
     context: CliContext,
-    hostTarget: Target,
-    requestedTarget: Target?,
-): Target? {
+    requestedTarget: KotlinTarget?,
+): KotlinTarget? {
     return if (requestedTarget == null) {
+        val hostTarget = PlatformUtils.getHostTarget()
         if (targets.isEmpty() || targets.contains(hostTarget)) {
             hostTarget
         } else {
-            targets.firstOrNull { it == Target.JS_BROWSER || it == Target.JS_NODE || it == Target.JVM }
+            targets.firstOrNull { it == KotlinTarget.JS_BROWSER || it == KotlinTarget.JS_NODE || it == KotlinTarget.JVM }
         } ?: error("No supported build targets.")
     } else {
         if (targets.isEmpty() || targets.contains(requestedTarget)) {

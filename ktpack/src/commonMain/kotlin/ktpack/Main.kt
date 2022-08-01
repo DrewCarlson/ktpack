@@ -79,30 +79,3 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 }
-
-suspend fun loadManifest(context: CliContext, path: String): ManifestConf {
-    val digest = Algorithm.MD5.createDigest().apply { update(File(path).readBytes()) }.digest().toHexString()
-    val cacheKey = File(TEMP_DIR, ".ktpack-manifest-cache-$digest")
-    val (module, duration) = measureSeconds {
-        if (cacheKey.exists()) {
-            //println("Reading manifest from cache")
-            json.decodeFromString(cacheKey.readText())
-        } else {
-            //println("Processing manifest")
-            // TODO: Log in debug only
-            Dispatchers.Default { executePackage(context, path) }.also { manifestConf ->
-                //println(cacheKey.getAbsolutePath())
-                if (cacheKey.createNewFile()) {
-                    //println("Caching new manifest output")
-                    cacheKey.writeText(json.encodeToString(manifestConf))
-                }
-            }
-        }
-    }
-    println("Manifest loaded in ${duration}s: $path")
-    return module
-}
-
-private fun ByteArray.toHexString(): String {
-    return joinToString("") { (0xFF and it.toInt()).toString(16).padStart(2, '0') }
-}

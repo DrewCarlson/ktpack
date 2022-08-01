@@ -23,6 +23,14 @@ object KotlincInstalls {
         append(version)
     }
 
+    fun findKotlinBin(binName: String, version: String): String = buildString {
+        append(findNonNativeBin(version))
+        append(binName)
+        if (Platform.osFamily == OsFamily.WINDOWS) {
+            append(".bat")
+        }
+    }
+
     fun findKotlincJvm(version: String): String = buildString {
         append(findNonNativeBin(version))
         append("kotlinc-jvm")

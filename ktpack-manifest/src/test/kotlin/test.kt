@@ -1,5 +1,5 @@
 
-fun main() {
+/*fun main() {
 
 
     module("hello_world") {
@@ -13,9 +13,9 @@ fun main() {
             maven("co.touchlab", "kermit", "1.1.3")
         }
 
-        dependencies(Target.JS_NODE, Target.JS_BROWSER) {
+        dependencies(KotlinTarget.JS_NODE, Target.JS_BROWSER) {
             maven("co.touchlab:kermit:1.1.3")
             maven("co.touchlab", "kermit", "1.1.3")
         }
     }
-}
+}*/

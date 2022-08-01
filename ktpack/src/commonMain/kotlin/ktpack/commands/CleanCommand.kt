@@ -4,17 +4,12 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
-import kotlinx.cinterop.ByteVar
-import kotlinx.cinterop.allocArray
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toKString
 import kotlinx.coroutines.runBlocking
 import ktfio.File
 import ktfio.deleteRecursively
 import ktpack.CliContext
-import ktpack.MANIFEST_NAME
-import ktpack.configuration.Target
-import ktpack.loadManifest
+import ktpack.compilation.ModuleBuilder
+import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 
 class CleanCommand : CliktCommand(
@@ -23,13 +18,13 @@ class CleanCommand : CliktCommand(
 
     private val userTarget by option("--target", "-t")
         .help("The target platform to clean.")
-        .enum<Target>()
+        .enum<KotlinTarget>()
 
     private val context by requireObject<CliContext>()
 
     override fun run() = runBlocking {
         val userTarget = userTarget
-        val manifest = loadManifest(context, MANIFEST_NAME)
+        val manifest = context.loadManifest()
         val module = manifest.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
@@ -51,7 +46,7 @@ class CleanCommand : CliktCommand(
         tryDeleteDirectory(outDir, userTarget)
     }
 
-    private fun tryDeleteDirectory(outDir: File, target: Target?) {
+    private fun tryDeleteDirectory(outDir: File, target: KotlinTarget?) {
         if (!outDir.exists() || !outDir.isDirectory()) {
             context.term.println("${success("Clean")} No files to delete")
         } else if (outDir.deleteRecursively()) {

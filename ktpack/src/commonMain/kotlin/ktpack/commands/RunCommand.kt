@@ -14,8 +14,10 @@ import ksubprocess.*
 import ktfio.File
 import ktfio.filePathSeparator
 import ktpack.*
+import ktpack.compilation.ArtifactResult
+import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.Target
+import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 import mongoose.*
 import kotlin.system.exitProcess
@@ -35,7 +37,7 @@ class RunCommand : CliktCommand(
 
     private val userTarget by option("--target", "-t")
         .help("The target platform to build for.")
-        .enum<Target>()
+        .enum<KotlinTarget>()
 
     private val httpPort by option("--port", "-p")
         .help("The HTTP Server port to use when serving the js_browser target.")
@@ -43,7 +45,7 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val manifest = loadManifest(context, MANIFEST_NAME)
+        val manifest = context.loadManifest()
         val moduleBuilder = ModuleBuilder(manifest.module, context, workingDirectory)
         val targetBin = targetBin ?: manifest.module.name
 
@@ -55,19 +57,7 @@ class RunCommand : CliktCommand(
                 append(" (${moduleBuilder.srcFolder.getParent()})")
             }
         )
-        val hostTarget = when (Platform.osFamily) {
-            OsFamily.MACOSX -> if (Platform.cpuArchitecture == CpuArchitecture.ARM64) {
-                Target.MACOS_ARM64
-            } else {
-                Target.MACOS_X64
-            }
-
-            OsFamily.LINUX -> Target.LINUX_X64
-            OsFamily.WINDOWS -> Target.MINGW_X64
-            else -> error("Unsupported host operating system")
-        }
-
-        val target = manifest.module.validateTargetOrAlternative(context, hostTarget, userTarget) ?: return@runBlocking
+        val target = manifest.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         when (val result = moduleBuilder.buildBin(releaseMode, targetBin, target)) {
             is ArtifactResult.Success -> {
                 if (context.debug) {
@@ -115,18 +105,18 @@ class RunCommand : CliktCommand(
 
     private suspend fun runBuildArtifact(
         module: ModuleConf,
-        target: Target,
+        target: KotlinTarget,
         artifactPath: String,
         dependencyArtifacts: List<String>,
     ): Int {
-        if (target == Target.JS_BROWSER) {
+        if (target == KotlinTarget.JS_BROWSER) {
             runJsBrowserArtifact(module, artifactPath)
             return 1
         }
         return Process {
             when (target) {
-                Target.JS_BROWSER -> error("Unsupported run target: $target")
-                Target.JVM -> {
+                KotlinTarget.JS_BROWSER -> error("Unsupported run target: $target")
+                KotlinTarget.JVM -> {
                     val jdkInstallation = context.jdkInstalls.getDefaultJdk()
                     if (jdkInstallation == null) {
                         context.term.println("${failed("Failed")} Could not find JDK installation.")
@@ -137,7 +127,7 @@ class RunCommand : CliktCommand(
                     arg("MainKt") // TODO: get main class from artifact
                 }
 
-                Target.JS_NODE -> {
+                KotlinTarget.JS_NODE -> {
                     arg("C:\\Users\\drewc\\.gradle\\nodejs\\node-v16.13.0-win-x64\\node.exe")
                     arg(artifactPath)
                 }
