@@ -16,6 +16,7 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 binaryCompat = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary_compat" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 completeKotlin = { id = "com.louiscad.complete-kotlin", version = "1.1.0" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "7.1.2" }
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

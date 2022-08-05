@@ -1,0 +1,321 @@
+public abstract class ktpack/configuration/DependencyConf {
+	public static final field Companion Lktpack/configuration/DependencyConf$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public abstract fun getScope ()Lktpack/configuration/DependencyScope;
+	public static final fun write$Self (Lktpack/configuration/DependencyConf;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyConf$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$GitDependency : ktpack/configuration/DependencyConf {
+	public static final field Companion Lktpack/configuration/DependencyConf$GitDependency$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lktpack/configuration/DependencyScope;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;)Lktpack/configuration/DependencyConf$GitDependency;
+	public static synthetic fun copy$default (Lktpack/configuration/DependencyConf$GitDependency;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;ILjava/lang/Object;)Lktpack/configuration/DependencyConf$GitDependency;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBranch ()Ljava/lang/String;
+	public final fun getGitUrl ()Ljava/lang/String;
+	public fun getScope ()Lktpack/configuration/DependencyScope;
+	public final fun getTag ()Ljava/lang/String;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/DependencyConf$GitDependency;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyConf$GitDependency$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyConf$GitDependency$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyConf$GitDependency;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyConf$GitDependency;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$GitDependency$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$LocalPathDependency : ktpack/configuration/DependencyConf {
+	public static final field Companion Lktpack/configuration/DependencyConf$LocalPathDependency$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Lktpack/configuration/DependencyScope;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Lktpack/configuration/DependencyScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lktpack/configuration/DependencyScope;
+	public final fun copy (Ljava/lang/String;Lktpack/configuration/DependencyScope;)Lktpack/configuration/DependencyConf$LocalPathDependency;
+	public static synthetic fun copy$default (Lktpack/configuration/DependencyConf$LocalPathDependency;Ljava/lang/String;Lktpack/configuration/DependencyScope;ILjava/lang/Object;)Lktpack/configuration/DependencyConf$LocalPathDependency;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPath ()Ljava/lang/String;
+	public fun getScope ()Lktpack/configuration/DependencyScope;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/DependencyConf$LocalPathDependency;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyConf$LocalPathDependency$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyConf$LocalPathDependency$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyConf$LocalPathDependency;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyConf$LocalPathDependency;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$LocalPathDependency$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$MavenDependency : ktpack/configuration/DependencyConf {
+	public static final field Companion Lktpack/configuration/DependencyConf$MavenDependency$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lktpack/configuration/DependencyScope;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;)Lktpack/configuration/DependencyConf$MavenDependency;
+	public static synthetic fun copy$default (Lktpack/configuration/DependencyConf$MavenDependency;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lktpack/configuration/DependencyScope;ILjava/lang/Object;)Lktpack/configuration/DependencyConf$MavenDependency;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifactId ()Ljava/lang/String;
+	public final fun getGroupId ()Ljava/lang/String;
+	public fun getScope ()Lktpack/configuration/DependencyScope;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toMavenString ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/DependencyConf$MavenDependency;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyConf$MavenDependency$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyConf$MavenDependency$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyConf$MavenDependency;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyConf$MavenDependency;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$MavenDependency$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$NpmDependency : ktpack/configuration/DependencyConf {
+	public static final field Companion Lktpack/configuration/DependencyConf$NpmDependency$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;ZLktpack/configuration/DependencyScope;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLktpack/configuration/DependencyScope;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Lktpack/configuration/DependencyScope;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZLktpack/configuration/DependencyScope;)Lktpack/configuration/DependencyConf$NpmDependency;
+	public static synthetic fun copy$default (Lktpack/configuration/DependencyConf$NpmDependency;Ljava/lang/String;Ljava/lang/String;ZLktpack/configuration/DependencyScope;ILjava/lang/Object;)Lktpack/configuration/DependencyConf$NpmDependency;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun getScope ()Lktpack/configuration/DependencyScope;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isDev ()Z
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/DependencyConf$NpmDependency;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyConf$NpmDependency$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyConf$NpmDependency$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyConf$NpmDependency;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyConf$NpmDependency;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyConf$NpmDependency$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyContainer {
+	public static final field Companion Lktpack/configuration/DependencyContainer$Companion;
+	public synthetic fun <init> (ILjava/util/List;Ljava/util/List;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public final fun getDependencies ()Ljava/util/List;
+	public final fun getTargets ()Ljava/util/List;
+	public static final fun write$Self (Lktpack/configuration/DependencyContainer;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/DependencyContainer$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyContainer$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyContainer;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyContainer;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyContainer$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyScope : java/lang/Enum {
+	public static final field API Lktpack/configuration/DependencyScope;
+	public static final field COMPILE Lktpack/configuration/DependencyScope;
+	public static final field Companion Lktpack/configuration/DependencyScope$Companion;
+	public static final field IMPLEMENTATION Lktpack/configuration/DependencyScope;
+	public static final field TEST Lktpack/configuration/DependencyScope;
+	public static fun valueOf (Ljava/lang/String;)Lktpack/configuration/DependencyScope;
+	public static fun values ()[Lktpack/configuration/DependencyScope;
+}
+
+public final class ktpack/configuration/DependencyScope$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/DependencyScope$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/DependencyScope;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/DependencyScope;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/DependencyScope$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/KotlinTarget : java/lang/Enum {
+	public static final field Companion Lktpack/configuration/KotlinTarget$Companion;
+	public static final field JS_BROWSER Lktpack/configuration/KotlinTarget;
+	public static final field JS_NODE Lktpack/configuration/KotlinTarget;
+	public static final field JVM Lktpack/configuration/KotlinTarget;
+	public static final field LINUX_X64 Lktpack/configuration/KotlinTarget;
+	public static final field MACOS_ARM64 Lktpack/configuration/KotlinTarget;
+	public static final field MACOS_X64 Lktpack/configuration/KotlinTarget;
+	public static final field MINGW_X64 Lktpack/configuration/KotlinTarget;
+	public final fun isJs ()Z
+	public final fun isNative ()Z
+	public static fun valueOf (Ljava/lang/String;)Lktpack/configuration/KotlinTarget;
+	public static fun values ()[Lktpack/configuration/KotlinTarget;
+}
+
+public final class ktpack/configuration/KotlinTarget$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/KotlinTarget$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/KotlinTarget;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/KotlinTarget;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/KotlinTarget$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/ManifestConf {
+	public static final field Companion Lktpack/configuration/ManifestConf$Companion;
+	public synthetic fun <init> (ILktpack/configuration/ModuleConf;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Lktpack/configuration/ModuleConf;)V
+	public final fun component1 ()Lktpack/configuration/ModuleConf;
+	public final fun copy (Lktpack/configuration/ModuleConf;)Lktpack/configuration/ManifestConf;
+	public static synthetic fun copy$default (Lktpack/configuration/ManifestConf;Lktpack/configuration/ModuleConf;ILjava/lang/Object;)Lktpack/configuration/ManifestConf;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModule ()Lktpack/configuration/ModuleConf;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/ManifestConf;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/ManifestConf$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/ManifestConf$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/ManifestConf;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/ManifestConf;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/ManifestConf$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/ModuleConf {
+	public static final field Companion Lktpack/configuration/ModuleConf$Companion;
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;Ljava/util/List;Lkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Z
+	public final fun component11 ()Ljava/util/List;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;Ljava/util/List;)Lktpack/configuration/ModuleConf;
+	public static synthetic fun copy$default (Lktpack/configuration/ModuleConf;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lktpack/configuration/ModuleConf;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAuthors ()Ljava/util/List;
+	public final fun getAutobin ()Z
+	public final fun getDependencies ()Ljava/util/List;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getHomepage ()Ljava/lang/String;
+	public final fun getKotlinVersion ()Ljava/lang/String;
+	public final fun getLicense ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPublish ()Z
+	public final fun getReadme ()Ljava/lang/String;
+	public final fun getRepository ()Ljava/lang/String;
+	public final fun getTargets ()Ljava/util/List;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public static final fun write$Self (Lktpack/configuration/ModuleConf;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/configuration/ModuleConf$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/configuration/ModuleConf$$serializer;
+	public static final synthetic field descriptor Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/configuration/ModuleConf;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/configuration/ModuleConf;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/ModuleConf$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

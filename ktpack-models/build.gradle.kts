@@ -4,6 +4,7 @@ import org.gradle.nativeplatform.platform.internal.*
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.binaryCompat)
     alias(libs.plugins.spotless)
 }
 
