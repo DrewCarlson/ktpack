@@ -1,9 +1,8 @@
 package ktpack.compilation.dependencies
 
 import kotlinx.serialization.Serializable
-import ktpack.configuration.ModuleConf
 import ktpack.configuration.KotlinTarget
-
+import ktpack.configuration.ModuleConf
 
 @Serializable
 data class RootDependencyNode(

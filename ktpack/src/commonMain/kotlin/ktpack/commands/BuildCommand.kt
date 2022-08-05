@@ -8,8 +8,8 @@ import kotlinx.coroutines.runBlocking
 import ktpack.*
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
-import ktpack.configuration.ModuleConf
 import ktpack.configuration.KotlinTarget
+import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import kotlin.system.*
 

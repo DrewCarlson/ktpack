@@ -7,12 +7,12 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.terminal.*
 import ktfio.*
-import ktpack.Ktpack
 import ktpack.CliContext
+import ktpack.Ktpack
 import ktpack.MANIFEST_NAME
+import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ManifestConf
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 import kotlin.system.*
 
@@ -36,7 +36,6 @@ class NewCommand : CliktCommand(
         .help("Set the resulting module name, defaults to the directory name")
         .defaultLazy { folder }
         .validate { require(moduleNameRegex.matches(it)) }
-
 
     private val interactive by mutuallyExclusiveOptions(
         option("--interactive", "-i")
@@ -253,24 +252,28 @@ private fun newManifestSource(
               |
               |  }
               |}
-              |""".trimMargin().replace("\n  null", "")
+              |
+    """.trimMargin().replace("\n  null", "")
 }
 
 private val NEW_BIN_SOURCE =
     """|fun main() {
        |  println("Hello, World!")
        |}
-       |""".trimMargin()
+       |
+    """.trimMargin()
 
 private val NEW_LIB_SOURCE =
     """|fun sayHello() {
        |  println("Hello, World!")
        |}
-       |""".trimMargin()
+       |
+    """.trimMargin()
 
 private val NEW_GITIGNORE_SOURCE =
     """|out/
        |.idea/
        |*.hprof
        |.DS_Store
-       |""".trimMargin()
+       |
+    """.trimMargin()

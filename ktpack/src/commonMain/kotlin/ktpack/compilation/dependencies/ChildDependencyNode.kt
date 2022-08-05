@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 import ktpack.configuration.DependencyConf
 import ktpack.configuration.ModuleConf
 
-
 @Serializable
 data class ChildDependencyNode(
     val localModule: ModuleConf?,

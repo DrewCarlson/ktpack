@@ -75,7 +75,7 @@ class JdkInstalls(
      */
     fun findJdk(jdksRoot: File, version: String, distribution: JdkDistribution? = null): InstallationDetails? {
         return distribution?.let { dist ->
-            jdksRoot.nestedFile("${dist.name.lowercase()}-${version}")
+            jdksRoot.nestedFile("${dist.name.lowercase()}-$version")
                 .takeIf(File::exists)
                 ?.let { jdkFolder ->
                     val pathEnv = getenv("PATH")?.toKString().orEmpty()
@@ -154,7 +154,7 @@ class JdkInstalls(
                 }
             }
         tempArchiveFile.delete()
-        val newJdkName = "${distribution.name.lowercase()}-${jdkVersionString}"
+        val newJdkName = "${distribution.name.lowercase()}-$jdkVersionString"
         val newJdkFolder = jdksRoot.nestedFile(newJdkName)
         // If extracted archive contains a single child folder, move that instead
         val moveTarget = tempExtractedFolder.listFiles().singleOrNull() ?: tempExtractedFolder
@@ -226,7 +226,7 @@ class JdkInstalls(
             CpuArchitecture.X64 -> "x64"
             else -> error("Unsupported host platform: ${Platform.osFamily} ${Platform.cpuArchitecture}")
         }
-        val packageFilter = "jdk_${arch}_${osName}"
+        val packageFilter = "jdk_${arch}_$osName"
         val majorVersion = jdkVersion.substringBefore('.').toInt()
         val releases = http.get("https://api.github.com/repos/adoptium/temurin$majorVersion-binaries/releases")
             .body<List<GhRelease>>()
@@ -237,7 +237,7 @@ class JdkInstalls(
             val versionParts = jdkVersion.split('.')
             "jdk${majorVersion}u${versionParts.getOrNull(2).orEmpty()}"
         } else {
-            "jdk-${jdkVersion}"
+            "jdk-$jdkVersion"
         }
         return releases.asSequence()
             .filter { release -> release.tagName.startsWith(tagFilter) }
@@ -247,7 +247,7 @@ class JdkInstalls(
                 }?.let { asset ->
                     val jdkVersionString = if (release.name.startsWith("jdk8")) {
                         val (major, patch) = release.name.substringAfter("jdk").substringBefore('-').split('u')
-                        "${major}.0.${patch}"
+                        "$major.0.$patch"
                     } else {
                         release.name.substringAfter("jdk-").substringBeforeLast("+")
                     }
@@ -278,7 +278,7 @@ class JdkInstalls(
         val tagFilter = if (majorVersion == 8) {
             // Parse and use the minor version if provided
             val versionParts = jdkVersion.split('.')
-            "${majorVersion}.${versionParts.getOrNull(2).orEmpty()}"
+            "$majorVersion.${versionParts.getOrNull(2).orEmpty()}"
         } else {
             jdkVersion
         }
@@ -286,7 +286,7 @@ class JdkInstalls(
             .filter { release -> release.tagName.startsWith(tagFilter) }
             .firstOrNull() ?: return Triple(null, null, null)
         val packageSuffix = if (Platform.osFamily == OsFamily.MACOSX) "" else "-jdk"
-        val packageName = "amazon-corretto-${release.tagName}-${osName}-${arch}-${packageSuffix}$packageExtension"
+        val packageName = "amazon-corretto-${release.tagName}-$osName-$arch-${packageSuffix}$packageExtension"
         val downloadUrl = "https://corretto.aws/downloads/resources/${release.tagName}/$packageName"
         val actualJdkVersion = if (majorVersion == 8) {
             val tagParts = release.tagName.split('.')
@@ -310,7 +310,7 @@ class JdkInstalls(
             else -> error("Unsupported host platform: ${Platform.osFamily} ${Platform.cpuArchitecture}")
         }
         val packageSuffix = "${osName}_$arch$packageExtension"
-        val versionFilter = "ca-jdk${jdkVersion}" // NOTE: Community Availability filter
+        val versionFilter = "ca-jdk$jdkVersion" // NOTE: Community Availability filter
 
         val body = http.get("https://cdn.azul.com/zulu/bin/").bodyAsText()
         val regex = """<a href="(zulu[A-Za-z0-9._-]+)">""".toRegex()
@@ -320,7 +320,7 @@ class JdkInstalls(
                     ?: return@mapNotNull null
                 val jdkVersionString = releaseFileName.substringAfter("jdk").substringBefore('-')
 
-                Triple("https://cdn.azul.com/zulu/bin/${releaseFileName}", releaseFileName, jdkVersionString)
+                Triple("https://cdn.azul.com/zulu/bin/$releaseFileName", releaseFileName, jdkVersionString)
             }
             .sortedByDescending { (_, _, jdkVersionString) ->
                 val (major, minor, patch) = jdkVersionString.split('.').map(String::toInt)

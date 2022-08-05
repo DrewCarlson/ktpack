@@ -18,27 +18,27 @@ class DokkaCli {
             // (required) - module name used as a part of source set ID when declaring dependent source sets
             args("-moduleName", manifest.module.name)
             // cache directory to enable package-list caching
-            //args("-cacheRoot", "")
+            // args("-cacheRoot", "")
             // artifacts with Dokka plugins, separated by ;. TODO: REQUIRES DOKKA BASE DEPENDENCIES!
-            //args("-pluginClasspath", ";")
+            // args("-pluginClasspath", ";")
             // configuration for plugins in format fqPluginName=json^^fqPluginName=json...
-            //args("-pluginsConfiguration", "")
+            // args("-pluginsConfiguration", "")
             // do not resolve package-lists online
-            //args("-offlineMode", "")
+            // args("-offlineMode", "")
             // throw an exception instead of a warning
-            //args("-failOnWarning", "")
+            // args("-failOnWarning", "")
             // per package options added to all source sets
-            //args("-globalPackageOptions", "")
+            // args("-globalPackageOptions", "")
             // external documentation links added to all source sets
-            //args("-globalLinks", "")
+            // args("-globalLinks", "")
             // source links added to all source sets
-            //args("-globalSrcLink", "")
+            // args("-globalSrcLink", "")
             // don't suppress obvious functions like default toString or equals
-            //args("-noSuppressObviousFunctions", "")
+            // args("-noSuppressObviousFunctions", "")
             // suppress all inherited members that were not overriden in a given class. Eg. using it you can suppress toString or equals functions but you can't suppress componentN or copy on data class
-            //args("-suppressInheritedMembers", "")
+            // args("-suppressInheritedMembers", "")
             // (repeatable) - configuration for a single source set. Following this argument, you can pass other arguments:
-            //args("-sourceSet", "")
+            // args("-sourceSet", "")
             // source set name as a part of source set ID when declaring dependent source sets
             // -> args("-sourceSetName", "")
             // source set name displayed in the generated documentation
@@ -78,7 +78,7 @@ class DokkaCli {
             // list of dependent source sets in format moduleName/sourceSetName, separated by ;
             // -> args("-dependentSourceSets", "")
             // one of DEBUG, PROGRESS, INFO, WARN, ERROR. Defaults to DEBUG. Please note that this argument can't be passed in JSON.
-            //args("-", "loggingLevel")
+            // args("-", "loggingLevel")
         }
     }
 }

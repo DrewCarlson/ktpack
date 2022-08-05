@@ -25,7 +25,8 @@ class KtpackCommand(
     override val term: Terminal,
 ) : CliktCommand(
     help = "A simple tool for building and publishing Kotlin software."
-), CliContext {
+),
+    CliContext {
 
     override val http: HttpClient by lazy {
         HttpClient {

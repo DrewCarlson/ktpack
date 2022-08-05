@@ -3,7 +3,6 @@ package ktpack.configuration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 enum class KotlinTarget(
     val isNative: Boolean = false,

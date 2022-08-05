@@ -1,7 +1,7 @@
 package ktpack.tasks
 
-import ktpack.configuration.ModuleConf
 import ktpack.configuration.KotlinTarget
+import ktpack.configuration.ModuleConf
 import ktpack.task.BaseTask
 
 class CompileModuleTask(

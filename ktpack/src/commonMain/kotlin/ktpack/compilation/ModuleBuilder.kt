@@ -10,9 +10,9 @@ import kotlinx.serialization.*
 import ksubprocess.*
 import ktfio.*
 import ktpack.*
+import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.compilation.dependencies.ChildDependencyNode
 import ktpack.compilation.dependencies.RootDependencyNode
-import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.*
 import ktpack.gradle.GradleModule
 import ktpack.maven.*
@@ -279,17 +279,17 @@ class ModuleBuilder(
             }
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "native" &&
-                        variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
+                    variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
             }
         } else if (target == KotlinTarget.JVM) {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "jvm" &&
-                        variant.attributes.orgGradleLibraryelements == "jar"
+                    variant.attributes.orgGradleLibraryelements == "jar"
             }
         } else {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinJsCompiler == "ir" &&
-                        variant.attributes.orgJetbrainsKotlinPlatformType == "js"
+                    variant.attributes.orgJetbrainsKotlinPlatformType == "js"
             }
         }
         variant ?: error("Could not find variant for $target in ${dependency.toMavenString()}")
@@ -366,7 +366,7 @@ class ModuleBuilder(
         val pom: MavenProject = if (pomFileNameCacheFile.exists()) {
             xml.decodeFromString(pomFileNameCacheFile.readText())
         } else {
-            val pomUrl = "${mavenRepoUrl.trimEnd('/')}/${artifactRemotePath}/$pomFileName"
+            val pomUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactRemotePath/$pomFileName"
             val response = context.http.get(pomUrl)
             if (!response.status.isSuccess()) {
                 context.term.println("${failed("Failed")} Could not find pom at $pomUrl")
@@ -575,7 +575,7 @@ class ModuleBuilder(
 
         val serializationPlugin = File(KotlincInstalls.findKotlinHome(kotlinVersion), "lib")
             .nestedFile("kotlinx-serialization-compiler-plugin.jar")
-        //arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
+        // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
 
         // args("-kotlin-home", path)
         // args("-opt-in", <class>)
@@ -617,7 +617,7 @@ class ModuleBuilder(
                 if (!libs.isNullOrEmpty()) {
                     val jsLibFiles = libs
                         .filter { !it.endsWith(".jar") && !it.endsWith(".klib") }
-                        .map { libPath -> File("${libPath}.meta.js").getAbsolutePath() }
+                        .map { libPath -> File("$libPath.meta.js").getAbsolutePath() }
                     val archiveLibFiles = libs
                         .filter { it.endsWith(".jar") || it.endsWith(".klib") }
                     args("-libraries", (jsLibFiles + archiveLibFiles).joinToString(CPSEP))
@@ -636,8 +636,8 @@ class ModuleBuilder(
                 arg(KotlincInstalls.findKotlincNative(kotlinVersion))
                 File(targetOutPath.substringBeforeLast(filePathSeparator)).mkdirs()
 
-                args("-output", targetOutPath) //output kexe or exe file
-                //args("-entry", "") // TODO: Handle non-root package main funcs
+                args("-output", targetOutPath) // output kexe or exe file
+                // args("-entry", "") // TODO: Handle non-root package main funcs
 
                 if (isBinary) {
                     args("-produce", "program")

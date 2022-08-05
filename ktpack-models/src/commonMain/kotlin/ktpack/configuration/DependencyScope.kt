@@ -2,7 +2,6 @@ package ktpack.configuration
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 enum class DependencyScope {
     IMPLEMENTATION,

@@ -16,13 +16,13 @@ data class MavenProject(
     val urlValue: PomUrl?,
     val organization: PomOrganization?,
 
-    //@XmlSerialName("licenses", namespace = NAMESPACE, prefix = "")
-    //@XmlChildrenName("license", namespace = NAMESPACE, prefix = "")
-    //val licenses: List<PomLicense>?,
+    // @XmlSerialName("licenses", namespace = NAMESPACE, prefix = "")
+    // @XmlChildrenName("license", namespace = NAMESPACE, prefix = "")
+    // val licenses: List<PomLicense>?,
 
-    //@XmlSerialName("developers", namespace = NAMESPACE, prefix = "")
-    //@XmlChildrenName("developer", namespace = NAMESPACE, prefix = "")
-    //val developers: List<PomDeveloper>?,
+    // @XmlSerialName("developers", namespace = NAMESPACE, prefix = "")
+    // @XmlChildrenName("developer", namespace = NAMESPACE, prefix = "")
+    // val developers: List<PomDeveloper>?,
 
     @XmlSerialName("dependencies", namespace = NAMESPACE, prefix = "")
     @XmlChildrenName("dependency", namespace = NAMESPACE, prefix = "")
@@ -78,7 +78,7 @@ data class MavenProject(
         val artifactId: PomArtifact,
         val version: PomVersion?,
         val scope: PomScope?,
-        //val type: String? = null,
+        // val type: String? = null,
     )
 
     @Serializable
@@ -109,4 +109,3 @@ data class MavenProject(
         val organization: String,
     )
 }
-

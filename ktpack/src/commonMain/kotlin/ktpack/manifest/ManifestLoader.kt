@@ -31,15 +31,15 @@ suspend fun loadManifest(context: CliContext, path: String, rebuild: Boolean): M
     val (module, duration) = measureSeconds {
         if (cacheKey.exists() && rebuild) cacheKey.delete()
         if (cacheKey.exists()) {
-            //println("Reading manifest from cache")
+            // println("Reading manifest from cache")
             json.decodeFromString(cacheKey.readText())
         } else {
-            //println("Processing manifest")
+            // println("Processing manifest")
             // TODO: Log in debug only
             Dispatchers.Default { executePackage(context, path) }.also { manifestConf ->
-                //println(cacheKey.getAbsolutePath())
+                // println(cacheKey.getAbsolutePath())
                 if (cacheKey.createNewFile()) {
-                    //println("Caching new manifest output")
+                    // println("Caching new manifest output")
                     cacheKey.writeText(json.encodeToString(manifestConf))
                 }
             }

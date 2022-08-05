@@ -12,5 +12,5 @@ data class KtpackUserConfig(
     var kotlincNativeRootPath: String? = null,
     var jdkDistribution: JdkDistribution = JdkDistribution.Zulu,
     var jdkVersion: String = "17",
-    var jdkRootPath: String = "${USER_HOME}${filePathSeparator}.jdks",
+    var jdkRootPath: String = "${USER_HOME}$filePathSeparator.jdks",
 )

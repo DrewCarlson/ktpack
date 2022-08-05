@@ -16,8 +16,8 @@ import ktfio.filePathSeparator
 import ktpack.*
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
-import ktpack.configuration.ModuleConf
 import ktpack.configuration.KotlinTarget
+import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
 import kotlin.system.exitProcess
@@ -177,8 +177,13 @@ private val httpFunc: mg_event_handler_t = staticCFunction { con, ev, evData, fn
             val hm = checkNotNull(evData?.reinterpret<mg_http_message>()).pointed
             if (mg_http_match_uri(hm.ptr, "/") || mg_http_match_uri(hm.ptr, "/index.html")) {
                 mg_http_reply(
-                    con, 200, "Content-Type: text/html\r\n",
-                    DEFAULT_HTML, module.name, module.kotlinVersion, artifactName
+                    con,
+                    200,
+                    "Content-Type: text/html\r\n",
+                    DEFAULT_HTML,
+                    module.name,
+                    module.kotlinVersion,
+                    artifactName
                 )
             } else if (mg_http_match_uri(hm.ptr, "/$artifactName")) {
                 val opts = alloc<mg_http_serve_opts> {
@@ -205,5 +210,5 @@ private val DEFAULT_HTML =
        |    <script defer="defer" src="%s" type="application/javascript"></script>
        |</head>
        |<body></body>
-       |</html>""".trimIndent()
-
+       |</html>
+    """.trimIndent()
