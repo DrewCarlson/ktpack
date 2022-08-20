@@ -40,15 +40,15 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
-            mingw-w64-x86_64-clang
+            mingw-w64-x86_64-gcc
 
       - name: Disable Visual Studio
         if: startsWith(matrix.os, 'windows')
         run: move "C:\Program Files\Microsoft Visual Studio" "C:\Program Files\Microsoft Visual Studio2"
 
-      - name: Install libcurl
+      - name: Install GCC, libcurl
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt install libcurl4-openssl-dev
+        run: sudo apt install gcc libcurl4-openssl-dev
 
       - uses: actions/checkout@v3
         with:

@@ -115,7 +115,7 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
-            mingw-w64-x86_64-clang
+            mingw-w64-x86_64-gcc
       - run: choco install checksum 7zip
       - name: Disable Visual Studio
         run: move "C:\Program Files\Microsoft Visual Studio" "C:\Program Files\Microsoft Visual Studio2"
@@ -166,10 +166,10 @@ jobs:
     needs: [ file-changes ]
     if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Install clang, libcurl
+      - name: Install gcc, libcurl
         run:  |
           sudo apt update
-          sudo apt install clang libcurl4-openssl-dev
+          sudo apt install gcc libcurl4-openssl-dev
 
       - name: Checkout repository
         uses: actions/checkout@v3
