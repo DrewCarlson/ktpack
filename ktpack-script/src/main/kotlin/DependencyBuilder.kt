@@ -1,6 +1,6 @@
 package ktpack.configuration
 
-open class KtpackDependencyBuilder(private val targets: List<KotlinTarget>) {
+open class DependencyBuilder(private val targets: List<KotlinTarget>) {
     private val dependencies = mutableListOf<DependencyConf>()
 
     protected fun add(dep: DependencyConf) {
@@ -83,7 +83,7 @@ open class KtpackDependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun localCompile(path: String, version: String? = null) {
+    fun localCompile(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.COMPILE))
     }
 
@@ -122,7 +122,7 @@ open class KtpackDependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun localTest(path: String, version: String? = null) {
+    fun localTest(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.TEST))
     }
 

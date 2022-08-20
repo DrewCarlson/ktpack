@@ -1,6 +1,6 @@
 package ktpack.configuration
 
-class KtpackDependencyJsBuilder(targets: List<KotlinTarget>) : KtpackDependencyBuilder(targets) {
+class DependencyJsBuilder(targets: List<KotlinTarget>) : DependencyBuilder(targets) {
 
     fun npm(name: String, version: String) {
         add(DependencyConf.NpmDependency(name, version, false, DependencyScope.IMPLEMENTATION))

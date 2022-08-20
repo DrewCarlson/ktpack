@@ -3,7 +3,7 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.HttpClient
 import ktpack.commands.jdk.JdkInstalls
-import ktpack.configuration.ManifestConf
+import ktpack.configuration.PackageConf
 import ktpack.task.TaskRunner
 
 interface CliContext {
@@ -15,8 +15,8 @@ interface CliContext {
     val config: KtpackUserConfig
     val jdkInstalls: JdkInstalls
 
-    suspend fun loadManifest(
-        filePath: String = MANIFEST_NAME,
+    suspend fun loadPackage(
+        filePath: String = PACK_SCRIPT_FILENAME,
         forceRebuild: Boolean = false,
-    ): ManifestConf
+    ): PackageConf
 }

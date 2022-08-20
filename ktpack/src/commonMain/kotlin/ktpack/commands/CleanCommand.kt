@@ -24,8 +24,8 @@ class CleanCommand : CliktCommand(
 
     override fun run() = runBlocking {
         val userTarget = userTarget
-        val manifest = context.loadManifest()
-        val module = manifest.module
+        val packageConf = context.loadPackage()
+        val module = packageConf.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
         val dependencyTree = moduleBuilder.resolveDependencyTree(module, File(workingDirectory), listOfNotNull(userTarget))

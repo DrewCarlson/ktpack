@@ -40,7 +40,7 @@ val installTestConfig by tasks.creating {
                 import ktfio.nestedFile
                 val KTPACK = File("${buildDir.resolve("bin/${target}/debugExecutable/ktpack.$extension").absolutePath}")
                 fun getSample(vararg names: String): File {
-                    var file = File("${file("samples").absolutePath}")
+                    var file = File("${rootProject.file("samples").absolutePath}")
                     names.forEach { name -> file = file.nestedFile(name) }
                     return file
                 }
@@ -88,22 +88,22 @@ val buildRuntimeBundle by tasks.creating {
     val debug = (version as String).endsWith("-SNAPSHOT")
     val bundledFile = file("${mainGenSrcPath}/manifest.kt")
     onlyIf { !bundledFile.exists() || !debug }
-    dependsOn(":ktpack-manifest:shadowJar")
+    dependsOn(":ktpack-script:shadowJar")
     doFirst {
         file(mainGenSrcPath).mkdirs()
-        val jar = rootProject.file("ktpack-manifest/build/libs/ktpack-manifest.jar")
+        val jar = rootProject.file("ktpack-script/build/libs/ktpack-script.jar")
         val pathValue = if (debug) {
             """"${jar.absolutePath.replace("\\", "\\\\")}""""
         } else {
-            """USER_HOME, ".ktpack", "manifest-builder", "ktpack-manifest-${version}.jar""""
+            """USER_HOME, ".ktpack", "package-builder", "ktpack-script-${version}.jar""""
         }
         bundledFile.writeText(
             """|package ktpack
                |import ktfio.File
                |import ktpack.util.USER_HOME
                |
-               |const val ktpackManifestJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-manifest.jar"
-               |val ktpackManifestJarPath by lazy { File($pathValue) }
+               |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-script.jar"
+               |val ktpackScriptJarPath by lazy { File($pathValue) }
                |""".trimMargin()
         )
     }

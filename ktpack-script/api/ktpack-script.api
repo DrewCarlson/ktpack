@@ -1,21 +1,19 @@
-public class ktpack/configuration/KtpackDependencyBuilder {
+public class ktpack/configuration/DependencyBuilder {
 	public fun <init> (Ljava/util/List;)V
 	protected final fun add (Lktpack/configuration/DependencyConf;)V
 	public final fun build ()Lktpack/configuration/DependencyContainer;
 	public final fun git (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun git$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun git$default (Lktpack/configuration/DependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun gitApi (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun gitApi$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun gitApi$default (Lktpack/configuration/DependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun gitCompile (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun gitCompile$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun gitCompile$default (Lktpack/configuration/DependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun gitTest (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun gitTest$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun gitTest$default (Lktpack/configuration/DependencyBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun local (Ljava/lang/String;)V
 	public final fun localApi (Ljava/lang/String;)V
-	public final fun localCompile (Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun localCompile$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
-	public final fun localTest (Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun localTest$default (Lktpack/configuration/KtpackDependencyBuilder;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun localCompile (Ljava/lang/String;)V
+	public final fun localTest (Ljava/lang/String;)V
 	public final fun maven (Ljava/lang/String;)V
 	public final fun maven (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun mavenApi (Ljava/lang/String;)V
@@ -26,7 +24,7 @@ public class ktpack/configuration/KtpackDependencyBuilder {
 	public final fun mavenTest (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 }
 
-public final class ktpack/configuration/KtpackDependencyJsBuilder : ktpack/configuration/KtpackDependencyBuilder {
+public final class ktpack/configuration/DependencyJsBuilder : ktpack/configuration/DependencyBuilder {
 	public fun <init> (Ljava/util/List;)V
 	public final fun npm (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun npmDev (Ljava/lang/String;Ljava/lang/String;)V
@@ -36,6 +34,7 @@ public final class ktpack/configuration/KtpackDependencyJsBuilder : ktpack/confi
 public final class ktpack/configuration/KtpackModule {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun authors ([Ljava/lang/String;)V
 	public final fun getAuthors ()Ljava/util/List;
 	public final fun getAutobin ()Z
 	public final fun getDependencies ()Ljava/util/List;
@@ -59,14 +58,20 @@ public final class ktpack/configuration/KtpackModule {
 	public final fun setReadme (Ljava/lang/String;)V
 	public final fun setRepository (Ljava/lang/String;)V
 	public final fun setVersion (Ljava/lang/String;)V
+	public final fun targets ([Lktpack/configuration/KotlinTarget;)V
 }
 
-public abstract class ktpack/configuration/PackageScriptDefinition {
-	public fun <init> ([Ljava/lang/String;)V
+public class ktpack/configuration/PackageScope {
+	public fun <init> ()V
 	public final fun dependencies (Lktpack/configuration/KtpackModule;[Lktpack/configuration/KotlinTarget;Lkotlin/jvm/functions/Function1;)V
 	public final fun dependenciesJs (Lktpack/configuration/KtpackModule;[Lktpack/configuration/KotlinTarget;Lkotlin/jvm/functions/Function1;)V
-	public final fun getArgs ()[Ljava/lang/String;
+	public fun emitModuleConfiguration (Lktpack/configuration/ModuleConf;)V
 	public final fun module (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun module$default (Lktpack/configuration/PackageScriptDefinition;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun module$default (Lktpack/configuration/PackageScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
+public abstract class ktpack/configuration/PackageScopeScriptDefinition : ktpack/configuration/PackageScope {
+	public fun <init> ([Ljava/lang/String;)V
+	public final fun getArgs ()[Ljava/lang/String;
 }
 

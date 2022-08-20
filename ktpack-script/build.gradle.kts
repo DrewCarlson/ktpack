@@ -13,11 +13,14 @@ sourceSets {
         compileOnly(kotlin("script-runtime"))
         api(project(":ktpack-models"))
         implementation(libs.serialization.json)
+
+        testImplementation(kotlin("test"))
+        testImplementation(kotlin("test-junit"))
     }
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveFileName.set("ktpack-manifest.jar")
+    archiveFileName.set("ktpack-script.jar")
     // stdlib will be provided by kotlinc
     dependencies { exclude(dependency("org.jetbrains.kotlin:.*:.*")) }
 }

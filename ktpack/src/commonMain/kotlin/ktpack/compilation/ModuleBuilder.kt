@@ -519,8 +519,8 @@ class ModuleBuilder(
         rootFolder: File,
         targets: List<KotlinTarget>
     ): ChildDependencyNode {
-        val manifest = rootFolder.nestedFile(dependencyConf.path).nestedFile(MANIFEST_NAME)
-        val localModule = context.loadManifest(manifest.getAbsolutePath()).module
+        val packFile = rootFolder.nestedFile(dependencyConf.path).nestedFile(PACK_SCRIPT_FILENAME)
+        val localModule = context.loadPackage(packFile.getAbsolutePath()).module
         val children =
             resolveDependencyTree(localModule, rootFolder.nestedFile(dependencyConf.path), targets).children
         return ChildDependencyNode(
@@ -566,20 +566,6 @@ class ModuleBuilder(
         libs: List<String>? = null,
     ): CommunicateResult = exec {
         val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
-
-        arg("-verbose")
-        // arg("-nowarn")
-        // arg("-Werror")
-
-        arg("-Xmulti-platform")
-
-        val serializationPlugin = File(KotlincInstalls.findKotlinHome(kotlinVersion), "lib")
-            .nestedFile("kotlinx-serialization-compiler-plugin.jar")
-        // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
-
-        // args("-kotlin-home", path)
-        // args("-opt-in", <class>)
-
         when (target) {
             KotlinTarget.JVM -> {
                 val targetOutPath = "${outputPath}${getExeExtension(target)}"
@@ -676,6 +662,20 @@ class ModuleBuilder(
                 args("-target", target.name.lowercase())
             }
         }
+
+        arg("-verbose")
+        // arg("-nowarn")
+        // arg("-Werror")
+
+        arg("-Xmulti-platform")
+
+        val serializationPlugin = File(KotlincInstalls.findKotlinHome(kotlinVersion), "lib")
+            .nestedFile("kotlinx-serialization-compiler-plugin.jar")
+        // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
+
+        // args("-kotlin-home", path)
+        // args("-opt-in", <class>)
+
         mainSource?.getAbsolutePath()?.run(::arg)
         sourceFiles.forEach { file ->
             arg(file.getAbsolutePath())

@@ -15,7 +15,7 @@ import ktfio.readText
 import ktfio.writeText
 import ktpack.*
 import ktpack.commands.jdk.JdkInstalls
-import ktpack.configuration.ManifestConf
+import ktpack.configuration.PackageConf
 import ktpack.task.TaskRunner
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
@@ -65,8 +65,8 @@ class KtpackCommand(
 
     override val taskRunner: TaskRunner = TaskRunner()
 
-    override suspend fun loadManifest(filePath: String, forceRebuild: Boolean): ManifestConf {
-        return ktpack.manifest.loadManifest(this, filePath, forceRebuild)
+    override suspend fun loadPackage(filePath: String, forceRebuild: Boolean): PackageConf {
+        return ktpack.script.loadPackageConf(this, filePath, forceRebuild)
     }
 
     override fun run() {

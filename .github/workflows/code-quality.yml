@@ -34,8 +34,8 @@ jobs:
           files: |
             .github/workflows/code-quality.yml
             gradle/libs.versions.toml
-            ktpack-manifest/**/*.kt
-            ktpack-manifest/**/*.kts
+            ktpack-script/**/*.kt
+            ktpack-script/**/*.kts
             build.gradle.kts
   spotless:
     runs-on: ubuntu-latest

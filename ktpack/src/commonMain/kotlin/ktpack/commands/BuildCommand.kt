@@ -42,15 +42,15 @@ class BuildCommand : CliktCommand(
         .flag()
 
     override fun run() = runBlocking {
-        val manifest = context.loadManifest()
-        val module = manifest.module
+        val packageConf = context.loadPackage()
+        val module = packageConf.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
         context.term.println(
             buildString {
                 append(success("Compiling"))
-                append(" ${manifest.module.name}")
-                append(" v${manifest.module.version}")
+                append(" ${packageConf.module.name}")
+                append(" v${packageConf.module.version}")
                 append(" (${moduleBuilder.srcFolder.getParent()})")
             }
         )

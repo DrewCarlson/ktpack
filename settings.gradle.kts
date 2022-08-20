@@ -3,7 +3,7 @@ rootProject.name = "ktpack"
 include(
     ":ktpack",
     ":ktpack-models",
-    ":ktpack-manifest",
+    ":ktpack-script",
     ":libs:mongoose",
     ":libs:zip",
 )

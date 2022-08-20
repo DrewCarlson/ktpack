@@ -14,10 +14,10 @@ class DependenciesCommand : CliktCommand(
     private val context by requireObject<CliContext>()
 
     override fun run(): Unit = runBlocking {
-        val manifest = context.loadManifest()
-        val moduleBuilder = ModuleBuilder(manifest.module, context, workingDirectory)
+        val packageConf = context.loadPackage()
+        val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
 
-        moduleBuilder.resolveDependencyTree(manifest.module, File(workingDirectory), emptyList())
+        moduleBuilder.resolveDependencyTree(packageConf.module, File(workingDirectory), emptyList())
             .printDependencyTree()
     }
 }

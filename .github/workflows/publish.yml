@@ -56,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CONFIG_FILE: mkdocs.yml
 
-  publish-ktpack-manifest:
+  publish-ktpack-script:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -85,12 +85,12 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: :ktpack-manifest:shadowJar
+          arguments: :ktpack-script:shadowJar
 
       - name: Compress and checksum
         run: |
-          mv ktpack-manifest/build/libs/ktpack-manifest.jar ktpack-manifest.jar
-          shasum -a 256 ktpack-manifest.jar > ktpack-manifest.jar.sha256
+          mv ktpack-script/build/libs/ktpack-script.jar ktpack-script.jar
+          shasum -a 256 ktpack-script.jar > ktpack-script.jar.sha256
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -99,8 +99,8 @@ jobs:
           prerelease: ${{ contains(github.ref, '-') }}
           draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           files: |
-            ktpack-manifest.jar
-            ktpack-manifest.jar.sha256
+            ktpack-script.jar
+            ktpack-script.jar.sha256
 
   publish-cli-windows:
     runs-on: windows-latest

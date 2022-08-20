@@ -9,10 +9,10 @@ import com.github.ajalt.mordant.terminal.*
 import ktfio.*
 import ktpack.CliContext
 import ktpack.Ktpack
-import ktpack.MANIFEST_NAME
+import ktpack.PACK_SCRIPT_FILENAME
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.ManifestConf
 import ktpack.configuration.ModuleConf
+import ktpack.configuration.PackageConf
 import ktpack.util.*
 import kotlin.system.*
 
@@ -39,7 +39,7 @@ class NewCommand : CliktCommand(
 
     private val interactive by mutuallyExclusiveOptions(
         option("--interactive", "-i")
-            .help("Interactively confirm or override all manifest properties, ignoring any options other than `--name` and `--bin`/`--lib`")
+            .help("Interactively confirm or override all package properties, ignoring any options other than `--name` and `--bin`/`--lib`")
             .flag(),
         option("--no-interactive", "-noin")
             .help("Disable all interactive prompts, using empty values where no defaults are available")
@@ -98,12 +98,12 @@ class NewCommand : CliktCommand(
         checkDirDoesNotExist(targetDir)
         checkMakeDir(targetDir)
 
-        val manifest = targetDir.nestedFile(MANIFEST_NAME)
-        val conf = generateManifestConf()
-        if (manifest.createNewFile()) {
-            manifest.writeText(newManifestSource(conf))
+        val packFile = targetDir.nestedFile(PACK_SCRIPT_FILENAME)
+        val conf = generatePackageConf()
+        if (packFile.createNewFile()) {
+            packFile.writeText(newPackScriptSource(conf))
         } else {
-            context.term.println("${failed("Failed")} manifest could not be generated for `${manifest.getAbsolutePath()}`.")
+            context.term.println("${failed("Failed")} package could not be generated for `${packFile.getAbsolutePath()}`.")
             exitProcess(1)
         }
 
@@ -145,7 +145,7 @@ class NewCommand : CliktCommand(
         }
     }
 
-    private fun generateManifestConf() = ManifestConf(
+    private fun generatePackageConf() = PackageConf(
         module = ModuleConf(
             name = flagOrUserPrompt("Project Name", moduleName) { moduleName },
             kotlinVersion = flagOrUserPrompt("Kotlin Version", Ktpack.KOTLIN_VERSION) { kotlinVersion },
@@ -231,22 +231,22 @@ fun File.generateSourceFile(term: Terminal, fileName: String, contents: String) 
     }
 }
 
-private fun newManifestSource(
-    manifestConf: ManifestConf,
+private fun newPackScriptSource(
+    packageConf: PackageConf,
 ): String = buildString {
-    val targetList = manifestConf.module.targets.joinToString("\n") { target ->
+    val targetList = packageConf.module.targets.joinToString("\n") { target ->
         "targets += \"${target.name.lowercase()}\""
     }
-    val authorsList = manifestConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
-    return """|module("${manifestConf.module.name}") {
-              |  version = "${manifestConf.module.version}"
-              |  kotlinVersion = "${manifestConf.module.kotlinVersion}"
-              |  ${manifestConf.module.description?.let { "description = \"$it\"" }}
+    val authorsList = packageConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
+    return """|module("${packageConf.module.name}") {
+              |  version = "${packageConf.module.version}"
+              |  kotlinVersion = "${packageConf.module.kotlinVersion}"
+              |  ${packageConf.module.description?.let { "description = \"$it\"" }}
               |  ${authorsList.takeIf(String::isNotBlank)}
               |  ${targetList.takeIf(String::isNotBlank)}
-              |  ${manifestConf.module.publish.takeIf { it }?.let { "publish = $it" }}
-              |  ${manifestConf.module.license?.let { "license = \"$it\"" }}
-              |  ${manifestConf.module.repository?.let { "repository = \"$it\"" }}
+              |  ${packageConf.module.publish.takeIf { it }?.let { "publish = $it" }}
+              |  ${packageConf.module.license?.let { "license = \"$it\"" }}
+              |  ${packageConf.module.repository?.let { "repository = \"$it\"" }}
               |
               |  dependencies {
               |

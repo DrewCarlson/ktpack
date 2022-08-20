@@ -1,4 +1,4 @@
-package ktpack.manifest
+package ktpack.script
 
 import com.appmattus.crypto.Algorithm
 import io.ktor.client.request.*
@@ -15,19 +15,19 @@ import ksubprocess.Process
 import ktfio.*
 import ktpack.CliContext
 import ktpack.commands.kotlin.KotlincInstalls
-import ktpack.configuration.ManifestConf
 import ktpack.configuration.ModuleConf
+import ktpack.configuration.PackageConf
 import ktpack.json
-import ktpack.ktpackManifestJarPath
-import ktpack.ktpackManifestJarUrl
+import ktpack.ktpackScriptJarPath
+import ktpack.ktpackScriptJarUrl
 import ktpack.util.TEMP_DIR
 import ktpack.util.measureSeconds
 
 private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
-suspend fun loadManifest(context: CliContext, path: String, rebuild: Boolean): ManifestConf {
+suspend fun loadPackageConf(context: CliContext, path: String, rebuild: Boolean): PackageConf {
     val digest = Algorithm.SHA_256.createDigest().apply { update(File(path).readBytes()) }.digest().toHexString()
-    val cacheKey = File(TEMP_DIR, ".ktpack-manifest-cache-$digest")
+    val cacheKey = File(TEMP_DIR, ".ktpack-script-cache-$digest")
     val (module, duration) = measureSeconds {
         if (cacheKey.exists() && rebuild) cacheKey.delete()
         if (cacheKey.exists()) {
@@ -36,16 +36,16 @@ suspend fun loadManifest(context: CliContext, path: String, rebuild: Boolean): M
         } else {
             // println("Processing manifest")
             // TODO: Log in debug only
-            Dispatchers.Default { executePackage(context, path) }.also { manifestConf ->
+            Dispatchers.Default { executePackage(context, path) }.also { packageConf ->
                 // println(cacheKey.getAbsolutePath())
                 if (cacheKey.createNewFile()) {
                     // println("Caching new manifest output")
-                    cacheKey.writeText(json.encodeToString(manifestConf))
+                    cacheKey.writeText(json.encodeToString(packageConf))
                 }
             }
         }
     }
-    println("Manifest loaded in ${duration}s: $path")
+    println("Package loaded in ${duration}s: $path")
     return module
 }
 
@@ -53,13 +53,14 @@ private fun ByteArray.toHexString(): String {
     return joinToString("") { (0xFF and it.toInt()).toString(16).padStart(2, '0') }
 }
 
-private suspend fun executePackage(context: CliContext, path: String): ManifestConf = coroutineScope {
-    installManifestBuilderJar(context)
+private suspend fun executePackage(context: CliContext, path: String): PackageConf = coroutineScope {
+    installScriptBuilderJar(context)
 
     val moduleConf = Process {
         arg(KotlincInstalls.findKotlincJvm(context.config.kotlinVersion))
-        args("-classpath", ktpackManifestJarPath.getAbsolutePath())
-        args("-script-templates", "ktpack.configuration.PackageScriptDefinition")
+        if (context.debug) arg("-verbose")
+        args("-classpath", ktpackScriptJarPath.getAbsolutePath())
+        args("-script-templates", "ktpack.configuration.PackageScopeScriptDefinition")
         arg("-script")
         arg(path)
         if (context.debug) {
@@ -77,31 +78,31 @@ private suspend fun executePackage(context: CliContext, path: String): ManifestC
             .toList()
     }.firstOrNull() ?: error("No modules declared in $path")
 
-    ManifestConf(moduleConf)
+    PackageConf(moduleConf)
 }
 
-private suspend fun installManifestBuilderJar(context: CliContext) {
-    if (ktpackManifestJarPath.exists()) return
-    println("Manifest processor jar does not exist, creating it at: ${ktpackManifestJarPath.getAbsolutePath()}")
-    ktpackManifestJarPath.getParentFile()?.mkdirs()
+private suspend fun installScriptBuilderJar(context: CliContext) {
+    if (ktpackScriptJarPath.exists()) return
+    println("Package Script jar does not exist, creating it at: ${ktpackScriptJarPath.getAbsolutePath()}")
+    ktpackScriptJarPath.getParentFile()?.mkdirs()
     val (_, duration) = measureSeconds {
-        if (!ktpackManifestJarPath.exists() && ktpackManifestJarPath.createNewFile()) {
-            println("Downloading dependency: $ktpackManifestJarUrl")
-            val response = context.http.prepareGet(ktpackManifestJarUrl).execute { response ->
+        if (!ktpackScriptJarPath.exists() && ktpackScriptJarPath.createNewFile()) {
+            println("Downloading dependency: $ktpackScriptJarUrl")
+            val response = context.http.prepareGet(ktpackScriptJarUrl).execute { response ->
                 val body = response.bodyAsChannel()
                 while (!body.isClosedForRead) {
                     val packet = body.readRemaining(DOWNLOAD_BUFFER_SIZE)
                     while (packet.isNotEmpty) {
-                        ktpackManifestJarPath.appendBytes(packet.readBytes())
+                        ktpackScriptJarPath.appendBytes(packet.readBytes())
                     }
                 }
                 response
             }
             if (!response.status.isSuccess()) {
-                ktpackManifestJarPath.delete()
-                error("Failed to download dependency: ${response.status} $ktpackManifestJarUrl")
+                ktpackScriptJarPath.delete()
+                error("Failed to download dependency: ${response.status} $ktpackScriptJarUrl")
             }
         }
     }
-    println("Manifest process jar written in ${duration}s")
+    println("Package Script jar written in ${duration}s")
 }

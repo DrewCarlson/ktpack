@@ -1,7 +1,0 @@
-[module]
-name = "multifile"
-description = "A sample with code split between two files."
-version = "0.0.1"
-authors = [ "Author Name <author@com.email>" ]
-kotlin-version = "1.7.10"
-

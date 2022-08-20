@@ -15,7 +15,7 @@ The command generated two files:
 $ cd hello_world
 $ tree .
 .
-├── package.main.kts
+├── package.kts
 └── src
     └── main.kt
 
@@ -23,7 +23,7 @@ $ tree .
 ```
 
 This is a basic, yet fully functional Ktpack project.
-The project is described in `package.main.kts`:
+The project is described in `package.kts`:
 
 ```kotlin
 module("hello_world") {

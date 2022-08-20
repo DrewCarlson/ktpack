@@ -45,19 +45,19 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val manifest = context.loadManifest()
-        val moduleBuilder = ModuleBuilder(manifest.module, context, workingDirectory)
-        val targetBin = targetBin ?: manifest.module.name
+        val packageConf = context.loadPackage()
+        val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
+        val targetBin = targetBin ?: packageConf.module.name
 
         context.term.println(
             buildString {
                 append(success("Compiling"))
-                append(" ${manifest.module.name}")
-                append(" v${manifest.module.version}")
+                append(" ${packageConf.module.name}")
+                append(" v${packageConf.module.version}")
                 append(" (${moduleBuilder.srcFolder.getParent()})")
             }
         )
-        val target = manifest.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
+        val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         when (val result = moduleBuilder.buildBin(releaseMode, targetBin, target)) {
             is ArtifactResult.Success -> {
                 if (context.debug) {
@@ -77,7 +77,7 @@ class RunCommand : CliktCommand(
                 context.term.println("${success("Running")} '${result.artifactPath}'")
                 try {
                     val (exitCode, duration) = measureSeconds {
-                        runBuildArtifact(manifest.module, target, result.artifactPath, result.dependencyArtifacts)
+                        runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     if (exitCode == 0) {
                         context.term.println("${success("Finished")} Program completed successfully in ${duration}s")
