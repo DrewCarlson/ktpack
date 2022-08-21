@@ -31,12 +31,8 @@ library {
 }
 
 fun Task.assembleMacosArm64(type: String) {
-    val typeCapitalized = type.first().toUpperCase() + type.drop(1)
     val outPath = "build/lib/main/${type}/macos/arm64"
     val mongooseC = rootProject.file("external/mongoose/mongoose.c")
-    val compileOpts = file("build/tmp/compile${typeCapitalized}Macos/options.txt")
-    dependsOn("assemble${typeCapitalized}Macos")
-    onlyIf { compileOpts.exists() }
     doFirst {
         val objBuildFile = file("build/obj/main/${type}/macos/arm64/mongoose.o")
         val libBuildFile = file("$outPath/libmongoose.a")
@@ -48,12 +44,14 @@ fun Task.assembleMacosArm64(type: String) {
             workingDir(rootProject.file("external/mongoose"))
             commandLine(
                 "clang",
-                "@${compileOpts.absolutePath}",
-                "-m64",
+                "-c",
                 mongooseC.absolutePath,
+                "-target",
+                "arm64-apple-macos11",
+                "-dM",
+                "-m64",
                 "-o",
                 objBuildFile.absolutePath,
-                "--target=arm64-apple-macos11",
             )
             if (type == "debug") {
                 environment("DEBUG", "1")
