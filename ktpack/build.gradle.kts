@@ -34,18 +34,21 @@ val installTestConfig by tasks.creating {
                 else -> error("Unsupported host operating system")
             }
             configFile.writeText(
-                """
-                package ktpack
-                import ktfio.File
-                import ktfio.nestedFile
-                val KTPACK = File("${buildDir.resolve("bin/${target}/debugExecutable/ktpack.$extension").absolutePath}")
-                fun getSample(vararg names: String): File {
-                    var file = File("${rootProject.file("samples").absolutePath}")
-                    names.forEach { name -> file = file.nestedFile(name) }
-                    return file
-                }
-                fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
-                """.trimIndent().replace("\\", "\\\\")
+                """|package ktpack
+                   |
+                   |import ktfio.File
+                   |import ktfio.nestedFile
+                   |
+                   |val KTPACK = File("${buildDir.resolve("bin/${target}/debugExecutable/ktpack.$extension").absolutePath}")
+                   |
+                   |fun getSample(vararg names: String): File {
+                   |    var file = File("${rootProject.file("samples").absolutePath}")
+                   |    names.forEach { name -> file = file.nestedFile(name) }
+                   |    return file
+                   |}
+                   |
+                   |fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
+                   |""".trimIndent().replace("\\", "\\\\")
             )
         }
     }
