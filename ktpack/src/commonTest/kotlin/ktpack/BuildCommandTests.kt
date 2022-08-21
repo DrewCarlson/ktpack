@@ -16,43 +16,23 @@ import kotlin.test.assertEquals
 class BuildCommandTests {
 
     @Test
-    fun `1 basic`() = runTest {
-        val result = buildSample("1-basic")
-
-        assertEquals(0, result.exitCode)
-    }
+    fun `1 basic`() = runTest { buildSample("1-basic") }
 
     @Test
-    fun `2 multifile`() = runTest {
-        val result = buildSample("2-multifile")
-
-        assertEquals(0, result.exitCode)
-    }
+    fun `2 multifile`() = runTest { buildSample("2-multifile") }
 
     @Test
-    fun `3 multiple bins`() = runTest {
-        val result = buildSample("3-multiple-bins")
-
-        assertEquals(0, result.exitCode)
-    }
+    fun `3 multiple bins`() = runTest { buildSample("3-multiple-bins") }
 
     @Test
-    fun `4 basic lib`() = runTest {
-        val result = buildSample("4-basic-lib")
-
-        assertEquals(0, result.exitCode)
-    }
+    fun `4 basic lib`() = runTest { buildSample("4-basic-lib") }
 
     @Test
-    fun `5 multifile lib`() = runTest {
-        val result = buildSample("5-multifile-lib")
+    fun `5 multifile lib`() = runTest { buildSample("5-multifile-lib") }
 
-        assertEquals(0, result.exitCode)
-    }
-
-    private suspend fun buildSample(name: String): CommunicateResult {
+    private suspend fun buildSample(name: String) {
         getSample(name, "out").deleteRecursively()
-        return Dispatchers.Default {
+        val result = Dispatchers.Default {
             try {
                 exec {
                     workingDirectory = getSamplePath(name)
@@ -68,5 +48,11 @@ class BuildCommandTests {
                 throw e.cause ?: e
             }
         }
+
+        assertEquals(
+            0,
+            result.exitCode,
+            "Process Failed:\nOutput: ${result.output}\nError: ${result.errors}"
+        )
     }
 }
