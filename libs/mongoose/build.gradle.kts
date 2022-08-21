@@ -34,8 +34,8 @@ fun Task.assembleMacosArm64(type: String) {
     val typeCapitalized = type.first().toUpperCase() + type.drop(1)
     val outPath = "build/lib/main/${type}/macos/arm64"
     val mongooseC = rootProject.file("external/mongoose/mongoose.c")
-    val compileOpts = file("build/tmp/compile${typeCapitalized}MacosX86-64Cpp/options.txt")
-    dependsOn("assemble${typeCapitalized}MacosX86-64")
+    val compileOpts = file("build/tmp/compile${typeCapitalized}Macos/options.txt")
+    dependsOn("assemble${typeCapitalized}Macos")
     onlyIf { compileOpts.exists() }
     doFirst {
         val objBuildFile = file("build/obj/main/${type}/macos/arm64/mongoose.o")
