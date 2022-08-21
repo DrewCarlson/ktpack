@@ -33,6 +33,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [ file-changes ]
     if: needs.file-changes.outputs.any == 'true'
+    continue-on-error: true
     steps:
       - uses: msys2/setup-msys2@v2
         if: startsWith(matrix.os, 'windows')
