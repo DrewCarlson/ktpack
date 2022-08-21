@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: check
-        uses: tj-actions/changed-files@v23
+        uses: tj-actions/changed-files@v27
         with:
           files: |
             .github/workflows/publish.yml
@@ -32,7 +32,7 @@ jobs:
             ktpack/src/**/*.kt
       - name: Get changed files
         id: docs
-        uses: tj-actions/changed-files@v23
+        uses: tj-actions/changed-files@v27
         with:
           files: |
             docs/**/*.md
