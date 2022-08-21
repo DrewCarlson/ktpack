@@ -192,16 +192,21 @@ kotlin {
                     Architecture.ARM64 -> "arm64"
                     else -> error("Unsupported host operating system")
                 }
-                val libLinks = compilation.cinterops.map { it.name }
-                    .flatMap { lib ->
-                        val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                        val file = if (arch == "arm64") {
-                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
-                        } else {
-                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$fileName")
-                        }
-                        if (file.exists()) listOf("-include-binary", file.absolutePath) else emptyList()
+                val libLinks = compilation.cinterops.flatMap { settings ->
+                    val lib = settings.name
+                    val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
+                    val file = if (arch == "arm64") {
+                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
+                    } else {
+                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$fileName")
                     }
+                    if (file.exists()) {
+                        listOf("-include-binary", file.absolutePath)
+                    } else {
+                        val fileList = file.parentFile.listFiles()?.toList()
+                        error("Library build not found at: ${file.absolutePath}\n Folder contains: $fileList")
+                    }
+                }
                 compilation.apply {
                     kotlinOptions {
                         freeCompilerArgs = freeCompilerArgs + libLinks
