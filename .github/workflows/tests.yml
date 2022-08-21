@@ -98,4 +98,4 @@ jobs:
         if: always()
         with:
           name: test-reports
-          path: ktpack/ktpack/build/reports/tests/**/**
+          path: ktpack/build/reports/tests/**
