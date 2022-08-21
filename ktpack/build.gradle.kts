@@ -122,8 +122,7 @@ afterEvaluate {
         }
         val arch = when (konanTarget.architecture) {
             Architecture.ARM64 -> "Arm64"
-            Architecture.X64 -> "X86-64"
-            else -> konanTarget.architecture.name
+            else -> ""
         }
         val buildTasks = listOfNotNull(
             tasks.findByPath(":libs:${interopName}:assembleDebug$osName${arch}"),
@@ -196,7 +195,11 @@ kotlin {
                 val libLinks = compilation.cinterops.map { it.name }
                     .flatMap { lib ->
                         val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                        val file = rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
+                        val file = if (arch == "arm64") {
+                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
+                        } else {
+                            rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$fileName")
+                        }
                         if (file.exists()) listOf("-include-binary", file.absolutePath) else emptyList()
                     }
                 compilation.apply {
