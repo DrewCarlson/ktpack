@@ -13,7 +13,6 @@ library {
         listOfNotNull(
             machines.linux.x86_64,
             machines.windows.x86_64,
-            machines.windows.x86,
             machines.macOS.x86_64,
         )
     )
@@ -37,6 +36,7 @@ fun Task.assembleMacosArm64(type: String) {
     val mongooseC = rootProject.file("external/mongoose/mongoose.c")
     val compileOpts = file("build/tmp/compile${typeCapitalized}MacosX86-64Cpp/options.txt")
     dependsOn("assemble${typeCapitalized}MacosX86-64")
+    onlyIf { compileOpts.exists() }
     doFirst {
         val objBuildFile = file("build/obj/main/${type}/macos/arm64/mongoose.o")
         val libBuildFile = file("$outPath/libmongoose.a")

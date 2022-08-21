@@ -9,11 +9,9 @@ library {
         listOfNotNull(
             machines.linux.x86_64,
             machines.windows.x86_64,
-            machines.windows.x86,
             machines.macOS.x86_64,
         )
     )
-    targetMachines.add(machines.windows.x86_64)
     binaries.configureEach {
         compileTask.get().apply {
             includes(rootProject.file("external/zip/src"))
