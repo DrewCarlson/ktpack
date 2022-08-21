@@ -21,7 +21,7 @@ library {
         compileTask.get().apply {
             includes(rootProject.file("external/mongoose"))
             source(rootProject.file("external/mongoose/mongoose.c"))
-            compilerArgs.addAll("-x", "c")
+            compilerArgs.addAll("-x", "c", "-std=c99")
         }
     }
 }
