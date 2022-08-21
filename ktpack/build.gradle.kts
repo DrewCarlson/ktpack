@@ -200,12 +200,7 @@ kotlin {
                     } else {
                         rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$fileName")
                     }
-                    if (file.exists()) {
-                        listOf("-include-binary", file.absolutePath)
-                    } else {
-                        val fileList = file.parentFile.listFiles()?.toList()
-                        error("Library build not found at: ${file.absolutePath}\n Folder contains: $fileList")
-                    }
+                    listOf("-include-binary", file.absolutePath)
                 }
                 compilation.apply {
                     kotlinOptions {
