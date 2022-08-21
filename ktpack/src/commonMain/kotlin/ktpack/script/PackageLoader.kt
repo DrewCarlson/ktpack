@@ -27,7 +27,7 @@ private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
 suspend fun loadPackageConf(context: CliContext, path: String, rebuild: Boolean): PackageConf {
     val digest = Algorithm.SHA_256.createDigest().apply { update(File(path).readBytes()) }.digest().toHexString()
-    val cacheKey = File(TEMP_DIR, ".ktpack-script-cache-$digest")
+    val cacheKey = TEMP_DIR.nestedFile(".ktpack-script-cache-$digest")
     val (module, duration) = measureSeconds {
         if (cacheKey.exists() && rebuild) cacheKey.delete()
         if (cacheKey.exists()) {

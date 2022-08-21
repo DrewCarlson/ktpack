@@ -122,8 +122,8 @@ class JdkInstalls(
             return JdkInstallResult.AlreadyInstalled(existingInstallation)
         }
 
-        val tempArchiveFile = File(TEMP_DIR, archiveName)
-        val tempExtractedFolder = File(TEMP_DIR, archiveName.substringBeforeLast(packageExtension))
+        val tempArchiveFile = TEMP_DIR.nestedFile(archiveName)
+        val tempExtractedFolder = TEMP_DIR.nestedFile(archiveName.substringBeforeLast(packageExtension))
         if (!tempArchiveFile.createNewFile()) {
             return JdkInstallResult.FileIOError(tempArchiveFile, "Unable to create temp file")
         }

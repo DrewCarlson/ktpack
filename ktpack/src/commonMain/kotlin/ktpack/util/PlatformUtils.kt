@@ -1,9 +1,9 @@
 package ktpack.util
 
-import kotlinx.cinterop.toKString
-import ktfio.filePathSeparator
+import kotlinx.cinterop.*
+import ktfio.*
 import ktpack.configuration.KotlinTarget
-import platform.posix.getenv
+import platform.posix.*
 
 /**
  * Attempt to find the user's home directory first by the
@@ -32,11 +32,15 @@ val KTPACK_ROOT = "${USER_HOME}$filePathSeparator.ktpack"
 
 @SharedImmutable
 val TEMP_DIR by lazy {
-    val tempDir = getenv("TEMP")?.toKString()
-        ?: getenv("TMPDIR")?.toKString()?.trimEnd('/')
-        ?: "/tmp".takeIf { Platform.osFamily == OsFamily.LINUX }
-    checkNotNull(tempDir?.takeUnless(String::isBlank)) {
-        "TEMP and TMPDIR env variables are missing, unable to find temp directory"
+    val tempDir = tmpnam(null)?.toKStringFromUtf8()
+        ?.run(::File)
+        ?.also { file ->
+            if (!file.exists()) {
+                checkNotNull(file.mkdirs())
+            }
+        }
+    checkNotNull(tempDir) {
+        "Unable to find or create temp directory"
     }
 }
 
