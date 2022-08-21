@@ -36,12 +36,10 @@ val TEMP_DIR by lazy {
         ?.run(::File)
         ?.also { file ->
             if (!file.exists()) {
-                checkNotNull(file.mkdirs())
+                check(file.mkdirs()) { "Failed to create temp directory" }
             }
         }
-    checkNotNull(tempDir) {
-        "Unable to find or create temp directory"
-    }
+    checkNotNull(tempDir) { "Failed to create temp directory name" }
 }
 
 @SharedImmutable
