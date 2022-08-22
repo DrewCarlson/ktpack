@@ -139,7 +139,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: packageReleaseWindowsX64
+          arguments: packageReleaseWindows
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -185,7 +185,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: packageReleaseLinuxX64
+          arguments: packageReleaseLinux
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
