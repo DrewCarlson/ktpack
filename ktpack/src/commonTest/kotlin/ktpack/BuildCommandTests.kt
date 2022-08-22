@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import ksubprocess.ProcessException
 import ksubprocess.exec
-import ktfio.File
 import ktfio.deleteRecursively
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,7 +36,7 @@ class BuildCommandTests {
             try {
                 exec {
                     workingDirectory = workingDir
-                    arg(KTPACK.getAbsolutePath())
+                    arg(KTPACK_BIN)
                     arg("--stacktrace")
                     arg("--debug")
                     arg("build")
@@ -52,9 +51,9 @@ class BuildCommandTests {
             result.exitCode,
             buildString {
                 appendLine("Process Failed:")
-                append("Ktpack Bin: (exists=${KTPACK.exists()})")
-                appendLine(KTPACK.getAbsolutePath())
-                append("Working Dir: (exists=${File(workingDir).exists()})")
+                append("Ktpack Bin: ")
+                appendLine(KTPACK_BIN)
+                append("Working Dir: ")
                 appendLine(workingDir)
                 append("Output: ")
                 appendLine(result.output)

@@ -39,7 +39,7 @@ val installTestConfig by tasks.creating {
                    |import ktfio.File
                    |import ktfio.nestedFile
                    |
-                   |val KTPACK = File("${file("build/bin/${target}/debugExecutable/ktpack.$extension").absolutePath}")
+                   |val KTPACK_BIN = "${file("build/bin/${target}/debugExecutable/ktpack.$extension").absolutePath}"
                    |
                    |fun getSample(vararg names: String): File {
                    |    var file = File("${rootProject.file("samples").absolutePath}")
