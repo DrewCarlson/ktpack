@@ -48,7 +48,7 @@ val installTestConfig by tasks.creating {
                    |}
                    |
                    |fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
-                   |""".trimMargin()
+                   |""".trimMargin().replace("\\", "\\\\")
             )
         }
     }
