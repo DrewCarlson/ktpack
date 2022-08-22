@@ -2,7 +2,6 @@ name: Publish Release
 
 on:
   push:
-    branches: [ main ]
     tags: [ 'v*' ]
 
 env:
@@ -10,38 +9,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  file-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      any: ${{ steps.check.outputs.any_changed }}
-      docs: ${{ steps.check.outputs.any_changed }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          fetch-depth: 0
-      - name: Get changed files
-        id: check
-        uses: tj-actions/changed-files@v28
-        with:
-          files: |
-            .github/workflows/publish.yml
-            **/build.gradle.kts
-            gradle/libs.versions.toml
-            gradle/kotlin-js-store/**
-            ktpack/src/**/*.kt
-      - name: Get changed files
-        id: docs
-        uses: tj-actions/changed-files@v28
-        with:
-          files: |
-            docs/**/*.md
-            mkdocs.yml
-
   publish-docs:
     runs-on: ubuntu-latest
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.docs == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Get version
         uses: DrewCarlson/action-get-tag@v4
@@ -62,7 +32,6 @@ jobs:
       contents: write
       packages: write
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -108,7 +77,6 @@ jobs:
       contents: write
       packages: write
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: msys2/setup-msys2@v2
         with:
@@ -157,7 +125,6 @@ jobs:
       contents: write
       packages: write
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Install libcurl
         run:  |
@@ -203,7 +170,6 @@ jobs:
       contents: write
       packages: write
     needs: [ file-changes ]
-    if: needs.file-changes.outputs.any == 'true' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -233,7 +199,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
-          draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          draft: true
           files: |
             ktpack/build/release/ktpack-macos.zip
             ktpack/build/release/ktpack-macos.zip.sha256
