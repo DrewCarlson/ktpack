@@ -252,6 +252,7 @@ fun createPackageReleaseTask(target: String) {
             if (hostOs.isMacOsX) {
                 val executableArm = buildDir.resolve("bin/${target}Arm64/releaseExecutable/ktpack$extension")
                 val executableUniversal = buildDir.resolve("bin/${target}/releaseExecutable/ktpack$extension")
+                executableUniversal.parentFile.mkdirs()
                 exec {
                     commandLine("lipo")
                     args(
