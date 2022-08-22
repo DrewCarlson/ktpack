@@ -1,3 +1,4 @@
+import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.konan.target.Architecture
@@ -6,6 +7,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.Locale.*
 import java.io.ByteArrayOutputStream
+import java.net.URL
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -112,6 +114,37 @@ val buildRuntimeBundle by tasks.creating {
     }
 }
 
+val installKotlincForTests by tasks.creating {
+    val ktVersion = libs.versions.kotlin.get()
+    val compilerFolderName = "kotlin-compiler-prebuilt-$ktVersion"
+    val konanDir = File(System.getProperty("user.home"), ".konan")
+    val compilerDir = File(konanDir, compilerFolderName)
+    onlyIf { !compilerDir.exists() || compilerDir.listFiles().orEmpty().isEmpty() }
+    doFirst {
+        val downloadFile = File(konanDir, "kotlin-compiler-jvm.zip")
+        downloadFile.outputStream().use { out ->
+            URL("https://github.com/JetBrains/kotlin/releases/download/v$ktVersion/kotlin-compiler-${ktVersion}.zip")
+                .openStream()
+                .buffered()
+                .use { it.copyTo(out) }
+        }
+
+        copy {
+            from(zipTree(downloadFile)) {
+                // JVM releases are zipped with a single `kotlinc` folder
+                includeEmptyDirs = false
+                eachFile {
+                    val path = relativePath.segments.drop(1).joinToString(File.separator)
+                    relativePath = RelativePath(!isDirectory, path)
+                }
+            }
+            into(compilerDir)
+        }
+
+        downloadFile.delete()
+    }
+}
+
 evaluationDependsOn(":libs:mongoose")
 evaluationDependsOn(":libs:zip")
 
@@ -179,7 +212,11 @@ kotlin {
                 Architecture.ARM64 -> "Arm64"
                 else -> konanTarget.architecture.name
             }
-            compileKotlinTask.dependsOn("linkDebugExecutable$osName${arch}", installTestConfig)
+            compileKotlinTask.dependsOn(
+                "linkDebugExecutable$osName${arch}",
+                installTestConfig,
+                installKotlincForTests,
+            )
         }
 
         binaries {
