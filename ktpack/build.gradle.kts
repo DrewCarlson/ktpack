@@ -1,4 +1,3 @@
-import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.konan.target.Architecture
@@ -7,54 +6,17 @@ import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.Locale.*
 import java.io.ByteArrayOutputStream
-import java.net.URL
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.serialization)
     alias(libs.plugins.spotless)
-    //alias(libs.plugins.completeKotlin)
 }
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 val mainGenSrcPath = "build/ktgen-main"
-val testGenSrcPath = "build/ktgen/config"
-
-val installTestConfig by tasks.creating {
-    val configFile = file("${testGenSrcPath}/config.kt")
-    onlyIf { !configFile.exists() || gradle.startParameter.taskNames.contains("publish") }
-    doFirst {
-        file(testGenSrcPath).mkdirs()
-        if (!configFile.exists()) {
-            val extension = if (hostOs.isWindows) "exe" else "kexe"
-            val target = when {
-                hostOs.isWindows -> "windowsX64"
-                hostOs.isLinux -> "linuxX64"
-                hostOs.isMacOsX -> if (System.getProperty("os.arch") == "aarch64") "macosArm64" else "macosX64"
-                else -> error("Unsupported host operating system")
-            }
-            configFile.writeText(
-                """|package ktpack
-                   |
-                   |import ktfio.File
-                   |import ktfio.nestedFile
-                   |
-                   |val KTPACK_BIN = "${file("build/bin/${target}/debugExecutable/ktpack.$extension").absolutePath}"
-                   |
-                   |fun getSample(vararg names: String): File {
-                   |    var file = File("${rootProject.file("samples").absolutePath}")
-                   |    names.forEach { name -> file = file.nestedFile(name) }
-                   |    return file
-                   |}
-                   |
-                   |fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
-                   |""".trimMargin().replace("\\", "\\\\")
-            )
-        }
-    }
-}
 
 val buildRuntimeConstants by tasks.creating {
     val constantsFile = file("${mainGenSrcPath}/constants.kt")
@@ -114,37 +76,6 @@ val buildRuntimeBundle by tasks.creating {
     }
 }
 
-val installKotlincForTests by tasks.creating {
-    val ktVersion = libs.versions.kotlin.get()
-    val compilerFolderName = "kotlin-compiler-prebuilt-$ktVersion"
-    val konanDir = File(System.getProperty("user.home"), ".konan")
-    val compilerDir = File(konanDir, compilerFolderName)
-    onlyIf { !compilerDir.exists() || compilerDir.listFiles().orEmpty().isEmpty() }
-    doFirst {
-        val downloadFile = File(konanDir, "kotlin-compiler-jvm.zip")
-        downloadFile.outputStream().use { out ->
-            URL("https://github.com/JetBrains/kotlin/releases/download/v$ktVersion/kotlin-compiler-${ktVersion}.zip")
-                .openStream()
-                .buffered()
-                .use { it.copyTo(out) }
-        }
-
-        copy {
-            from(zipTree(downloadFile)) {
-                // JVM releases are zipped with a single `kotlinc` folder
-                includeEmptyDirs = false
-                eachFile {
-                    val path = relativePath.segments.drop(1).joinToString(File.separator)
-                    relativePath = RelativePath(!isDirectory, path)
-                }
-            }
-            into(compilerDir)
-        }
-
-        downloadFile.delete()
-    }
-}
-
 evaluationDependsOn(":libs:mongoose")
 evaluationDependsOn(":libs:zip")
 
@@ -200,22 +131,6 @@ kotlin {
             compileKotlinTask.dependsOn(
                 buildRuntimeConstants,
                 buildRuntimeBundle,
-            )
-        }
-        compilations.named("test") {
-            val osName = when {
-                hostOs.isWindows -> "Windows"
-                hostOs.isMacOsX -> "Macos"
-                else -> "Linux"
-            }
-            val arch = when (konanTarget.architecture) {
-                Architecture.ARM64 -> "Arm64"
-                else -> konanTarget.architecture.name
-            }
-            compileKotlinTask.dependsOn(
-                "linkDebugExecutable$osName${arch}",
-                installTestConfig,
-                installKotlincForTests,
             )
         }
 
@@ -280,7 +195,6 @@ kotlin {
         }
 
         val commonTest by getting {
-            kotlin.srcDir(testGenSrcPath)
             dependencies {
                 implementation(libs.coroutines.test)
             }
