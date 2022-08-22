@@ -29,7 +29,7 @@ class BuildCommandTests {
     @Test
     fun `5 multifile lib`() = buildSample("5-multifile-lib")
 
-    private fun buildSample(name: String): TestResult = runTest {
+    private fun buildSample(name: String): TestResult = runTest(dispatchTimeoutMs = 180_000L) {
         getSample(name, "out").deleteRecursively()
         val workingDir = getSamplePath(name)
         val result = Dispatchers.Default {
