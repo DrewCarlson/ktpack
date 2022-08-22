@@ -4,11 +4,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.test.runTest
-import ksubprocess.CommunicateResult
 import ksubprocess.ProcessException
 import ksubprocess.exec
 import ktfio.deleteRecursively
-import ktpack.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -32,17 +30,15 @@ class BuildCommandTests {
 
     private suspend fun buildSample(name: String) {
         getSample(name, "out").deleteRecursively()
+        val workingDir = getSamplePath(name)
         val result = Dispatchers.Default {
             try {
                 exec {
-                    workingDirectory = getSamplePath(name)
+                    workingDirectory = workingDir
                     arg(KTPACK.getAbsolutePath())
                     arg("--stacktrace")
                     arg("--debug")
                     arg("build")
-                }.also {
-                    println(it.errors)
-                    println(it.output)
                 }
             } catch (e: ProcessException) {
                 throw e.cause ?: e
@@ -52,7 +48,17 @@ class BuildCommandTests {
         assertEquals(
             0,
             result.exitCode,
-            "Process Failed:\nOutput: ${result.output}\nError: ${result.errors}"
+            buildString {
+                appendLine("Process Failed:")
+                append("Ktpack Bin: ")
+                appendLine(KTPACK.getAbsolutePath())
+                append("Working Dir: ")
+                appendLine(workingDir)
+                append("Output: ")
+                appendLine(result.output)
+                append("Error: ")
+                appendLine(result.errors)
+            }
         )
     }
 }
