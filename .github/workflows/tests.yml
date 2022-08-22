@@ -73,19 +73,19 @@ jobs:
         name: Test Apple Targets
         if: startsWith(matrix.os, 'macos')
         with:
-          arguments: clean linkDebugExecutableMacosX64 macosX64Test
+          arguments: clean macosX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Linux Target
         if: startsWith(matrix.os, 'ubuntu')
         with:
-          arguments: clean linkDebugExecutableLinuxX64 linuxX64Test
+          arguments: clean linuxX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Windows Target
         if: startsWith(matrix.os, 'windows')
         with:
-          arguments: clean linkDebugExecutableWindowsX64 windowsX64Test
+          arguments: clean windowsX64Test
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v3
