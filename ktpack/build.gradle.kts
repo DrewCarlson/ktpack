@@ -270,7 +270,7 @@ fun createPackageReleaseTask(target: String) {
             val releaseZip = buildDir.resolve("release/$releaseName")
             val releaseZipChecksum = buildDir.resolve("release/$releaseName.sha256")
             copy {
-                from()
+                from(executable)
                 into(releaseBinDir)
                 rename { if (hostOs.isWindows) it else it.removeSuffix(extension) }
             }
