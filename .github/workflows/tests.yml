@@ -33,23 +33,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [ file-changes ]
     if: needs.file-changes.outputs.any == 'true'
-    continue-on-error: true
     steps:
       - uses: msys2/setup-msys2@v2
         if: startsWith(matrix.os, 'windows')
         with:
           msystem: MINGW64
           update: true
-          install: >-
-            mingw-w64-x86_64-gcc
 
       - name: Disable Visual Studio
         if: startsWith(matrix.os, 'windows')
         run: move "C:\Program Files\Microsoft Visual Studio" "C:\Program Files\Microsoft Visual Studio2"
 
-      - name: Install GCC, libcurl
+      - name: Install libcurl
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt install gcc libcurl4-openssl-dev
+        run: sudo apt install libcurl4-openssl-dev
 
       - uses: actions/checkout@v3
         with:
