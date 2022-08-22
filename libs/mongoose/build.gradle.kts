@@ -20,12 +20,7 @@ library {
         compileTask.get().apply {
             includes(rootProject.file("external/mongoose"))
             source(rootProject.file("external/mongoose/mongoose.c"))
-            compilerArgs.addAll("-x", "c")
-            if (hostOs.isLinux) {
-                compilerArgs.add("-std=gnu99")
-            } else {
-                compilerArgs.add("-std=c99")
-            }
+            compilerArgs.addAll("-x", "c", "-std=c99")
         }
     }
 }
