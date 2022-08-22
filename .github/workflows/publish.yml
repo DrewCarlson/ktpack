@@ -116,7 +116,6 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-clang
-      - run: choco install checksum 7zip
       - name: Disable Visual Studio
         run: move "C:\Program Files\Microsoft Visual Studio" "C:\Program Files\Microsoft Visual Studio2"
       - name: Checkout repository
@@ -140,13 +139,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: linkReleaseExecutableWindowsX64
-
-      - name: Compress and checksum
-        run: |
-          mv ktpack/build/bin/windowsX64/releaseExecutable/ktpack.exe ktpack
-          7z a -tzip ktpack-windows-x64.zip ktpack
-          checksum -f="ktpack-windows-x64.zip" -t sha256 > ktpack-windows-x64.zip.sha256
+          arguments: packageReleaseWindowsX64
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -155,8 +148,8 @@ jobs:
           prerelease: ${{ contains(github.ref, '-') }}
           draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           files: |
-            ktpack-windows-x64.zip
-            ktpack-windows-x64.zip.sha256
+            build/release/ktpack-windows.zip
+            build/release/ktpack-windows.zip.sha256
 
   publish-cli-linux:
     runs-on: ubuntu-latest
@@ -192,13 +185,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: linkReleaseExecutableLinuxX64
-
-      - name: Compress and checksum
-        run: |
-          mv ktpack/build/bin/linuxX64/releaseExecutable/ktpack.kexe ktpack
-          zip ktpack-linux-x64.zip ktpack
-          shasum -a 256 ktpack-linux-x64.zip > ktpack-linux-x64.zip.sha256
+          arguments: packageReleaseLinuxX64
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -207,8 +194,8 @@ jobs:
           prerelease: ${{ contains(github.ref, '-') }}
           draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           files: |
-            ktpack-linux-x64.zip
-            ktpack-linux-x64.zip.sha256
+            build/release/ktpack-linux.zip
+            build/release/ktpack-linux.zip.sha256
 
   publish-cli-macos:
     runs-on: macos-latest
@@ -239,16 +226,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: linkReleaseExecutableMacosX64 linkReleaseExecutableMacosArm64
-
-      - name: Compress and checksum
-        run: |
-          mv ktpack/build/bin/macosX64/releaseExecutable/ktpack.kexe ktpack
-          zip ktpack-macos-x64.zip ktpack
-          shasum -a 256 ktpack-macos-x64.zip > ktpack-macos-x64.zip.sha256
-          mv ktpack/build/bin/macosArm64/releaseExecutable/ktpack.kexe ktpack
-          zip ktpack-macos-arm64.zip ktpack
-          shasum -a 256 ktpack-macos-arm64.zip > ktpack-macos-arm64.zip.sha256
+          arguments: packageReleaseMacosX64 packageReleaseMacosArm64
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -257,7 +235,7 @@ jobs:
           prerelease: ${{ contains(github.ref, '-') }}
           draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           files: |
-            ktpack-macos-x64.zip
-            ktpack-macos-x64.zip.sha256
-            ktpack-macos-arm64.zip
-            ktpack-macos-arm64.zip.sha256
+            build/release/ktpack-macos.zip
+            build/release/ktpack-macos.zip.sha256
+            build/release/ktpack-macos-arm64.zip
+            build/release/ktpack-macos-arm64.zip.sha256

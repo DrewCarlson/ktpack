@@ -1,4 +1,7 @@
+import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.nativeplatform.platform.internal.*
+import org.jetbrains.kotlin.daemon.common.toHexString
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.konan.target.Architecture
 import org.jetbrains.kotlin.konan.target.Family
@@ -6,6 +9,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.Locale.*
 import java.io.ByteArrayOutputStream
+import java.security.MessageDigest
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -233,6 +237,41 @@ kotlin {
                 val macosArm64Test by getting { dependsOn(darwinTest) }
             }
         }
+    }
+}
+
+fun createPackageReleaseTask(target: String, arch: String = "x64") {
+    val extension = if (hostOs.isWindows) ".exe" else ".kexe"
+    val targetName = "${target.capitalized()}${arch.capitalized()}"
+    tasks.create("packageRelease${targetName}") {
+        dependsOn("linkReleaseExecutable${targetName}")
+        doFirst {
+            val releaseName = when {
+                arch == "arm64" -> "ktpack-$target-$arch"
+                else -> "ktpack-$target"
+            }
+            val releaseBinDir = buildDir.resolve("release/bin")
+            val releaseZip = buildDir.resolve("release/$releaseName.zip")
+            val releaseZipChecksum = buildDir.resolve("release/$releaseName.zip.sha256")
+            copy {
+                from(buildDir.resolve("bin/${target}${arch.capitalized()}/releaseExecutable/ktpack$extension"))
+                into(releaseBinDir)
+                rename { if (hostOs.isWindows) it else it.removeSuffix(extension) }
+            }
+            zipTo(releaseZip, releaseBinDir)
+            val sha256 = MessageDigest.getInstance("SHA-256")
+            releaseZip.forEachBlock { buffer, _ -> sha256.update(buffer) }
+            releaseZipChecksum.writeText(sha256.digest().toHexString())
+        }
+    }
+}
+
+when {
+    hostOs.isLinux -> createPackageReleaseTask("linux")
+    hostOs.isWindows -> createPackageReleaseTask("windows")
+    hostOs.isMacOsX -> {
+        createPackageReleaseTask("macos")
+        createPackageReleaseTask("macos", "arm64")
     }
 }
 
