@@ -69,10 +69,6 @@ jobs:
             %USERPROFILE%\.konan
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
-
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - uses: gradle/gradle-build-action@v2
         name: Test Apple Targets
         if: startsWith(matrix.os, 'macos')
