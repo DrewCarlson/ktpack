@@ -226,7 +226,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: packageReleaseMacosX64 packageReleaseMacosArm64
+          arguments: packageReleaseMacos --no-parallel
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v1
@@ -237,5 +237,3 @@ jobs:
           files: |
             ktpack/build/release/ktpack-macos.zip
             ktpack/build/release/ktpack-macos.zip.sha256
-            ktpack/build/release/ktpack-macos-arm64.zip
-            ktpack/build/release/ktpack-macos-arm64.zip.sha256

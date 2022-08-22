@@ -4,11 +4,9 @@ Releases are published to [Github](https://github.com/DrewCarlson/ktpack/release
 
 ### macOS
 
-For intel based Macs must use the x64 builds and Apple silicone machines must use aarch64 build.
-
 ```shell
-$ curl https://github.com/DrewCarlson/Ktpack/releases/latest/download/ktpack-macos-x64.zip -o ktpack-macos-x64.zip
-$ unzip ktpack-macos-x64.zip && cd ktpack-macos-x64
+$ curl https://github.com/DrewCarlson/Ktpack/releases/latest/download/ktpack-macos.zip -o ktpack-macos.zip
+$ unzip ktpack-macos.zip && cd ktpack-macos
 
 $ ktpack version
 Ktpack version 1.0.0-SNAPSHOT
@@ -22,3 +20,12 @@ Ktpack version 1.0.0-SNAPSHOT
 ```
 
 ### Linux
+
+
+```shell
+$ curl https://github.com/DrewCarlson/Ktpack/releases/latest/download/ktpack-linux.zip -o ktpack-linux.zip
+$ unzip ktpack-linux.zip && cd ktpack-linux
+
+$ ktpack version
+Ktpack version 1.0.0-SNAPSHOT
+```

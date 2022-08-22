@@ -240,21 +240,37 @@ kotlin {
     }
 }
 
-fun createPackageReleaseTask(target: String, arch: String = "x64") {
+fun createPackageReleaseTask(target: String) {
     val extension = if (hostOs.isWindows) ".exe" else ".kexe"
-    val targetName = "${target.capitalized()}${arch.capitalized()}"
-    tasks.create("packageRelease${targetName}") {
-        dependsOn("linkReleaseExecutable${targetName}")
+    tasks.create("packageRelease${target.capitalized()}") {
+        dependsOn("linkReleaseExecutable${target.capitalized()}X64")
+        if (hostOs.isMacOsX) {
+            dependsOn("linkReleaseExecutable${target.capitalized()}Arm64")
+        }
         doFirst {
-            val releaseName = when {
-                arch == "arm64" -> "ktpack-$target-$arch"
-                else -> "ktpack-$target"
+            var executable = buildDir.resolve("bin/${target}X64/releaseExecutable/ktpack$extension")
+            if (hostOs.isMacOsX) {
+                val executableArm = buildDir.resolve("bin/${target}Arm64/releaseExecutable/ktpack$extension")
+                val executableUniversal = buildDir.resolve("bin/${target}/releaseExecutable/ktpack$extension")
+                exec {
+                    commandLine("lipo")
+                    args(
+                        "-create",
+                        "-output",
+                        executableUniversal.absolutePath,
+                        executable.absolutePath,
+                        executableArm.absolutePath
+                    )
+                }.assertNormalExitValue()
+                executable = executableUniversal
             }
+
+            val releaseName = "ktpack-$target.zip"
             val releaseBinDir = buildDir.resolve("release/bin")
-            val releaseZip = buildDir.resolve("release/$releaseName.zip")
-            val releaseZipChecksum = buildDir.resolve("release/$releaseName.zip.sha256")
+            val releaseZip = buildDir.resolve("release/$releaseName")
+            val releaseZipChecksum = buildDir.resolve("release/$releaseName.sha256")
             copy {
-                from(buildDir.resolve("bin/${target}${arch.capitalized()}/releaseExecutable/ktpack$extension"))
+                from()
                 into(releaseBinDir)
                 rename { if (hostOs.isWindows) it else it.removeSuffix(extension) }
             }
@@ -269,10 +285,7 @@ fun createPackageReleaseTask(target: String, arch: String = "x64") {
 when {
     hostOs.isLinux -> createPackageReleaseTask("linux")
     hostOs.isWindows -> createPackageReleaseTask("windows")
-    hostOs.isMacOsX -> {
-        createPackageReleaseTask("macos")
-        createPackageReleaseTask("macos", "arm64")
-    }
+    hostOs.isMacOsX -> createPackageReleaseTask("macos")
 }
 
 spotless {
