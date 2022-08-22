@@ -106,8 +106,8 @@ kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
-        if (hostOs.isMacOsX || hostOs.isLinux) linuxX64() else null,
-        mingwX64("windowsX64"),
+        if (!hostOs.isWindows) linuxX64() else null,
+        if (!hostOs.isLinux) mingwX64("windowsX64") else null,
     )
 
     configure(nativeTargets) {
@@ -200,13 +200,15 @@ kotlin {
             }
         }
 
-        val windowsX64Main by getting {
-            dependencies {
-                implementation(libs.ktor.client.winhttp)
+        if (!hostOs.isLinux) {
+            val windowsX64Main by getting {
+                dependencies {
+                    implementation(libs.ktor.client.winhttp)
+                }
             }
         }
 
-        if (hostOs.isLinux || hostOs.isMacOsX) {
+        if (!hostOs.isWindows) {
             val posixMain by creating {
                 dependsOn(commonMain)
             }
