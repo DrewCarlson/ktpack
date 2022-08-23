@@ -569,7 +569,7 @@ class ModuleBuilder(
         when (target) {
             KotlinTarget.JVM -> {
                 val targetOutPath = "${outputPath}${getExeExtension(target)}"
-                arg(KotlincInstalls.findKotlincJvm(kotlinVersion))
+                arg(context.kotlinInstalls.findKotlincJvm(kotlinVersion))
 
                 // arg("-Xjdk-release=$version")
                 // args("-jvm-target", "1.8")
@@ -585,7 +585,7 @@ class ModuleBuilder(
 
             KotlinTarget.JS_NODE, KotlinTarget.JS_BROWSER -> {
                 val targetOutPath = "${outputPath}${getExeExtension(target)}"
-                arg(KotlincInstalls.findKotlincJs(kotlinVersion))
+                arg(context.kotlinInstalls.findKotlincJs(kotlinVersion))
 
                 args("-output", targetOutPath) // output js file
                 args("-main", if (isBinary) "call" else "noCall")
@@ -619,7 +619,7 @@ class ModuleBuilder(
                 } else {
                     outputPath // library suffix will be added be the compiler
                 }
-                arg(KotlincInstalls.findKotlincNative(kotlinVersion))
+                arg(context.kotlinInstalls.findKotlincNative(kotlinVersion))
                 File(targetOutPath.substringBeforeLast(filePathSeparator)).mkdirs()
 
                 args("-output", targetOutPath) // output kexe or exe file
@@ -669,7 +669,7 @@ class ModuleBuilder(
 
         arg("-Xmulti-platform")
 
-        val serializationPlugin = File(KotlincInstalls.findKotlinHome(kotlinVersion), "lib")
+        val serializationPlugin = File(context.kotlinInstalls.findKotlinHome(kotlinVersion), "lib")
             .nestedFile("kotlinx-serialization-compiler-plugin.jar")
         // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
 

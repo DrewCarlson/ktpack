@@ -15,6 +15,7 @@ import ktfio.readText
 import ktfio.writeText
 import ktpack.*
 import ktpack.commands.jdk.JdkInstalls
+import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.PackageConf
 import ktpack.task.TaskRunner
 import ktpack.util.KTPACK_ROOT
@@ -55,6 +56,8 @@ class KtpackCommand(
     }
 
     override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
+
+    override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
 
     override val stacktrace: Boolean by option()
         .help("Print the stacktrace in the case of an unhandled exception.")

@@ -106,6 +106,8 @@ afterEvaluate {
     }
 }
 
+evaluationDependsOn(":ktpack-script")
+
 kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
@@ -162,6 +164,7 @@ kotlin {
                     listOf("-include-binary", file.absolutePath)
                 }
                 compilation.apply {
+                    compileKotlinTask.dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
                     kotlinOptions {
                         freeCompilerArgs = freeCompilerArgs + libLinks
                     }

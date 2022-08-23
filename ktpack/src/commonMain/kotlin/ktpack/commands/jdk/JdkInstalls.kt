@@ -36,6 +36,8 @@ class JdkInstalls(
     private val context: CliContext,
 ) {
 
+    private val config = context.config.jdk
+
     private val packageExtension by lazy {
         when (Platform.osFamily) {
             OsFamily.WINDOWS -> ".zip"
@@ -46,9 +48,9 @@ class JdkInstalls(
 
     fun getDefaultJdk(): InstallationDetails? {
         return findJdk(
-            File(checkNotNull(context.config.jdkRootPath)),
-            context.config.jdkVersion,
-            context.config.jdkDistribution
+            File(checkNotNull(config.rootPath)),
+            config.version,
+            config.distribution
         )
     }
 

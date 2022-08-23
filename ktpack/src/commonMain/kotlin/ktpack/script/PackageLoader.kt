@@ -56,7 +56,7 @@ private fun ByteArray.toHexString(): String {
 private suspend fun executePackage(context: CliContext, path: String): PackageConf = coroutineScope {
     installScriptBuilderJar(context)
 
-    val kotlincPath = KotlincInstalls.findKotlincJvm(context.config.kotlinVersion)
+    val kotlincPath = context.kotlinInstalls.findKotlincJvm(context.config.kotlin.version)
     check(File(kotlincPath).exists()) { "Cannot execute package script, kotlinc-jvm does not exist at: $kotlincPath" }
     val moduleConf = Process {
         arg(kotlincPath)

@@ -1,10 +1,56 @@
 package ktpack.commands.kotlin
 
+import kotlinx.cinterop.toKString
+import ktfio.File
 import ktfio.filePathSeparator
+import ktpack.CliContext
 import ktpack.util.ARCH
 import ktpack.util.KONAN_ROOT
+import platform.posix.getenv
 
-object KotlincInstalls {
+data class KotlincInstalls(private val context: CliContext) {
+
+    enum class CompilerType {
+        JVM, NATIVE
+    }
+
+    data class InstallDetails(
+        val version: String,
+        val path: String,
+        val type: CompilerType,
+        val isActive: Boolean,
+    )
+
+    fun discover(kotlincRoot: File): List<InstallDetails> {
+        val pathEnv = getenv("PATH")?.toKString().orEmpty()
+        return kotlincRoot.listFiles().mapNotNull { file ->
+            val fileName = file.getName()
+            when {
+                !file.isDirectory() || file.listFiles().isEmpty() -> null
+                fileName.startsWith("kotlin-compiler-prebuilt-") ->
+                    createInstallDetails(file, fileName, CompilerType.JVM, pathEnv)
+                fileName.startsWith("kotlin-native-prebuilt-") ->
+                    createInstallDetails(file, fileName, CompilerType.NATIVE, pathEnv)
+                else -> null
+            }
+        }
+    }
+
+    private fun createInstallDetails(
+        file: File,
+        fileName: String,
+        type: CompilerType,
+        pathEnv: String
+    ): InstallDetails {
+        val version = fileName.split('-').last()
+        val path = file.getAbsolutePath()
+        return InstallDetails(
+            version = version,
+            path = path,
+            type = type,
+            isActive = pathEnv.contains(path),
+        )
+    }
 
     private fun findNonNativeBin(version: String): String = buildString {
         append(KONAN_ROOT)

@@ -1,41 +1,41 @@
-package ktpack.commands.jdk
+package ktpack.commands.kotlin
 
-import com.github.ajalt.clikt.core.*
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.mordant.rendering.OverflowWrap
 import com.github.ajalt.mordant.table.grid
-import kotlinx.coroutines.*
+import kotlinx.coroutines.runBlocking
 import ktfio.File
 import ktpack.CliContext
 import ktpack.util.info
 
-class ListJdkCommand : CliktCommand(
+class ListKotlinCommand : CliktCommand(
     name = "list",
-    help = "List installed JDK versions.",
+    help = "List installed Kotlin versions.",
 ) {
 
     private val context by requireObject<CliContext>()
 
     private val path by option()
-        .help("The folder path where JDK installs are located.")
+        .help("The folder path where Kotlin installs are located.")
         .convert { File(it) }
-        .defaultLazy { File(checkNotNull(context.config.jdk.rootPath)) }
+        .defaultLazy { File(checkNotNull(context.config.kotlin.rootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
 
-    override fun run(): Unit = runBlocking {
-        val installations = context.jdkInstalls.discover(path)
-        context.term.println("Found ${info(installations.size.toString())} JDK installation(s)")
+    override fun run() = runBlocking {
+        val installs = context.kotlinInstalls.discover(path)
+        context.term.println("Found ${info(installs.size.toString())} Kotlin installation(s)")
         context.term.println()
         context.term.println(
             grid {
-                installations.forEach { install ->
+                installs.forEach { install ->
                     row {
                         cell("[ENV]".takeIf { install.isActive }.orEmpty())
-                        cell(install.distribution)
+                        cell(install.type)
                         cell(install.version)
-                        cell("(IntelliJ)".takeIf { install.isIntellijInstall }.orEmpty())
                         cell(install.path) {
                             overflowWrap = OverflowWrap.ELLIPSES
                         }

@@ -40,7 +40,8 @@ fun main(args: Array<String>) {
             KotlinCommand()
                 .subcommands(InstallKotlinCommand())
                 .subcommands(RemoveKotlinCommand())
-                .subcommands(FindKotlinCommand()),
+                .subcommands(FindKotlinCommand())
+                .subcommands(ListKotlinCommand()),
             JdkCommand()
                 .subcommands(InstallJdkCommand())
                 .subcommands(RemoveJdkCommand())

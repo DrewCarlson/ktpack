@@ -28,7 +28,7 @@ class RemoveJdkCommand : CliktCommand(
     private val path by option()
         .help("The folder path where JDKs are stored.")
         .convert { File(it) }
-        .defaultLazy { File(checkNotNull(context.config.jdkRootPath)) }
+        .defaultLazy { File(checkNotNull(context.config.jdk.rootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }

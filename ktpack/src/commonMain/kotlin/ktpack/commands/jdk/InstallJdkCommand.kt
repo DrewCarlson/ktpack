@@ -30,7 +30,7 @@ class InstallJdkCommand : CliktCommand(
     private val path by option()
         .help("The root path to store the JDK installation.")
         .convert { File(it) }
-        .defaultLazy { File(checkNotNull(context.config.jdkRootPath)) }
+        .defaultLazy { File(checkNotNull(context.config.jdk.rootPath)) }
         .check({ "JDK root path must exist." }) { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs()
         }
