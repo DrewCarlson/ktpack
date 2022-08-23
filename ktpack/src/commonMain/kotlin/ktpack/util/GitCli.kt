@@ -8,10 +8,19 @@ import ktfio.File
 
 class GitCli {
 
+    private val gitPath: String = when (Platform.osFamily) {
+        OsFamily.WINDOWS -> "git.exe"
+        OsFamily.MACOSX -> File("/usr/local/bin/git").run {
+            if (exists()) getAbsolutePath() else "/usr/bin/git"
+        }
+        OsFamily.LINUX -> "/usr/bin/git"
+        else -> error("Unsupported host os")
+    }
+
     suspend fun hasGit(): Boolean {
         val result = try {
             exec {
-                args("git", "help")
+                args(gitPath, "help")
                 stdin = Redirect.Null
                 stderr = Redirect.Null
                 stdout = Redirect.Null
@@ -28,7 +37,7 @@ class GitCli {
     suspend fun initRepository(directory: File): Boolean {
         val result = try {
             exec {
-                args("git", "init")
+                args(gitPath, "init")
                 workingDirectory = directory.getAbsolutePath()
                 stdin = Redirect.Null
                 stderr = Redirect.Null
