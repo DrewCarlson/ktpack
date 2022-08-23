@@ -18,6 +18,7 @@ import ktpack.commands.jdk.JdkInstalls
 import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.PackageConf
 import ktpack.task.TaskRunner
+import ktpack.util.GitCli
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
 import ktpack.util.verbose
@@ -58,6 +59,8 @@ class KtpackCommand(
     override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
 
     override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
+
+    override val gitCli: GitCli = GitCli()
 
     override val stacktrace: Boolean by option()
         .help("Print the stacktrace in the case of an unhandled exception.")

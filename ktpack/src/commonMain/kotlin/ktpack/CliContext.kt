@@ -6,6 +6,7 @@ import ktpack.commands.jdk.JdkInstalls
 import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.PackageConf
 import ktpack.task.TaskRunner
+import ktpack.util.GitCli
 
 interface CliContext {
     val stacktrace: Boolean
@@ -16,6 +17,7 @@ interface CliContext {
     val config: KtpackUserConfig
     val jdkInstalls: JdkInstalls
     val kotlinInstalls: KotlincInstalls
+    val gitCli: GitCli
 
     suspend fun loadPackage(
         filePath: String = PACK_SCRIPT_FILENAME,

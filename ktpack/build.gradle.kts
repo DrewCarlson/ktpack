@@ -21,6 +21,7 @@ plugins {
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 val mainGenSrcPath = "build/ktgen-main"
+val testGenSrcPath = "build/ktgen-test"
 
 val buildRuntimeConstants by tasks.creating {
     val constantsFile = file("${mainGenSrcPath}/constants.kt")
@@ -75,6 +76,21 @@ val buildRuntimeBundle by tasks.creating {
                |
                |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-script.jar"
                |val ktpackScriptJarPath by lazy { File($pathValue) }
+               |""".trimMargin()
+        )
+    }
+}
+
+val buildTestConstants by tasks.creating {
+    val constantsFile = file("${testGenSrcPath}/testConstants.kt")
+    onlyIf { !constantsFile.exists() }
+    doFirst {
+        file(testGenSrcPath).mkdirs()
+        constantsFile.writeText(
+            """|package ktpack
+               |import ktfio.File
+               |
+               |val buildDir = File("${buildDir.absolutePath.replace("\\", "\\\\")}")
                |""".trimMargin()
         )
     }
@@ -140,6 +156,10 @@ kotlin {
             )
         }
 
+        compilations.named("test") {
+            compileKotlinTask.dependsOn(buildTestConstants)
+        }
+
         binaries {
             executable {
                 entryPoint = "ktpack.main"
@@ -202,6 +222,7 @@ kotlin {
         }
 
         val commonTest by getting {
+            kotlin.srcDir(testGenSrcPath)
             dependencies {
                 implementation(libs.coroutines.test)
             }

@@ -4,7 +4,6 @@ import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ModuleConf
 
-
 /**
  * Given a non-null [requestedTarget], ensure that [hostTarget]
  * supports building for the target or return null.  When no

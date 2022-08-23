@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.terminal.*
+import kotlinx.coroutines.runBlocking
 import ktfio.*
 import ktpack.CliContext
 import ktpack.Ktpack
@@ -73,7 +74,7 @@ class NewCommand : CliktCommand(
 
     private val publish by option("--publish", "-p")
         .help("Module publishing will be enabled when this flag is set")
-        .flag(default = false)
+        .flag()
 
     private val license by option("--license")
         .help("Module publishing will be enabled when this flag is set")
@@ -88,12 +89,21 @@ class NewCommand : CliktCommand(
     private val repository by option("--repository")
         .help("Module version control repository location")
 
+    private val vcs by option("--vcs")
+        .help("Initialize new VCS repository for the specified version control system.")
+        .enum<VcsType>(ignoreCase = true)
+        .default(VcsType.GIT)
+
+    private val noVcs by option("--no-vcs")
+        .help("Do not initialize a new VCS repository.")
+        .flag()
+
     private val context by requireObject<CliContext>()
 
     // Splits `name = bob` into 1:name and 2:bob
     private val gitconfigRegex = """^\s*([A-Za-z]*)\s?=\s?(.*)$""".toRegex()
 
-    override fun run() {
+    override fun run() = runBlocking {
         val targetDir = File(folder)
         checkDirDoesNotExist(targetDir)
         checkMakeDir(targetDir)
@@ -116,6 +126,13 @@ class NewCommand : CliktCommand(
         when (template) {
             Template.BIN -> srcDir.generateSourceFile(context.term, "main.kt", NEW_BIN_SOURCE)
             Template.LIB -> srcDir.generateSourceFile(context.term, "lib.kt", NEW_LIB_SOURCE)
+        }
+
+        if (!noVcs) {
+            if (vcs == VcsType.GIT && context.gitCli.hasGit()) {
+                context.gitCli.initRepository(targetDir)
+                context.term.println("${info("Initialized")} ${VcsType.GIT} repository")
+            }
         }
 
         context.term.println(
