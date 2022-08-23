@@ -25,9 +25,6 @@ val USER_HOME = checkNotNull(getHomePath()) {
 }
 
 @SharedImmutable
-val KONAN_ROOT = "${USER_HOME}$filePathSeparator.konan"
-
-@SharedImmutable
 val KTPACK_ROOT = "${USER_HOME}$filePathSeparator.ktpack"
 
 @SharedImmutable

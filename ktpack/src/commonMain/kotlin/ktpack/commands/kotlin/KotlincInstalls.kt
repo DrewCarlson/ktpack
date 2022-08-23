@@ -5,7 +5,6 @@ import ktfio.File
 import ktfio.filePathSeparator
 import ktpack.CliContext
 import ktpack.util.ARCH
-import ktpack.util.KONAN_ROOT
 import platform.posix.getenv
 
 data class KotlincInstalls(private val context: CliContext) {
@@ -53,7 +52,7 @@ data class KotlincInstalls(private val context: CliContext) {
     }
 
     private fun findNonNativeBin(version: String): String = buildString {
-        append(KONAN_ROOT)
+        append(context.config.kotlin.rootPath)
         append(filePathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
@@ -63,7 +62,7 @@ data class KotlincInstalls(private val context: CliContext) {
     }
 
     fun findKotlinHome(version: String): String = buildString {
-        append(KONAN_ROOT)
+        append(context.config.kotlin.rootPath)
         append(filePathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
@@ -95,7 +94,7 @@ data class KotlincInstalls(private val context: CliContext) {
 
     fun findKotlincNative(version: String): String = buildString {
         val (major, minor, _) = version.split('.').map(String::toInt)
-        append(KONAN_ROOT)
+        append(context.config.kotlin.rootPath)
         append(filePathSeparator)
         append("kotlin-native-prebuilt-")
         when (Platform.osFamily) {
