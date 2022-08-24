@@ -61,16 +61,16 @@ public final class ktpack/configuration/KtpackModule {
 	public final fun targets ([Lktpack/configuration/KotlinTarget;)V
 }
 
-public class ktpack/configuration/PackageScope {
+public class ktpack/configuration/KtpackScriptScope {
 	public fun <init> ()V
 	public final fun dependencies (Lktpack/configuration/KtpackModule;[Lktpack/configuration/KotlinTarget;Lkotlin/jvm/functions/Function1;)V
 	public final fun dependenciesJs (Lktpack/configuration/KtpackModule;[Lktpack/configuration/KotlinTarget;Lkotlin/jvm/functions/Function1;)V
 	public fun emitModuleConfiguration (Lktpack/configuration/ModuleConf;)V
 	public final fun module (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun module$default (Lktpack/configuration/PackageScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public static synthetic fun module$default (Lktpack/configuration/KtpackScriptScope;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
-public abstract class ktpack/configuration/PackageScopeScriptDefinition : ktpack/configuration/PackageScope {
+public abstract class ktpack/configuration/KtpackScriptScopeDefinition : ktpack/configuration/KtpackScriptScope {
 	public fun <init> ([Ljava/lang/String;)V
 	public final fun getArgs ()[Ljava/lang/String;
 }

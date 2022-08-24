@@ -24,7 +24,7 @@ class CleanCommand : CliktCommand(
 
     override fun run() = runBlocking {
         val userTarget = userTarget
-        val packageConf = context.loadPackage()
+        val packageConf = context.loadKtpackConf()
         val module = packageConf.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 

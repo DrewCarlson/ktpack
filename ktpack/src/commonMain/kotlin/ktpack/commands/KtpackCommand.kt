@@ -16,7 +16,7 @@ import ktfio.writeText
 import ktpack.*
 import ktpack.commands.jdk.JdkInstalls
 import ktpack.commands.kotlin.KotlincInstalls
-import ktpack.configuration.PackageConf
+import ktpack.configuration.KtpackConf
 import ktpack.task.TaskRunner
 import ktpack.util.GitCli
 import ktpack.util.KTPACK_ROOT
@@ -71,8 +71,8 @@ class KtpackCommand(
 
     override val taskRunner: TaskRunner = TaskRunner()
 
-    override suspend fun loadPackage(filePath: String, forceRebuild: Boolean): PackageConf {
-        return ktpack.script.loadPackageConf(this, filePath, forceRebuild)
+    override suspend fun loadKtpackConf(filePath: String, forceRebuild: Boolean): KtpackConf {
+        return ktpack.script.loadKtpackConf(this, filePath, forceRebuild)
     }
 
     override fun run() {

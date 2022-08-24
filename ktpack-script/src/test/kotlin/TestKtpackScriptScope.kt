@@ -2,7 +2,7 @@ package ktpack.configuration
 
 import kotlinx.serialization.json.Json
 
-class TestPackageScope : PackageScope() {
+class TestKtpackScriptScope : KtpackScriptScope() {
 
     private val moduleConfs = mutableListOf<ModuleConf>()
 
@@ -17,8 +17,8 @@ class TestPackageScope : PackageScope() {
     fun getConfCount(): Int = moduleConfs.size
 }
 
-fun withTestScope(build: TestPackageScope.() -> Unit) {
-    build(TestPackageScope())
+fun withTestScope(build: TestKtpackScriptScope.() -> Unit) {
+    build(TestKtpackScriptScope())
 }
 
 val testJson = Json {

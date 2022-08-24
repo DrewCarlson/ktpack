@@ -3,7 +3,7 @@ package ktpack.configuration
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-open class PackageScope {
+open class KtpackScriptScope {
 
     private val jsTargets = KotlinTarget.values().filter(KotlinTarget::isJs)
     private val json = Json {

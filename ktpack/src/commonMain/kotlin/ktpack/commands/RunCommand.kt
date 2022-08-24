@@ -45,7 +45,7 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val packageConf = context.loadPackage()
+        val packageConf = context.loadKtpackConf()
         val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
         val targetBin = targetBin ?: packageConf.module.name
 

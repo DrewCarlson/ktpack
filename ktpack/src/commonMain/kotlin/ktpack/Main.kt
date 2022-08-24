@@ -10,7 +10,7 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
 import kotlin.system.*
 
-const val PACK_SCRIPT_FILENAME = "package.kts"
+const val PACK_SCRIPT_FILENAME = "pack.kts"
 
 @SharedImmutable
 val json = kotlinx.serialization.json.Json {

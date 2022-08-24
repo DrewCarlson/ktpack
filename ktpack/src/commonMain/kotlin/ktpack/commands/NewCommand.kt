@@ -12,8 +12,8 @@ import ktpack.CliContext
 import ktpack.Ktpack
 import ktpack.PACK_SCRIPT_FILENAME
 import ktpack.configuration.KotlinTarget
+import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.PackageConf
 import ktpack.util.*
 import kotlin.system.*
 
@@ -109,7 +109,7 @@ class NewCommand : CliktCommand(
         checkMakeDir(targetDir)
 
         val packFile = targetDir.nestedFile(PACK_SCRIPT_FILENAME)
-        val conf = generatePackageConf()
+        val conf = generateKtpackConf()
         if (packFile.createNewFile()) {
             packFile.writeText(newPackScriptSource(conf))
         } else {
@@ -162,7 +162,7 @@ class NewCommand : CliktCommand(
         }
     }
 
-    private fun generatePackageConf() = PackageConf(
+    private fun generateKtpackConf() = KtpackConf(
         module = ModuleConf(
             name = flagOrUserPrompt("Project Name", moduleName) { moduleName },
             kotlinVersion = flagOrUserPrompt("Kotlin Version", Ktpack.KOTLIN_VERSION) { kotlinVersion },
@@ -249,21 +249,21 @@ fun File.generateSourceFile(term: Terminal, fileName: String, contents: String) 
 }
 
 private fun newPackScriptSource(
-    packageConf: PackageConf,
+    ktpackConf: KtpackConf,
 ): String = buildString {
-    val targetList = packageConf.module.targets.joinToString("\n") { target ->
+    val targetList = ktpackConf.module.targets.joinToString("\n") { target ->
         "targets += \"${target.name.lowercase()}\""
     }
-    val authorsList = packageConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
-    return """|module("${packageConf.module.name}") {
-              |  version = "${packageConf.module.version}"
-              |  kotlinVersion = "${packageConf.module.kotlinVersion}"
-              |  ${packageConf.module.description?.let { "description = \"$it\"" }}
+    val authorsList = ktpackConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
+    return """|module("${ktpackConf.module.name}") {
+              |  version = "${ktpackConf.module.version}"
+              |  kotlinVersion = "${ktpackConf.module.kotlinVersion}"
+              |  ${ktpackConf.module.description?.let { "description = \"$it\"" }}
               |  ${authorsList.takeIf(String::isNotBlank)}
               |  ${targetList.takeIf(String::isNotBlank)}
-              |  ${packageConf.module.publish.takeIf { it }?.let { "publish = $it" }}
-              |  ${packageConf.module.license?.let { "license = \"$it\"" }}
-              |  ${packageConf.module.repository?.let { "repository = \"$it\"" }}
+              |  ${ktpackConf.module.publish.takeIf { it }?.let { "publish = $it" }}
+              |  ${ktpackConf.module.license?.let { "license = \"$it\"" }}
+              |  ${ktpackConf.module.repository?.let { "repository = \"$it\"" }}
               |
               |  dependencies {
               |

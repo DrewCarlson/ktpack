@@ -3,6 +3,6 @@ package ktpack.configuration
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PackageConf(
+data class KtpackConf(
     val module: ModuleConf,
 )

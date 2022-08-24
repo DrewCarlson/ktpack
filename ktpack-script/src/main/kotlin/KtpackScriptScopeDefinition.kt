@@ -6,15 +6,15 @@ import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 
 @KotlinScript(
-    compilationConfiguration = PackScriptCompilationConfiguration::class,
+    compilationConfiguration = KtpackScriptCompilationConfiguration::class,
 )
-abstract class PackageScopeScriptDefinition(
+abstract class KtpackScriptScopeDefinition(
     @Suppress("unused")
     val args: Array<String> // DO NOT REMOVE
-) : PackageScope()
+) : KtpackScriptScope()
 
-internal object PackScriptCompilationConfiguration : ScriptCompilationConfiguration({
-    baseClass(PackageScopeScriptDefinition::class)
+internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    baseClass(KtpackScriptScopeDefinition::class)
     defaultImports(
         "ktpack.configuration.*",
         "ktpack.configuration.KotlinTarget",

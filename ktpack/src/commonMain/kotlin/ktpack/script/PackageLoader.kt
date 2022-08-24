@@ -14,9 +14,8 @@ import kotlinx.serialization.encodeToString
 import ksubprocess.Process
 import ktfio.*
 import ktpack.CliContext
-import ktpack.commands.kotlin.KotlincInstalls
+import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
-import ktpack.configuration.PackageConf
 import ktpack.json
 import ktpack.ktpackScriptJarPath
 import ktpack.ktpackScriptJarUrl
@@ -25,7 +24,7 @@ import ktpack.util.measureSeconds
 
 private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
-suspend fun loadPackageConf(context: CliContext, path: String, rebuild: Boolean): PackageConf {
+suspend fun loadKtpackConf(context: CliContext, path: String, rebuild: Boolean): KtpackConf {
     val digest = Algorithm.SHA_256.createDigest().apply { update(File(path).readBytes()) }.digest().toHexString()
     val cacheKey = TEMP_DIR.nestedFile(".ktpack-script-cache-$digest")
     val (module, duration) = measureSeconds {
@@ -36,7 +35,7 @@ suspend fun loadPackageConf(context: CliContext, path: String, rebuild: Boolean)
         } else {
             // println("Processing manifest")
             // TODO: Log in debug only
-            Dispatchers.Default { executePackage(context, path) }.also { packageConf ->
+            Dispatchers.Default { executeKtpackScript(context, path) }.also { packageConf ->
                 // println(cacheKey.getAbsolutePath())
                 if (cacheKey.createNewFile()) {
                     // println("Caching new manifest output")
@@ -45,7 +44,7 @@ suspend fun loadPackageConf(context: CliContext, path: String, rebuild: Boolean)
             }
         }
     }
-    println("Package loaded in ${duration}s: $path")
+    println("Ktpack Script loaded in ${duration}s: $path")
     return module
 }
 
@@ -53,20 +52,20 @@ private fun ByteArray.toHexString(): String {
     return joinToString("") { (0xFF and it.toInt()).toString(16).padStart(2, '0') }
 }
 
-private suspend fun executePackage(context: CliContext, path: String): PackageConf = coroutineScope {
+private suspend fun executeKtpackScript(context: CliContext, path: String): KtpackConf = coroutineScope {
     installScriptBuilderJar(context)
 
     val kotlincPath = context.kotlinInstalls.findKotlincJvm(context.config.kotlin.version)
-    check(File(kotlincPath).exists()) { "Cannot execute package script, kotlinc-jvm does not exist at: $kotlincPath" }
+    check(File(kotlincPath).exists()) { "Cannot execute ktpack script, kotlinc-jvm does not exist at: $kotlincPath" }
     val moduleConf = Process {
         arg(kotlincPath)
         if (context.debug) arg("-verbose")
         args("-classpath", ktpackScriptJarPath.getAbsolutePath())
-        args("-script-templates", "ktpack.configuration.PackageScopeScriptDefinition")
+        args("-script-templates", "ktpack.configuration.KtpackScriptScopeDefinition")
         arg("-script")
         arg(path)
         if (context.debug) {
-            println("Processing package script:")
+            println("Processing ktpack script:")
             println(arguments.joinToString(" "))
         }
     }.run {
@@ -80,7 +79,7 @@ private suspend fun executePackage(context: CliContext, path: String): PackageCo
             .toList()
     }.firstOrNull() ?: error("No modules declared in $path")
 
-    PackageConf(moduleConf)
+    KtpackConf(moduleConf)
 }
 
 private suspend fun installScriptBuilderJar(context: CliContext) {
@@ -106,5 +105,5 @@ private suspend fun installScriptBuilderJar(context: CliContext) {
             }
         }
     }
-    println("Package Script jar written in ${duration}s")
+    println("Ktpack Script jar written in ${duration}s")
 }

@@ -10,7 +10,6 @@ import kotlinx.serialization.*
 import ksubprocess.*
 import ktfio.*
 import ktpack.*
-import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.compilation.dependencies.ChildDependencyNode
 import ktpack.compilation.dependencies.RootDependencyNode
 import ktpack.configuration.*
@@ -520,7 +519,7 @@ class ModuleBuilder(
         targets: List<KotlinTarget>
     ): ChildDependencyNode {
         val packFile = rootFolder.nestedFile(dependencyConf.path).nestedFile(PACK_SCRIPT_FILENAME)
-        val localModule = context.loadPackage(packFile.getAbsolutePath()).module
+        val localModule = context.loadKtpackConf(packFile.getAbsolutePath()).module
         val children =
             resolveDependencyTree(localModule, rootFolder.nestedFile(dependencyConf.path), targets).children
         return ChildDependencyNode(

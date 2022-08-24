@@ -16,7 +16,7 @@ class CheckCommand : CliktCommand(
     private val context by requireObject<CliContext>()
 
     override fun run() = runBlocking {
-        val packageConf = context.loadPackage(filePath)
+        val packageConf = context.loadKtpackConf(filePath)
         // TODO: Validate all package properties
         println(packageConf)
     }
