@@ -2,7 +2,7 @@
 <img src="img/default-monochrome.svg" alt="Ktpack logo" width="400"/>
 </p>
 
-<h3 align="center">A simple tool for building and publishing Kotlin software.</h3>
+<h3 align="center">A simple tool for building and publishing Kotlin projects.</h3>
 
 <p align="center">
 <img alt="MIT License" src="https://img.shields.io/github/license/drewcarlson/ktpack"/>
@@ -13,8 +13,8 @@
 ---
 
 <p align="center">
-<a href="https://drewcarlson.github.io/ktpack/"><b>Installation</b></a> -
-<a href="https://drewcarlson.github.io/ktpack/"><b>Getting Started</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/installation"><b>Installation</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/getting-started/"><b>Getting Started</b></a> -
 <a href="https://drewcarlson.github.io/ktpack/"><b>Documentation</b></a> -
 <a href="https://github.com/DrewCarlson/ktpack/releases/"><b>Releases</b></a>
 </p>
