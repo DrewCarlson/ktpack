@@ -13,7 +13,6 @@ library {
         listOfNotNull(
             machines.linux.x86_64,
             machines.windows.x86_64,
-            machines.macOS.x86_64,
         )
     )
     binaries.configureEach {
@@ -30,8 +29,12 @@ library {
     }
 }
 
-fun Task.assembleMacosArm64(type: String) {
-    val outPath = "build/lib/main/${type}/macos/arm64"
+fun Task.assembleMacos(type: String, target: String) {
+    val clangTarget = when (target) {
+        "arm64" -> "arm64-apple-macos11"
+        else -> "x86_64-apple-macos10.12"
+    }
+    val outPath = "build/lib/main/${type}/macos/$target"
     val mongooseC = rootProject.file("external/mongoose/mongoose.c")
     doFirst {
         val objBuildFile = file("build/obj/main/${type}/macos/arm64/mongoose.o")
@@ -47,9 +50,10 @@ fun Task.assembleMacosArm64(type: String) {
                 "-c",
                 mongooseC.absolutePath,
                 "-target",
-                "arm64-apple-macos11",
+                clangTarget,
                 "-dM",
                 "-m64",
+                "-std=c99",
                 "-o",
                 objBuildFile.absolutePath,
             )
@@ -65,6 +69,8 @@ fun Task.assembleMacosArm64(type: String) {
 }
 
 if (hostOs.isMacOsX) {
-    tasks.register("assembleDebugMacosArm64") { assembleMacosArm64("debug") }
-    tasks.register("assembleReleaseMacosArm64") { assembleMacosArm64("release") }
+    tasks.register("assembleDebugMacosX64") { assembleMacos("debug", "x64") }
+    tasks.register("assembleReleaseMacosX64") { assembleMacos("release", "x64") }
+    tasks.register("assembleDebugMacosArm64") { assembleMacos("debug", "arm64") }
+    tasks.register("assembleReleaseMacosArm64") { assembleMacos("release", "arm64") }
 }

@@ -107,10 +107,12 @@ afterEvaluate {
             Family.LINUX -> "Linux"
             else -> error("Unsupported build target $konanTarget for $name")
         }
-        val arch = when (konanTarget.architecture) {
-            Architecture.ARM64 -> "Arm64"
-            else -> ""
-        }
+        val arch = if (hostOs.isMacOsX) {
+            when (konanTarget.architecture) {
+                Architecture.ARM64 -> "Arm64"
+                else -> "X64"
+            }
+        } else "" // Other hosts only support one arch, meaning it is omitted from the gradle task name
         val buildTasks = listOfNotNull(
             tasks.findByPath(":libs:${interopName}:assembleDebug$osName${arch}"),
             tasks.findByPath(":libs:${interopName}:assembleRelease$osName${arch}")
@@ -167,21 +169,19 @@ kotlin {
             all {
                 val libType = buildType.name.toLowerCase(ROOT)
                 val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
-                val arch = when (konanTarget.architecture) {
-                    Architecture.X64 -> "x86-64"
-                    Architecture.X86 -> "x86"
-                    Architecture.ARM64 -> "arm64"
-                    else -> error("Unsupported host operating system")
-                }
                 val libLinks = compilation.cinterops.flatMap { settings ->
                     val lib = settings.name
                     val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                    val file = if (arch == "arm64") {
-                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$arch/$fileName")
-                    } else {
-                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/$fileName")
-                    }
-                    listOf("-include-binary", file.absolutePath)
+                    val archPath = if (hostOs.isMacOsX) {
+                        when (konanTarget.architecture) {
+                            Architecture.ARM64 -> "Arm64/"
+                            else -> "X64/"
+                        }
+                    } else "" // Other hosts only support one arch, meaning it is omitted from the output path
+                    listOf(
+                        "-include-binary",
+                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/${archPath}$fileName").absolutePath
+                    )
                 }
                 compilation.apply {
                     compileKotlinTask.dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
