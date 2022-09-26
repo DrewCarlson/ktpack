@@ -61,8 +61,9 @@ class ModuleBuilder(
         KotlinTarget.JS_BROWSER to listOf("js", "jsbrowser"),
         KotlinTarget.MACOS_ARM64 to listOf("native", "macos", "posix", "macosarm64"),
         KotlinTarget.MACOS_X64 to listOf("native", "macos", "posix", "macosx64"),
+        KotlinTarget.MINGW_X86 to listOf("native", "mingw", "mingwx86"),
         KotlinTarget.MINGW_X64 to listOf("native", "mingw", "mingwx64"),
-        KotlinTarget.MINGW_X64 to listOf("native", "mingw", "mingwx64"),
+        KotlinTarget.LINUX_ARM64 to listOf("native", "linux", "posix", "linuxarm64"),
         KotlinTarget.LINUX_X64 to listOf("native", "linux", "posix", "linuxx64"),
     )
 
