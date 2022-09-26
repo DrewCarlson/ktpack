@@ -208,10 +208,12 @@ public final class ktpack/configuration/KotlinTarget : java/lang/Enum {
 	public static final field JS_BROWSER Lktpack/configuration/KotlinTarget;
 	public static final field JS_NODE Lktpack/configuration/KotlinTarget;
 	public static final field JVM Lktpack/configuration/KotlinTarget;
+	public static final field LINUX_ARM64 Lktpack/configuration/KotlinTarget;
 	public static final field LINUX_X64 Lktpack/configuration/KotlinTarget;
 	public static final field MACOS_ARM64 Lktpack/configuration/KotlinTarget;
 	public static final field MACOS_X64 Lktpack/configuration/KotlinTarget;
 	public static final field MINGW_X64 Lktpack/configuration/KotlinTarget;
+	public static final field MINGW_X86 Lktpack/configuration/KotlinTarget;
 	public final fun isJs ()Z
 	public final fun isNative ()Z
 	public static fun valueOf (Ljava/lang/String;)Lktpack/configuration/KotlinTarget;
