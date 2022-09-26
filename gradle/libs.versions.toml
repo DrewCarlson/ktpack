@@ -3,11 +3,11 @@ kotlin = { strictly = "1.7.10" }
 dokka = "1.7.10"
 coroutines = "1.6.4"
 serialization = "1.4.0"
-ktorio = "2.1.0"
-binary_compat = "0.11.0"
+ktorio = "2.1.1"
+binary_compat = "0.11.1"
 
-spotless = "6.10.0"
-ktlint = "0.46.1"
+spotless = "6.11.0"
+ktlint = "0.47.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -40,5 +40,5 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version = "3.5.0" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.0.0-beta7" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "1.0.0-SNAPSHOT" }
-cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1"}
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.84.2"}
+cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.84.3" }

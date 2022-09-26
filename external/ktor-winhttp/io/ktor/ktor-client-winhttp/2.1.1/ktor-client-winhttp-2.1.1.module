@@ -3,7 +3,7 @@
   "component": {
     "group": "io.ktor",
     "module": "ktor-client-winhttp",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "attributes": {
       "org.gradle.status": "release"
     }
@@ -39,13 +39,13 @@
       ],
       "files": [
         {
-          "name": "ktor-client-winhttp-metadata-2.1.0-all.jar",
-          "url": "ktor-client-winhttp-2.1.0-all.jar",
+          "name": "ktor-client-winhttp-metadata-2.1.1-all.jar",
+          "url": "ktor-client-winhttp-2.1.1-all.jar",
           "size": 707,
-          "sha512": "4b0a8fd7a9a0630d707afa45a5f2510383a6d52d951f9e0847f6564deacb90ac93ad6bd5d60c22306bb1e2b3a0950f3231eab226207dfcd01d57280ce69f4ea4",
-          "sha256": "032e2aa145f450f18632fdb06c6e4ea1ed059a7c23bcee833cde91dd12bd8342",
-          "sha1": "d1a5039a66adedb32907080947f28331ce39dc8e",
-          "md5": "5f21025a749e50979c019cbde8180083"
+          "sha512": "331763117eb081aaca22d888ebc7c6997087ef72dc5080d11f53350aaa2fbfae65e28cc3dee94e74863a81075a69f9df5af4d5c0742b1440844e32d44e24ed7b",
+          "sha256": "aa77061057c0c05f7c760e04b9aa902ce7ce1332df7808f0e195cbb29009196f",
+          "sha1": "716aa3e8a88eb44738aa9f3bfb162f664ad60f07",
+          "md5": "e4e1ee50e9c72f3adc32db4b08f78706"
         }
       ]
     },
@@ -67,13 +67,13 @@
       ],
       "files": [
         {
-          "name": "ktor-client-winhttp-2.1.0.jar",
-          "url": "ktor-client-winhttp-2.1.0.jar",
+          "name": "ktor-client-winhttp-2.1.1.jar",
+          "url": "ktor-client-winhttp-2.1.1.jar",
           "size": 261,
-          "sha512": "4dfe1d1fc54958bae1593f3f3ba21a1de3be4ae9c36c5bfee94f82dabdd121cac5603d9d1ec64be73a715fc71e3781c647a12799e49d03116750ce8f74d334e4",
-          "sha256": "51867eaab88e444ff87aaf65360a2fb77bdad70a74f03721bc06f1a1f5c28b57",
-          "sha1": "de6681ccf6223c38ced6168773ec5ea5be396eb3",
-          "md5": "cf275e22aed07a90915a16b82d5b121b"
+          "sha512": "4b5628f494f32a231fc81f1bc97410ba633502d7cccaf71d67eca44481ba4eaf0418b456ab6f2d2ebab0e4c87e2533306497fb87c4d74e85c27e1f876fc6cdc6",
+          "sha256": "9f75e69ae1bebb58531f64150c52f6f65cefc5fda57946e9e2295616a5c71099",
+          "sha1": "aa0631d3d50cbdd9df373541538861df10ca5d5b",
+          "md5": "b2de06eb239ec7b7b0f386148bb6fc26"
         }
       ]
     },
@@ -87,10 +87,10 @@
         "org.jetbrains.kotlin.platform.type": "native"
       },
       "available-at": {
-        "url": "../../ktor-client-winhttp-mingwx64/2.1.0/ktor-client-winhttp-mingwx64-2.1.0.module",
+        "url": "../../ktor-client-winhttp-mingwx64/2.1.1/ktor-client-winhttp-mingwx64-2.1.1.module",
         "group": "io.ktor",
         "module": "ktor-client-winhttp-mingwx64",
-        "version": "2.1.0"
+        "version": "2.1.1"
       }
     }
   ]
