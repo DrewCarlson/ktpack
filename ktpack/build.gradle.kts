@@ -91,6 +91,7 @@ val buildTestConstants by tasks.creating {
                |import ktfio.File
                |
                |val buildDir = File("${buildDir.absolutePath.replace("\\", "\\\\")}")
+               |val sampleDir = File("${rootProject.file("samples").absolutePath.replace("\\", "\\\\")}")
                |""".trimMargin()
         )
     }

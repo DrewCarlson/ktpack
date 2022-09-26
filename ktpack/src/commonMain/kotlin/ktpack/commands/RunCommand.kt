@@ -100,6 +100,10 @@ class RunCommand : CliktCommand(
             is ArtifactResult.NoArtifactFound -> {
                 context.term.println("${failed("Failed")} no binary to run")
             }
+
+            is ArtifactResult.NoSourceFiles -> {
+                context.term.println("${failed("Failed")} no source files")
+            }
         }
     }
 

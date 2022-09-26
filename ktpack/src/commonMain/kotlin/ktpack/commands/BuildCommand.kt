@@ -94,6 +94,7 @@ class BuildCommand : CliktCommand(
                             }
 
                             ArtifactResult.NoArtifactFound -> Unit // Ignore, handle when all artifacts a resolved
+                            ArtifactResult.NoSourceFiles -> Unit
                         }
                     }
                 }

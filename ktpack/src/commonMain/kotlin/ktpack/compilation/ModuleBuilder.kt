@@ -36,6 +36,7 @@ sealed class ArtifactResult {
     ) : ArtifactResult()
 
     object NoArtifactFound : ArtifactResult()
+    object NoSourceFiles : ArtifactResult()
 }
 
 // https://kotlinlang.org/docs/compiler-reference.html
@@ -53,19 +54,77 @@ class ModuleBuilder(
     private val moduleFolder = File(basePath)
     val outFolder = moduleFolder.nestedFile("out")
     val srcFolder = moduleFolder.nestedFile("src")
-    private val binFolder = srcFolder.nestedFile("bin")
-    private val mainSource: File? = srcFolder.nestedFile("main.kt").takeIf(File::exists)
+    //private val binFolder = srcFolder.nestedFile("bin")
+    //private val mainSource: File? = srcFolder.nestedFile("main.kt").takeIf(File::exists)
 
-    private val otherBins: List<File>
-        get() = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
+    //private val otherBins: List<File>
+    //    get() = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
 
-    // Collect other non-bin source files
-    private val sourceFiles: List<File> by lazy {
-        srcFolder
-            .walkTopDown()
-            .onEnter { it != binFolder }
-            .filter { file -> file.getName().endsWith(".kt") && file != mainSource }
-            .toList()
+    private val targetFolderAliases = mutableMapOf(
+        KotlinTarget.JVM to listOf("jvm"),
+        KotlinTarget.JS_NODE to listOf("js", "jsnode"),
+        KotlinTarget.JS_BROWSER to listOf("js", "jsbrowser"),
+        KotlinTarget.MACOS_ARM64 to listOf("native", "macos", "posix", "macosarm64"),
+        KotlinTarget.MACOS_X64 to listOf("native", "macos", "posix", "macosx64"),
+        KotlinTarget.MINGW_X64 to listOf("native", "mingw", "mingwx64"),
+        KotlinTarget.MINGW_X64 to listOf("native", "mingw", "mingwx64"),
+        KotlinTarget.LINUX_X64 to listOf("native", "linux", "posix", "linuxx64"),
+    )
+
+    data class CollectedSource(
+        val sourceFiles: List<String>,
+        val mainFile: String?,
+        val binFiles: List<String>,
+    ) {
+        val hasLibFile = mainFile != null || binFiles.isNotEmpty()
+        val isEmpty = mainFile == null && sourceFiles.isEmpty() && binFiles.isEmpty()
+    }
+
+    enum class BuildType { BIN, LIB }
+
+    fun collectSourceFiles(target: KotlinTarget, buildType: BuildType): CollectedSource {
+        check(srcFolder.isDirectory()) { "Expected directory at ${srcFolder.getAbsolutePath()}" }
+        val (mainFileName, secondaryDir) = when (buildType) {
+            BuildType.BIN -> "main.kt" to "bin"
+            BuildType.LIB -> "lib.kt" to "lib"
+        }
+        val sourceAliases = targetFolderAliases.getValue(target)
+        val sourceFolderPath = srcFolder.getAbsolutePath()
+        val targetKotlinRoots = (sourceAliases + "common").mapNotNull { alias ->
+            File(sourceFolderPath, alias, "kotlin").takeIf(File::exists)
+        }
+        val sourceFiles = targetKotlinRoots.flatMap { targetKotlinRoot ->
+            targetKotlinRoot.walkTopDown()
+                .onEnter { folder ->
+                    if (folder.getParentFileUnsafe() == targetKotlinRoot) {
+                        folder.getName() != secondaryDir
+                    } else true
+                }
+                .filter { file ->
+                    val fileName = file.getName()
+                    fileName.endsWith(".kt") && fileName != mainFileName
+                }
+                .map(File::getAbsolutePath)
+                .toList()
+        }
+        val mainFile = targetKotlinRoots.firstNotNullOfOrNull { kotlinRoot ->
+            kotlinRoot.nestedFile(mainFileName).takeIf(File::exists)
+        }
+        val binFiles = targetKotlinRoots.flatMap { kotlinRoot ->
+            val binRoot = kotlinRoot.nestedFile(secondaryDir)
+            if (binRoot.exists()) {
+                binRoot.walk()
+                    .drop(1) // Ignore the parent folder
+                    .map(File::getAbsolutePath)
+                    .toList()
+            } else emptyList()
+        }
+
+        return CollectedSource(
+            sourceFiles = sourceFiles,
+            mainFile = mainFile?.getAbsolutePath(),
+            binFiles = binFiles,
+        )
     }
 
     suspend fun buildBin(
@@ -74,15 +133,18 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.Default {
-        check(srcFolder.isDirectory()) { "Expected directory at ${srcFolder.getAbsolutePath()}" }
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
 
-        val mainSource = mainSource
-
+        val collectedSourceFiles = collectSourceFiles(target, BuildType.BIN)
+        if (collectedSourceFiles.isEmpty) {
+            return@Default ArtifactResult.NoSourceFiles
+        }
         val selectedBinFile = if (binName == module.name) {
-            mainSource
+            collectedSourceFiles.mainFile?.run(::File)
         } else {
-            otherBins.find { it.nameWithoutExtension == binName }
+            collectedSourceFiles.binFiles.firstNotNullOf { filePath ->
+                File(filePath).takeIf { it.nameWithoutExtension == binName }
+            }
         } ?: return@Default ArtifactResult.NoArtifactFound
 
         val modeString = if (releaseMode) "release" else "debug"
@@ -91,7 +153,15 @@ class ModuleBuilder(
         val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
         val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
         val (result, duration) = measureSeconds {
-            startKotlinCompiler(selectedBinFile, sourceFiles, releaseMode, outputPath, target, true, resolvedLibs)
+            startKotlinCompiler(
+                selectedBinFile,
+                collectedSourceFiles.sourceFiles,
+                releaseMode,
+                outputPath,
+                target,
+                true,
+                resolvedLibs
+            )
         }
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
@@ -111,10 +181,12 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.Default {
-        check(srcFolder.isDirectory()) { "Expected directory at ${srcFolder.getAbsolutePath()}" }
-        if (sourceFiles.isEmpty()) {
+        val collectedSourceFiles = collectSourceFiles(target, BuildType.LIB)
+        val sourceFiles = collectedSourceFiles.sourceFiles
+        if (collectedSourceFiles.isEmpty || !collectedSourceFiles.hasLibFile) {
             return@Default ArtifactResult.NoArtifactFound
         }
+        val libFile = File(checkNotNull(collectedSourceFiles.mainFile))
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
 
         val modeString = if (releaseMode) "release" else "debug"
@@ -125,7 +197,15 @@ class ModuleBuilder(
         val outputPath = listOf(targetLibDir.getAbsolutePath(), module.name)
             .joinToString(filePathSeparator.toString())
         val (result, duration) = measureSeconds {
-            startKotlinCompiler(null, sourceFiles, releaseMode, outputPath, target, false, resolvedLibs)
+            startKotlinCompiler(
+                libFile,
+                sourceFiles,
+                releaseMode,
+                outputPath,
+                target,
+                false,
+                resolvedLibs
+            )
         }
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
@@ -141,7 +221,6 @@ class ModuleBuilder(
     }
 
     suspend fun buildAllBins(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
-        check(srcFolder.isDirectory()) { "Expected directory at ${srcFolder.getAbsolutePath()}" }
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target)).also {
             if (context.debug) it.printDependencyTree()
         }
@@ -152,14 +231,14 @@ class ModuleBuilder(
 
         val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
 
-        val mainSource = mainSource
+        val mainSource: File? = null
         return listOfNotNull(
             if (mainSource?.exists() == true) {
                 buildBin(releaseMode, module.name, target, resolvedDeps.artifacts)
             } else null,
-        ) + otherBins.map { otherBin ->
+        ) /*+ otherBins.map { otherBin ->
             buildBin(releaseMode, otherBin.nameWithoutExtension, target, resolvedDeps.artifacts)
-        }
+        }*/
     }
 
     suspend fun buildAll(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
@@ -225,6 +304,7 @@ class ModuleBuilder(
         val result = if (downloadArtifacts) {
             when (val result = childBuilder.buildLib(releaseMode, target, innerLibs)) {
                 is ArtifactResult.Success -> result.artifactPath
+                ArtifactResult.NoSourceFiles -> null
                 ArtifactResult.NoArtifactFound -> error("No artifact found at $childPath")
                 is ArtifactResult.ProcessError -> error(result.message.orEmpty())
             }
@@ -273,22 +353,24 @@ class ModuleBuilder(
                 KotlinTarget.JS_BROWSER -> null
                 KotlinTarget.MACOS_ARM64 -> "macos_arm64"
                 KotlinTarget.MACOS_X64 -> "macos_x64"
+                KotlinTarget.MINGW_X86 -> "mingw_x86"
                 KotlinTarget.MINGW_X64 -> "mingw_x64"
                 KotlinTarget.LINUX_X64 -> "linux_x64"
+                KotlinTarget.LINUX_ARM64 -> "linux_arm64"
             }
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "native" &&
-                    variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
+                        variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
             }
         } else if (target == KotlinTarget.JVM) {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinPlatformType == "jvm" &&
-                    variant.attributes.orgGradleLibraryelements == "jar"
+                        variant.attributes.orgGradleLibraryelements == "jar"
             }
         } else {
             gradleModule.variants.firstOrNull { variant ->
                 variant.attributes?.orgJetbrainsKotlinJsCompiler == "ir" &&
-                    variant.attributes.orgJetbrainsKotlinPlatformType == "js"
+                        variant.attributes.orgJetbrainsKotlinPlatformType == "js"
             }
         }
         variant ?: error("Could not find variant for $target in ${dependency.toMavenString()}")
@@ -532,12 +614,14 @@ class ModuleBuilder(
     private fun getExeExtension(target: KotlinTarget): String {
         return when (target) {
             KotlinTarget.JVM -> ".jar"
+            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64 -> ".exe"
             KotlinTarget.JS_NODE,
             KotlinTarget.JS_BROWSER -> ".js"
 
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
+            KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> ".kexe"
         }
     }
@@ -548,16 +632,18 @@ class ModuleBuilder(
             KotlinTarget.JS_NODE,
             KotlinTarget.JS_BROWSER -> ""
 
+            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64,
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
+            KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> ".klib"
         }
     }
 
     private suspend fun startKotlinCompiler(
         mainSource: File?,
-        sourceFiles: List<File>,
+        sourceFiles: List<String>,
         releaseMode: Boolean,
         outputPath: String,
         target: KotlinTarget,
@@ -611,7 +697,9 @@ class ModuleBuilder(
 
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
+            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64,
+            KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> {
                 val targetOutPath = if (isBinary) {
                     "${outputPath}${getExeExtension(target)}"
@@ -676,9 +764,7 @@ class ModuleBuilder(
         // args("-opt-in", <class>)
 
         mainSource?.getAbsolutePath()?.run(::arg)
-        sourceFiles.forEach { file ->
-            arg(file.getAbsolutePath())
-        }
+        sourceFiles.forEach { file -> arg(file) }
 
         if (context.debug) {
             println("Launching Kotlin compiler: ")

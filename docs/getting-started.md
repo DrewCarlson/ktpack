@@ -17,7 +17,9 @@ $ tree .
 .
 ├── pack.kts
 └── src
-    └── main.kt
+    └── common
+        └── kotlin
+            └── main.kt
 
 1 directory, 2 files
 ```
@@ -33,7 +35,7 @@ module("hello_world") {
 ```
 
 The [Ktpack Script]() contains all the metadata required to operate a Ktpack project.
-In `src/main.kt` we have this program:
+In `src/common/kotlin/main.kt` we have this program:
 
 ```kotlin
 fun main() {
