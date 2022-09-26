@@ -16,5 +16,5 @@ data class ModuleConf(
     val autobin: Boolean = true,
     val targets: List<KotlinTarget> = emptyList(),
     val kotlinVersion: String? = null,
-    val dependencies: List<DependencyContainer> = emptyList(),
+    val dependencies: List<DependencyContainer> = emptyList()
 )

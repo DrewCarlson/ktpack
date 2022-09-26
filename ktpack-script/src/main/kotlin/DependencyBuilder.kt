@@ -17,7 +17,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
             tag = tag,
             branch = branch,
             version = version,
-            scope = DependencyScope.IMPLEMENTATION,
+            scope = DependencyScope.IMPLEMENTATION
         )
     )
 
@@ -28,7 +28,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.IMPLEMENTATION,
+                scope = DependencyScope.IMPLEMENTATION
             )
         )
     }
@@ -39,7 +39,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.IMPLEMENTATION,
+                scope = DependencyScope.IMPLEMENTATION
             )
         )
     }
@@ -55,7 +55,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 tag = tag,
                 branch = branch,
                 version = version,
-                scope = DependencyScope.API,
+                scope = DependencyScope.API
             )
         )
     }
@@ -67,7 +67,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.API,
+                scope = DependencyScope.API
             )
         )
     }
@@ -78,7 +78,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.API,
+                scope = DependencyScope.API
             )
         )
     }
@@ -94,7 +94,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 tag = tag,
                 branch = branch,
                 version = version,
-                scope = DependencyScope.COMPILE,
+                scope = DependencyScope.COMPILE
             )
         )
     }
@@ -106,7 +106,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.COMPILE,
+                scope = DependencyScope.COMPILE
             )
         )
     }
@@ -117,7 +117,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.COMPILE,
+                scope = DependencyScope.COMPILE
             )
         )
     }
@@ -133,7 +133,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 tag = tag,
                 branch = branch,
                 version = version,
-                scope = DependencyScope.TEST,
+                scope = DependencyScope.TEST
             )
         )
     }
@@ -145,7 +145,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.TEST,
+                scope = DependencyScope.TEST
             )
         )
     }
@@ -156,7 +156,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 groupId = groupId,
                 artifactId = artifactId,
                 version = version,
-                scope = DependencyScope.TEST,
+                scope = DependencyScope.TEST
             )
         )
     }
@@ -164,7 +164,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
     fun build(): DependencyContainer {
         return DependencyContainer(
             targets = targets,
-            dependencies = dependencies,
+            dependencies = dependencies
         )
     }
 

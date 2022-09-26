@@ -10,7 +10,7 @@ sealed class DependencyConf {
     @Serializable
     data class LocalPathDependency(
         val path: String,
-        override val scope: DependencyScope,
+        override val scope: DependencyScope
     ) : DependencyConf()
 
     @Serializable
@@ -19,7 +19,7 @@ sealed class DependencyConf {
         val tag: String?,
         val branch: String?,
         val version: String?,
-        override val scope: DependencyScope,
+        override val scope: DependencyScope
     ) : DependencyConf()
 
     @Serializable
@@ -27,7 +27,7 @@ sealed class DependencyConf {
         val groupId: String,
         val artifactId: String,
         val version: String,
-        override val scope: DependencyScope,
+        override val scope: DependencyScope
     ) : DependencyConf() {
         fun toMavenString(): String = "$groupId:$artifactId:$version"
     }
@@ -37,6 +37,6 @@ sealed class DependencyConf {
         val name: String,
         val version: String,
         val isDev: Boolean,
-        override val scope: DependencyScope,
+        override val scope: DependencyScope
     ) : DependencyConf()
 }

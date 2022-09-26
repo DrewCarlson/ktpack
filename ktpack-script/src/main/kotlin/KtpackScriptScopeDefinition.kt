@@ -6,7 +6,7 @@ import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 
 @KotlinScript(
-    compilationConfiguration = KtpackScriptCompilationConfiguration::class,
+    compilationConfiguration = KtpackScriptCompilationConfiguration::class
 )
 abstract class KtpackScriptScopeDefinition(
     @Suppress("unused")
@@ -18,6 +18,6 @@ internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfigur
     defaultImports(
         "ktpack.configuration.*",
         "ktpack.configuration.KotlinTarget",
-        "ktpack.configuration.KotlinTarget.*",
+        "ktpack.configuration.KotlinTarget.*"
     )
 })

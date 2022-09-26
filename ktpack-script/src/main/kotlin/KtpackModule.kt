@@ -13,7 +13,7 @@ class KtpackModule(
     var publish: Boolean = false,
     var autobin: Boolean = true,
     val targets: MutableList<KotlinTarget> = mutableListOf(),
-    val dependencies: MutableList<DependencyContainer> = mutableListOf(),
+    val dependencies: MutableList<DependencyContainer> = mutableListOf()
 ) {
     fun targets(vararg targets: KotlinTarget) {
         this.targets.addAll(targets)
@@ -36,6 +36,6 @@ class KtpackModule(
         autobin = autobin,
         targets = targets.toList(),
         kotlinVersion = kotlinVersion,
-        dependencies = dependencies.toList(),
+        dependencies = dependencies.toList()
     )
 }

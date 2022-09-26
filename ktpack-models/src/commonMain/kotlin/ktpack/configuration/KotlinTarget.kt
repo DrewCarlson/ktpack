@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class KotlinTarget(
     val isNative: Boolean = false,
-    val isJs: Boolean = false,
+    val isJs: Boolean = false
 ) {
     @SerialName("jvm")
     JVM,

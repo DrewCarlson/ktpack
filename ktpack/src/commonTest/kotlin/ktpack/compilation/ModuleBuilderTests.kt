@@ -4,12 +4,11 @@ import ktfio.nestedFile
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder.BuildType
 import ktpack.configuration.KotlinTarget
-import ktpack.sampleDir
 import ktpack.configuration.ModuleConf
+import ktpack.sampleDir
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-
 
 class ModuleBuilderTests {
 

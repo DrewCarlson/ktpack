@@ -8,7 +8,6 @@ import ktpack.configuration.KtpackConf
 import ktpack.task.TaskRunner
 import ktpack.util.GitCli
 
-
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
     override val debug: Boolean = true
