@@ -54,11 +54,6 @@ class ModuleBuilder(
     private val moduleFolder = File(basePath)
     val outFolder = moduleFolder.nestedFile("out")
     val srcFolder = moduleFolder.nestedFile("src")
-    //private val binFolder = srcFolder.nestedFile("bin")
-    //private val mainSource: File? = srcFolder.nestedFile("main.kt").takeIf(File::exists)
-
-    //private val otherBins: List<File>
-    //    get() = if (binFolder.exists()) binFolder.listFiles().toList() else emptyList()
 
     private val targetFolderAliases = mutableMapOf(
         KotlinTarget.JVM to listOf("jvm"),
@@ -230,15 +225,16 @@ class ModuleBuilder(
         }
 
         val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
-
-        val mainSource: File? = null
+        val sourceFiles = collectSourceFiles(target, BuildType.BIN) // TODO: Scan only for main.kt and bin files
+        val mainSource: File? = sourceFiles.mainFile?.run(::File)
         return listOfNotNull(
             if (mainSource?.exists() == true) {
                 buildBin(releaseMode, module.name, target, resolvedDeps.artifacts)
             } else null,
-        ) /*+ otherBins.map { otherBin ->
-            buildBin(releaseMode, otherBin.nameWithoutExtension, target, resolvedDeps.artifacts)
-        }*/
+        ) + sourceFiles.binFiles.map { otherBin ->
+            val binFile = File(otherBin)
+            buildBin(releaseMode, binFile.nameWithoutExtension, target, resolvedDeps.artifacts)
+        }
     }
 
     suspend fun buildAll(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
@@ -359,18 +355,21 @@ class ModuleBuilder(
                 KotlinTarget.LINUX_ARM64 -> "linux_arm64"
             }
             gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.orgJetbrainsKotlinPlatformType == "native" &&
-                        variant.attributes.orgJetbrainsKotlinNativeTarget == knTarget
+                variant.attributes?.run {
+                    orgJetbrainsKotlinPlatformType == "native" && orgJetbrainsKotlinNativeTarget == knTarget
+                } ?: false
             }
         } else if (target == KotlinTarget.JVM) {
             gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.orgJetbrainsKotlinPlatformType == "jvm" &&
-                        variant.attributes.orgGradleLibraryelements == "jar"
+                variant.attributes?.run {
+                    orgJetbrainsKotlinPlatformType == "jvm" && orgGradleLibraryelements == "jar"
+                } ?: false
             }
         } else {
             gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.orgJetbrainsKotlinJsCompiler == "ir" &&
-                        variant.attributes.orgJetbrainsKotlinPlatformType == "js"
+                variant.attributes?.run {
+                    orgJetbrainsKotlinJsCompiler == "ir" && orgJetbrainsKotlinPlatformType == "js"
+                } ?: false
             }
         }
         variant ?: error("Could not find variant for $target in ${dependency.toMavenString()}")
@@ -616,6 +615,7 @@ class ModuleBuilder(
             KotlinTarget.JVM -> ".jar"
             KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64 -> ".exe"
+
             KotlinTarget.JS_NODE,
             KotlinTarget.JS_BROWSER -> ".js"
 
