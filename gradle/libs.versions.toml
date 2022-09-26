@@ -41,4 +41,4 @@ mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.0.0-beta7"
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "1.0.0-SNAPSHOT" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1"}
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.84.2"}
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.84.3"}
