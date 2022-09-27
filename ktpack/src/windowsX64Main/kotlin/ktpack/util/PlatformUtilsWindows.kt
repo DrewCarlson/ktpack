@@ -19,3 +19,5 @@ actual val workingDirectory: String by lazy {
         allocArray<ByteVar>(MAX_PATH).apply { getcwd(this, MAX_PATH) }.toKString()
     }
 }
+
+actual val tempPath: String = checkNotNull(getenv("temp")).toKStringFromUtf8()

@@ -1,9 +1,7 @@
 package ktpack.util
 
-import kotlinx.cinterop.*
 import ktfio.*
 import ktpack.configuration.KotlinTarget
-import platform.posix.*
 
 /**
  * Attempt to find the user's home directory first by the
@@ -13,6 +11,8 @@ import platform.posix.*
 expect fun getHomePath(): String?
 
 expect val workingDirectory: String
+
+expect val tempPath: String
 
 @SharedImmutable
 val EXE_EXTENSION by lazy {
@@ -28,15 +28,12 @@ val USER_HOME = checkNotNull(getHomePath()) {
 val KTPACK_ROOT = "${USER_HOME}$filePathSeparator.ktpack"
 
 @SharedImmutable
-val TEMP_DIR by lazy {
-    val tempDir = tmpnam(null)?.toKStringFromUtf8()
-        ?.run(::File)
-        ?.also { file ->
-            if (!file.exists()) {
-                check(file.mkdirs()) { "Failed to create temp directory" }
-            }
+val TEMP_DIR: File by lazy {
+    File(tempPath).also { file ->
+        if (!file.exists()) {
+            check(file.mkdirs()) { "Failed to create temp directory: ${file.getAbsolutePath()}" }
         }
-    checkNotNull(tempDir) { "Failed to create temp directory name" }
+    }
 }
 
 @SharedImmutable
@@ -81,6 +78,7 @@ object PlatformUtils {
             KotlinTarget.JS_BROWSER,
             KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> true
+
             KotlinTarget.MINGW_X86, KotlinTarget.MINGW_X64 -> Platform.osFamily != OsFamily.LINUX
             KotlinTarget.MACOS_ARM64, KotlinTarget.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
         }
