@@ -118,14 +118,15 @@ class NewCommand : CliktCommand(
         }
 
         val srcDir = targetDir.nestedFile("src")
-        if (!srcDir.mkdirs()) {
+        val kotlinCommonDir = srcDir.nestedFile("common").nestedFile("kotlin")
+        if (!kotlinCommonDir.mkdirs()) {
             context.term.println("${failed("Failed")} source folder could not be created for `${srcDir.getAbsolutePath()}`.")
             exitProcess(1)
         }
 
         when (template) {
-            Template.BIN -> srcDir.generateSourceFile(context.term, "main.kt", NEW_BIN_SOURCE)
-            Template.LIB -> srcDir.generateSourceFile(context.term, "lib.kt", NEW_LIB_SOURCE)
+            Template.BIN -> kotlinCommonDir.generateSourceFile(context.term, "main.kt", NEW_BIN_SOURCE)
+            Template.LIB -> kotlinCommonDir.generateSourceFile(context.term, "lib.kt", NEW_LIB_SOURCE)
         }
 
         if (!noVcs) {
