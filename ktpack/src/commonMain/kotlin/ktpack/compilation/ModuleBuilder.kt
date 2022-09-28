@@ -320,7 +320,8 @@ class ModuleBuilder(
         downloadArtifacts: Boolean,
     ): ChildDependencyNode {
         val dependency = child.dependencyConf as DependencyConf.MavenDependency
-        if (mavenDepCache.containsKey(dependency.toMavenString())) {
+        if (!downloadArtifacts && mavenDepCache.containsKey(dependency.toMavenString())) {
+            // TODO: After resolving dependencies, reuse memory cache when downloading artifacts.
             return child
         }
 
