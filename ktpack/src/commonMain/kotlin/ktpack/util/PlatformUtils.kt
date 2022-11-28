@@ -12,7 +12,7 @@ expect fun getHomePath(): String?
 
 expect val workingDirectory: String
 
-expect val tempPath: String
+expect val TEMP_DIR: File
 
 @SharedImmutable
 val EXE_EXTENSION by lazy {
@@ -26,15 +26,6 @@ val USER_HOME = checkNotNull(getHomePath()) {
 
 @SharedImmutable
 val KTPACK_ROOT = "${USER_HOME}$filePathSeparator.ktpack"
-
-@SharedImmutable
-val TEMP_DIR: File by lazy {
-    File(tempPath).also { file ->
-        if (!file.exists()) {
-            check(file.mkdirs()) { "Failed to create temp directory: ${file.getAbsolutePath()}" }
-        }
-    }
-}
 
 @SharedImmutable
 val ARCH by lazy {

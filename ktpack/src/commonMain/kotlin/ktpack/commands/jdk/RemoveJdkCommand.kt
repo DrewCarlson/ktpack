@@ -108,7 +108,10 @@ class RemoveJdkCommand : CliktCommand(
     private fun Terminal.printJdkSelectionTable(installs: List<InstallationDetails>) = println(
         table {
             cellBorders = Borders.NONE
-            padding(vertical = 0, horizontal = 1)
+            padding {
+                vertical = 0
+                horizontal = 1
+            }
             header { row { cells("id", "Distribution", "Version") } }
             body {
                 installs.forEachIndexed { index, install ->
