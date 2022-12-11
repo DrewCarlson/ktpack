@@ -13,7 +13,6 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
-        mavenLocal { url = rootProject.uri("external/ktor-winhttp") }
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 }
