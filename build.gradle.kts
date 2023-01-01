@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
-
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.multiplatform) apply false
@@ -7,9 +5,7 @@ plugins {
     alias(libs.plugins.spotless) apply false
 }
 
-yarn.lockFileDirectory = file("gradle/kotlin-js-store")
-
-subprojects {
+allprojects {
     repositories {
         mavenCentral()
         mavenLocal()
