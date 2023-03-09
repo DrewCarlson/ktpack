@@ -9,7 +9,7 @@
 <p align="center">
 <img alt="MIT License" src="https://img.shields.io/github/license/drewcarlson/ktpack"/>
 <img src="https://img.shields.io/github/v/release/drewcarlson/ktpack?include_prereleases" alt="GitHub release (latest SemVer including pre-releases)"/>
-<img src="https://img.shields.io/github/workflow/status/drewcarlson/ktpack/Tests?label=Tests" alt="GitHub Test Workflow Status"/>
+<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/DrewCarlson/ktpack/tests.yml">
 </p>
 
 ---
