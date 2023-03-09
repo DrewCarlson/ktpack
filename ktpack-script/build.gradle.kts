@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+kotlin {
+    explicitApi()
+}
+
 sourceSets {
     dependencies {
         compileOnly(kotlin("scripting-jvm"))

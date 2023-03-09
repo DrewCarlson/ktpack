@@ -176,8 +176,10 @@ private data class HttpAccessHandlerData(
 
 private val httpFunc: mg_event_handler_t = staticCFunction { con, ev, evData, fnData ->
     if (ev.toUInt() == MG_EV_HTTP_MSG) {
-        val (module, artifactPath, artifactName) = checkNotNull(fnData?.asStableRef<HttpAccessHandlerData>()).get()
         memScoped {
+            val data = fnData?.asStableRef<HttpAccessHandlerData>()
+            defer { data?.dispose() }
+            val (module, artifactPath, artifactName) = checkNotNull(data).get()
             val hm = checkNotNull(evData?.reinterpret<mg_http_message>()).pointed
             if (mg_http_match_uri(hm.ptr, "/") || mg_http_match_uri(hm.ptr, "/index.html")) {
                 mg_http_reply(
@@ -215,4 +217,4 @@ private val DEFAULT_HTML =
        |</head>
        |<body></body>
        |</html>
-    """.trimIndent()
+    """.trimMargin()

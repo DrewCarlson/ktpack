@@ -1,27 +1,29 @@
 package ktpack.configuration
 
-open class DependencyBuilder(private val targets: List<KotlinTarget>) {
+public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
     private val dependencies = mutableListOf<DependencyConf>()
 
     protected fun add(dep: DependencyConf) {
         dependencies.add(dep)
     }
 
-    fun local(path: String) {
+    public fun local(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.IMPLEMENTATION))
     }
 
-    fun git(url: String, tag: String? = null, branch: String? = null, version: String? = null) = add(
-        DependencyConf.GitDependency(
-            gitUrl = url,
-            tag = tag,
-            branch = branch,
-            version = version,
-            scope = DependencyScope.IMPLEMENTATION
+    public fun git(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
+        add(
+            DependencyConf.GitDependency(
+                gitUrl = url,
+                tag = tag,
+                branch = branch,
+                version = version,
+                scope = DependencyScope.IMPLEMENTATION
+            )
         )
-    )
+    }
 
-    fun maven(coordinates: String) {
+    public fun maven(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
             DependencyConf.MavenDependency(
@@ -33,7 +35,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun maven(groupId: String, artifactId: String, version: String) {
+    public fun maven(groupId: String, artifactId: String, version: String) {
         add(
             DependencyConf.MavenDependency(
                 groupId = groupId,
@@ -44,11 +46,11 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun localApi(path: String) {
+    public fun localApi(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.API))
     }
 
-    fun gitApi(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
+    public fun gitApi(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
             DependencyConf.GitDependency(
                 gitUrl = url,
@@ -60,7 +62,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenApi(coordinates: String) {
+    public fun mavenApi(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
             DependencyConf.MavenDependency(
@@ -72,7 +74,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenApi(groupId: String, artifactId: String, version: String) {
+    public fun mavenApi(groupId: String, artifactId: String, version: String) {
         add(
             DependencyConf.MavenDependency(
                 groupId = groupId,
@@ -83,11 +85,11 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun localCompile(path: String) {
+    public fun localCompile(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.COMPILE))
     }
 
-    fun gitCompile(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
+    public fun gitCompile(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
             DependencyConf.GitDependency(
                 gitUrl = url,
@@ -99,7 +101,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenCompile(coordinates: String) {
+    public fun mavenCompile(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
             DependencyConf.MavenDependency(
@@ -111,7 +113,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenCompile(groupId: String, artifactId: String, version: String) {
+    public fun mavenCompile(groupId: String, artifactId: String, version: String) {
         add(
             DependencyConf.MavenDependency(
                 groupId = groupId,
@@ -122,11 +124,11 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun localTest(path: String) {
+    public fun localTest(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.TEST))
     }
 
-    fun gitTest(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
+    public fun gitTest(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
         add(
             DependencyConf.GitDependency(
                 gitUrl = url,
@@ -138,7 +140,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenTest(coordinates: String) {
+    public fun mavenTest(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
             DependencyConf.MavenDependency(
@@ -150,7 +152,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun mavenTest(groupId: String, artifactId: String, version: String) {
+    public fun mavenTest(groupId: String, artifactId: String, version: String) {
         add(
             DependencyConf.MavenDependency(
                 groupId = groupId,
@@ -161,7 +163,7 @@ open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    fun build(): DependencyContainer {
+    public fun build(): DependencyContainer {
         return DependencyContainer(
             targets = targets,
             dependencies = dependencies

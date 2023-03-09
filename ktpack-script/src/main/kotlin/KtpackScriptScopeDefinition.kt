@@ -8,9 +8,9 @@ import kotlin.script.experimental.api.defaultImports
 @KotlinScript(
     compilationConfiguration = KtpackScriptCompilationConfiguration::class
 )
-abstract class KtpackScriptScopeDefinition(
+public abstract class KtpackScriptScopeDefinition(
     @Suppress("unused")
-    val args: Array<String> // DO NOT REMOVE
+    public val args: Array<String> // DO NOT REMOVE
 ) : KtpackScriptScope()
 
 internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfiguration({

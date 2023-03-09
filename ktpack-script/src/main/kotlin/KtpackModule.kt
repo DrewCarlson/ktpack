@@ -1,25 +1,25 @@
 package ktpack.configuration
 
-class KtpackModule(
-    var name: String,
-    var version: String = "0.0.1",
-    var kotlinVersion: String? = null,
-    val authors: MutableList<String> = mutableListOf(),
-    var description: String? = null,
-    var readme: String? = null,
-    var homepage: String? = null,
-    var repository: String? = null,
-    var license: String? = null,
-    var publish: Boolean = false,
-    var autobin: Boolean = true,
-    val targets: MutableList<KotlinTarget> = mutableListOf(),
-    val dependencies: MutableList<DependencyContainer> = mutableListOf()
+public class KtpackModule(
+    public var name: String,
+    public var version: String = "0.0.1",
+    public var kotlinVersion: String? = null,
+    public val authors: MutableList<String> = mutableListOf(),
+    public var description: String? = null,
+    public var readme: String? = null,
+    public var homepage: String? = null,
+    public var repository: String? = null,
+    public var license: String? = null,
+    public var publish: Boolean = false,
+    public var autobin: Boolean = true,
+    public val targets: MutableList<KotlinTarget> = mutableListOf(),
+    public val dependencies: MutableList<DependencyContainer> = mutableListOf()
 ) {
-    fun targets(vararg targets: KotlinTarget) {
+    public fun targets(vararg targets: KotlinTarget) {
         this.targets.addAll(targets)
     }
 
-    fun authors(vararg authors: String) {
+    public fun authors(vararg authors: String) {
         this.authors.addAll(authors)
     }
 
