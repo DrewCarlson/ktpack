@@ -213,6 +213,7 @@ kotlin {
                 implementation(libs.clikt)
                 implementation(libs.cryptohash)
                 implementation(libs.xmlutil.serialization)
+                implementation(libs.semver)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

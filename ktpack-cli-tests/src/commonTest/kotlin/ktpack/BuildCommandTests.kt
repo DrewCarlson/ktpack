@@ -29,6 +29,9 @@ class BuildCommandTests {
     @Test
     fun `5 multifile lib`() = buildSample("5-multifile-lib")
 
+    @Test
+    fun `6 dependencies`() = buildSample("6-dependencies")
+
     private fun buildSample(name: String): TestResult = runTest(dispatchTimeoutMs = 180_000L) {
         getSample(name, "out").deleteRecursively()
         val workingDir = getSamplePath(name)

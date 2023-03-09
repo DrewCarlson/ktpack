@@ -70,7 +70,7 @@ object PlatformUtils {
             KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> true
 
-            KotlinTarget.MINGW_X86, KotlinTarget.MINGW_X64 -> Platform.osFamily != OsFamily.LINUX
+            KotlinTarget.MINGW_X64 -> Platform.osFamily != OsFamily.LINUX
             KotlinTarget.MACOS_ARM64, KotlinTarget.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
         }
     }

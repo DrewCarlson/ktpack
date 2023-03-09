@@ -23,9 +23,6 @@ enum class KotlinTarget(
     @SerialName("macos_x64")
     MACOS_X64(isNative = true),
 
-    @SerialName("mingw_x86")
-    MINGW_X86(isNative = true),
-
     @SerialName("mingw_x64")
     MINGW_X64(isNative = true),
 

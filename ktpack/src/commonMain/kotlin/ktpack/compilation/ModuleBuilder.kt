@@ -61,7 +61,6 @@ class ModuleBuilder(
         KotlinTarget.JS_BROWSER to listOf("js", "jsbrowser"),
         KotlinTarget.MACOS_ARM64 to listOf("native", "macos", "posix", "macosarm64"),
         KotlinTarget.MACOS_X64 to listOf("native", "macos", "posix", "macosx64"),
-        KotlinTarget.MINGW_X86 to listOf("native", "mingw", "mingwx86"),
         KotlinTarget.MINGW_X64 to listOf("native", "mingw", "mingwx64"),
         KotlinTarget.LINUX_ARM64 to listOf("native", "linux", "posix", "linuxarm64"),
         KotlinTarget.LINUX_X64 to listOf("native", "linux", "posix", "linuxx64"),
@@ -147,7 +146,10 @@ class ModuleBuilder(
         val targetBinDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "bin")
         if (!targetBinDir.exists()) targetBinDir.mkdirs()
         val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, false)
+            .resolve()
+            .map { fetchMavenDependency(it, releaseMode, target, true) }
+            .flatMap { it.artifacts }
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
                 selectedBinFile,
@@ -252,7 +254,7 @@ class ModuleBuilder(
             val (mavenDependencies, mavenDuration) = measureSeconds {
                 root.children
                     .filter { it.dependencyConf is DependencyConf.MavenDependency }
-                    .map { child -> fetchMavenDependency(child, releaseMode, target, downloadArtifacts) }
+                    .map { child -> fetchMavenDependency(child, releaseMode, target, false) }
             }
 
             if (context.debug) {
@@ -351,7 +353,6 @@ class ModuleBuilder(
                 KotlinTarget.JS_BROWSER -> null
                 KotlinTarget.MACOS_ARM64 -> "macos_arm64"
                 KotlinTarget.MACOS_X64 -> "macos_x64"
-                KotlinTarget.MINGW_X86 -> "mingw_x86"
                 KotlinTarget.MINGW_X64 -> "mingw_x64"
                 KotlinTarget.LINUX_X64 -> "linux_x64"
                 KotlinTarget.LINUX_ARM64 -> "linux_arm64"
@@ -615,7 +616,6 @@ class ModuleBuilder(
     private fun getExeExtension(target: KotlinTarget): String {
         return when (target) {
             KotlinTarget.JVM -> ".jar"
-            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64 -> ".exe"
 
             KotlinTarget.JS_NODE,
@@ -634,7 +634,6 @@ class ModuleBuilder(
             KotlinTarget.JS_NODE,
             KotlinTarget.JS_BROWSER -> ""
 
-            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64,
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
@@ -699,7 +698,6 @@ class ModuleBuilder(
 
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
-            KotlinTarget.MINGW_X86,
             KotlinTarget.MINGW_X64,
             KotlinTarget.LINUX_ARM64,
             KotlinTarget.LINUX_X64 -> {
