@@ -39,7 +39,7 @@ class ModuleBuilderTest {
     fun testCompleteModuleConfiguration() = withTestScope {
         module("hello_world") {
             version = "1.0.0"
-            kotlinVersion = "1.8.10"
+            kotlinVersion = "1.9.0"
             authors += "Test Author"
             autobin = false
             license = "license"

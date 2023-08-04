@@ -56,12 +56,12 @@ class MavenDependencyResolverTests {
                 maven: io.ktor:ktor-websocket-serialization:2.2.4
                 maven: io.ktor:ktor-serialization:2.2.4
                 maven: io.ktor:ktor-websockets:2.2.4
-                maven: org.drewcarlson:coingecko:1.0.0-alpha01
+                maven: org.drewcarlson:coingecko:1.0.0-beta02
                 maven: org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3
                 maven: org.jetbrains.kotlinx:kotlinx-serialization-core:1.3.3
-                maven: io.ktor:ktor-client-content-negotiation:2.0.2
-                maven: io.ktor:ktor-serialization-kotlinx-json:2.0.2
-                maven: io.ktor:ktor-serialization-kotlinx:2.0.2
+                maven: io.ktor:ktor-client-content-negotiation:2.0.3
+                maven: io.ktor:ktor-serialization-kotlinx-json:2.0.3
+                maven: io.ktor:ktor-serialization-kotlinx:2.0.3
                 maven: io.ktor:ktor-client-winhttp:2.2.4
                 maven: io.ktor:ktor-http-cio:2.2.4
             """.trimIndent(),

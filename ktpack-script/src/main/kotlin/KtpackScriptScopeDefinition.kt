@@ -20,4 +20,6 @@ internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfigur
         "ktpack.configuration.KotlinTarget",
         "ktpack.configuration.KotlinTarget.*"
     )
-})
+}) {
+    private fun readResolve(): Any = KtpackScriptCompilationConfiguration
+}
