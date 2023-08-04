@@ -75,6 +75,8 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Test Linux Target
         if: startsWith(matrix.os, 'ubuntu')
+        env:
+          HOME: /home/runner/work/ktpack
         with:
           arguments: :ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
 
