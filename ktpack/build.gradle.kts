@@ -174,7 +174,7 @@ kotlin {
                 entryPoint = "ktpack.main"
             }
             all {
-                val libType = buildType.name.toLowerCase(ROOT)
+                val libType = buildType.name.lowercase()
                 val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
                 val libLinks = compilation.cinterops.flatMap { settings ->
                     val lib = settings.name

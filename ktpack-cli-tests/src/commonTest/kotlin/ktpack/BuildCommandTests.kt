@@ -1,7 +1,6 @@
 package ktpack
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
@@ -10,8 +9,8 @@ import ksubprocess.exec
 import ktfio.deleteRecursively
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class BuildCommandTests {
 
     @Test
@@ -32,7 +31,7 @@ class BuildCommandTests {
     @Test
     fun `6 dependencies`() = buildSample("6-dependencies")
 
-    private fun buildSample(name: String): TestResult = runTest(dispatchTimeoutMs = 180_000L) {
+    private fun buildSample(name: String): TestResult = runTest(timeout = 180.seconds) {
         getSample(name, "out").deleteRecursively()
         val workingDir = getSamplePath(name)
         val result = Dispatchers.Default {
