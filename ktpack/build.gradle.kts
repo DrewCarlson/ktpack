@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.konan.target.Architecture
 import org.jetbrains.kotlin.konan.target.Family
 import java.time.Clock
 import java.time.OffsetDateTime
-import java.util.Locale.*
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 
