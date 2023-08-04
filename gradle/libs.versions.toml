@@ -40,7 +40,7 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.0" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.1.0" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
-ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.4.0" }
+ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.5.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.1" }
 semver = { module = "io.github.z4kn4fein:semver", version = "1.4.2" }
