@@ -20,7 +20,10 @@ val json = kotlinx.serialization.json.Json {
 @OptIn(ExperimentalXmlUtilApi::class)
 @SharedImmutable
 val xml = XML {
-    unknownChildHandler = UnknownChildHandler { _, _, _, _, _ -> emptyList() }
+    policy = DefaultXmlSerializationPolicy(
+        pedantic = false,
+        unknownChildHandler = { _, _, _, _, _ -> emptyList() }
+    )
 }
 
 fun main(args: Array<String>) {
