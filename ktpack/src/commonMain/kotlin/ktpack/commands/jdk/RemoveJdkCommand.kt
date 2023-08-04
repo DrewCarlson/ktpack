@@ -75,7 +75,7 @@ class RemoveJdkCommand : CliktCommand(
         }
 
         // Ask for user confirmation
-        val response = prompt("${warn("Warning")} Confirm removal? [y/N]", default = "n", showDefault = false)
+        val response = context.term.prompt("${warn("Warning")} Confirm removal? [y/N]", default = "n", showDefault = false)
         if (!response.equals("y", true)) {
             context.term.println("Operation cancelled.")
             return
@@ -93,7 +93,7 @@ class RemoveJdkCommand : CliktCommand(
         context.term.println("Found ${info(matches.size.toString())} similar JDK installs:")
         context.term.printJdkSelectionTable(matches)
         context.term.println()
-        val index = prompt("Enter install id or cancel with any other value")?.toIntOrNull()
+        val index = context.term.prompt("Enter install id or cancel with any other value")?.toIntOrNull()
         return if (index == null) {
             context.term.println("Response was empty or not a number, done.")
             null

@@ -186,9 +186,9 @@ class NewCommand : CliktCommand(
                 listOf(flagOrUserPrompt("Author", defaultAuthor) { defaultAuthor })
             },
             targets = targets.takeUnless { interactive == true } ?: run {
-                val targetStrings = KotlinTarget.values().joinToString { info(it.name.lowercase()) }
+                val targetStrings = KotlinTarget.entries.joinToString { info(it.name.lowercase()) }
                 context.term.println("${verbose("Available targets")}: $targetStrings")
-                val response = prompt("Comma separated list of targets")
+                val response = context.term.prompt("Comma separated list of targets")
                 checkNotNull(response).split(", ", ",").map { KotlinTarget.valueOf(it.uppercase()) }
             },
         )
@@ -212,7 +212,7 @@ class NewCommand : CliktCommand(
             String::class -> (default as? String ?: EMPTY) to message
             else -> default?.toString() to message
         }
-        val response = checkNotNull(prompt(actualMessage, defaultValue, showDefault = T::class != Boolean::class))
+        val response = checkNotNull(context.term.prompt(actualMessage, defaultValue, showDefault = T::class != Boolean::class))
         return when (T::class) {
             String::class -> response.takeUnless { it.isBlank() || it == EMPTY }
             Boolean::class -> response.equals("y", true)
