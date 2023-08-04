@@ -68,19 +68,19 @@ jobs:
 
       - uses: gradle/gradle-build-action@v2
         name: Test Apple Targets
-        if: startsWith(matrix.os, 'macos')
+        if: startsWith(matrix.os, 'macos') && always()
         with:
           arguments: clean :ktpack:macosX64Test :ktpack-cli-tests:macosX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Linux Target
-        if: startsWith(matrix.os, 'ubuntu')
+        if: startsWith(matrix.os, 'ubuntu') && always()
         with:
           arguments: clean :ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Windows Target
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') && always()
         with:
           arguments: clean :ktpack:windowsX64Test :ktpack-cli-tests:windowsX64Test
 
