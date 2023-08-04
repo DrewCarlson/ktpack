@@ -1,9 +1,11 @@
 site_name: ktpack
-site_url: https://github.com/drewcarlson/ktpack
+site_url: https://drewcarlson.github.io/ktpack/
 repo_url: https://github.com/drewcarlson/ktpack
 edit_uri: edit/main/docs/
 docs_dir: docs
 site_description: The simplest tool for building and publishing Kotlin software.
+remote_branch: gh-pages
+copyright: 'Copyright &copy; 2023 Drew Carlson'
 
 theme:
   name: material
@@ -11,6 +13,15 @@ theme:
     scheme: slate
   icon:
     repo: fontawesome/brands/github
+  palette:
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
 extra_css:
   - stylesheets/extra.css
@@ -29,10 +40,14 @@ markdown_extensions:
 
 plugins:
   - search
+  - mike
   - markdownextradata: {}
 
 extra:
-  version: !ENV [KTPACK_VERSION, '0.0.1-test']
+  versions:
+    ktpack: !ENV [KTPACK_VERSION, '0.0.1-test']
+  version:
+    provider: mike
   social:
     - icon: fontawesome/solid/heart
       link: https://github.com/sponsors/DrewCarlson

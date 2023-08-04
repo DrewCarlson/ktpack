@@ -81,7 +81,7 @@ data class GradleModule(
         @SerialName("org.gradle.category")
         val orgGradleCategory: String? = null,
         @SerialName("org.gradle.libraryelements")
-        val orgGradleLibraryelements: String? = null,
+        val orgGradleLibraryElements: String? = null,
         @SerialName("org.gradle.usage")
         val orgGradleUsage: String? = null,
         @SerialName("org.jetbrains.kotlin.js.compiler")

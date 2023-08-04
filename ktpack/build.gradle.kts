@@ -128,6 +128,12 @@ afterEvaluate {
 evaluationDependsOn(":ktpack-script")
 
 kotlin {
+
+    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
+        binaries.all {
+            freeCompilerArgs += "-Xincremental"
+        }
+    }
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
@@ -200,6 +206,8 @@ kotlin {
                 optIn("kotlin.time.ExperimentalTime")
                 optIn("kotlinx.coroutines.FlowPreview")
                 optIn("kotlinx.serialization.ExperimentalSerializationApi")
+                optIn("kotlinx.cinterop.ExperimentalForeignApi")
+                optIn("kotlin.experimental.ExperimentalNativeApi")
             }
         }
 
@@ -319,7 +327,7 @@ spotless {
     kotlin {
         target("src/**/**.kt")
         ktlint(libs.versions.ktlint.get())
-            .setUseExperimental(true)
+            //.setUseExperimental(true)
             .editorConfigOverride(
                 mapOf(
                     "disabled_rules" to "no-wildcard-imports,no-unused-imports,trailing-comma,filename"

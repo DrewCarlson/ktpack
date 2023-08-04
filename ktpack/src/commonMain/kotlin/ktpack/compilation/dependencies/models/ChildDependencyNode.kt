@@ -1,4 +1,4 @@
-package ktpack.compilation.dependencies
+package ktpack.compilation.dependencies.models
 
 import kotlinx.serialization.Serializable
 import ktpack.configuration.DependencyConf

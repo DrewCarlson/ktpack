@@ -148,7 +148,7 @@ spotless {
     kotlin {
         target("src/**/**.kt")
         ktlint(libs.versions.ktlint.get())
-            .setUseExperimental(true)
+            //.setUseExperimental(true)
             .editorConfigOverride(
                 mapOf(
                     "disabled_rules" to "no-wildcard-imports,no-unused-imports,trailing-comma,filename"

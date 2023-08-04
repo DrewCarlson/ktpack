@@ -1,25 +1,16 @@
 package ktpack.compilation
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
-import kotlinx.serialization.*
 import ksubprocess.*
 import ktfio.*
 import ktpack.*
-import ktpack.compilation.dependencies.ChildDependencyNode
-import ktpack.compilation.dependencies.RootDependencyNode
+import ktpack.compilation.dependencies.MavenDependencyResolver
+import ktpack.compilation.dependencies.models.ChildDependencyNode
+import ktpack.compilation.dependencies.models.RootDependencyNode
 import ktpack.configuration.*
-import ktpack.gradle.GradleModule
-import ktpack.maven.*
 import ktpack.util.CPSEP
-import ktpack.util.KTPACK_ROOT
-import ktpack.util.failed
 import ktpack.util.measureSeconds
-import kotlin.system.exitProcess
 
 sealed class ArtifactResult {
     data class Success(
@@ -35,8 +26,8 @@ sealed class ArtifactResult {
         val message: String?,
     ) : ArtifactResult()
 
-    object NoArtifactFound : ArtifactResult()
-    object NoSourceFiles : ArtifactResult()
+    data object NoArtifactFound : ArtifactResult()
+    data object NoSourceFiles : ArtifactResult()
 }
 
 // https://kotlinlang.org/docs/compiler-reference.html
@@ -45,17 +36,13 @@ class ModuleBuilder(
     private val context: CliContext,
     private val basePath: String,
 ) {
-
-    val mavenRepoUrl = "https://repo1.maven.org/maven2"
-
-    private val mavenDepCache = mutableMapOf<String, ChildDependencyNode>()
-
-    private val cacheRoot = File(KTPACK_ROOT, "maven-cache")
     private val moduleFolder = File(basePath)
     val outFolder = moduleFolder.nestedFile("out")
     val srcFolder = moduleFolder.nestedFile("src")
 
-    private val targetFolderAliases = mutableMapOf(
+    private val resolver = MavenDependencyResolver(module, context.http)
+
+    private val targetFolderAliases = mapOf(
         KotlinTarget.JVM to listOf("jvm"),
         KotlinTarget.JS_NODE to listOf("js", "jsnode"),
         KotlinTarget.JS_BROWSER to listOf("js", "jsbrowser"),
@@ -147,8 +134,8 @@ class ModuleBuilder(
         if (!targetBinDir.exists()) targetBinDir.mkdirs()
         val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
         val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, false)
-            .resolve()
-            .map { fetchMavenDependency(it, releaseMode, target, true) }
+            .filterChildVersions()
+            .map { resolver.resolve(it, releaseMode, target, downloadArtifacts = true, recurse = false) }
             .flatMap { it.artifacts }
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
@@ -254,7 +241,7 @@ class ModuleBuilder(
             val (mavenDependencies, mavenDuration) = measureSeconds {
                 root.children
                     .filter { it.dependencyConf is DependencyConf.MavenDependency }
-                    .map { child -> fetchMavenDependency(child, releaseMode, target, false) }
+                    .map { child -> fetchMavenDependency(child, releaseMode, target, downloadArtifacts) }
             }
 
             if (context.debug) {
@@ -316,249 +303,12 @@ class ModuleBuilder(
     }
 
     private suspend fun fetchMavenDependency(
-        child: ChildDependencyNode,
+        node: ChildDependencyNode,
         releaseMode: Boolean,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
     ): ChildDependencyNode {
-        val dependency = child.dependencyConf as DependencyConf.MavenDependency
-        if (!downloadArtifacts && mavenDepCache.containsKey(dependency.toMavenString())) {
-            // TODO: After resolving dependencies, reuse memory cache when downloading artifacts.
-            return child
-        }
-
-        val artifactRemotePath = dependency.groupId.split('.')
-            .plus(dependency.artifactId)
-            .plus(dependency.version)
-            .joinToString("/")
-        val artifactModuleName = "${dependency.artifactId}-${dependency.version}.module"
-        val artifactModuleCacheFile = cacheRoot
-            .nestedFile(artifactRemotePath.replace('/', filePathSeparator))
-            .nestedFile(artifactModuleName)
-
-        if (context.debug) {
-            println("Fetching maven dependency: ${dependency.toMavenString()}")
-        }
-
-        val gradleModule: GradleModule? =
-            fetchGradleModule(artifactModuleCacheFile, artifactRemotePath, artifactModuleName)
-        if (gradleModule == null) {
-            return fetchPomDependency(dependency, artifactRemotePath, releaseMode, target, child, downloadArtifacts)
-                .also { mavenDepCache[dependency.toMavenString()] = it }
-        }
-        val variant = if (target.isNative) {
-            val knTarget = when (target) {
-                KotlinTarget.JVM -> null
-                KotlinTarget.JS_NODE -> null
-                KotlinTarget.JS_BROWSER -> null
-                KotlinTarget.MACOS_ARM64 -> "macos_arm64"
-                KotlinTarget.MACOS_X64 -> "macos_x64"
-                KotlinTarget.MINGW_X64 -> "mingw_x64"
-                KotlinTarget.LINUX_X64 -> "linux_x64"
-                KotlinTarget.LINUX_ARM64 -> "linux_arm64"
-            }
-            gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.run {
-                    orgJetbrainsKotlinPlatformType == "native" && orgJetbrainsKotlinNativeTarget == knTarget
-                } ?: false
-            }
-        } else if (target == KotlinTarget.JVM) {
-            gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.run {
-                    orgJetbrainsKotlinPlatformType == "jvm" && orgGradleLibraryelements == "jar"
-                } ?: false
-            }
-        } else {
-            gradleModule.variants.firstOrNull { variant ->
-                variant.attributes?.run {
-                    orgJetbrainsKotlinJsCompiler == "ir" && orgJetbrainsKotlinPlatformType == "js"
-                } ?: false
-            }
-        }
-        variant ?: error("Could not find variant for $target in ${dependency.toMavenString()}")
-
-        val (targetVariant, files) = if (variant.availableAt == null) {
-            variant to if (downloadArtifacts) {
-                variant.files.map { file ->
-                    fetchArtifactFromMetadata(file, dependency, dependency.artifactId, dependency.version)
-                        .getAbsolutePath()
-                }
-            } else emptyList()
-        } else {
-            val artifactTargetModuleFileName = "${variant.availableAt.module}-${variant.availableAt.version}.module"
-            val artifactTargetModuleRemotePath = dependency.groupId.split('.')
-                .plus(variant.availableAt.module)
-                .plus(variant.availableAt.version)
-                .joinToString("/")
-            val artifactTargetModuleCacheFile = cacheRoot
-                .nestedFile(artifactTargetModuleRemotePath.replace('/', filePathSeparator))
-                .nestedFile(artifactTargetModuleFileName)
-
-            val targetGradleModule: GradleModule =
-                fetchGradleModule(
-                    artifactTargetModuleCacheFile,
-                    artifactTargetModuleRemotePath,
-                    artifactTargetModuleFileName
-                ) ?: error("Expected to find artifact target module")
-            val targetVariant = targetGradleModule.variants.first()
-            val moduleName = variant.availableAt.module
-            val version = variant.availableAt.version
-            targetVariant to if (downloadArtifacts) {
-                targetVariant.files.map { file ->
-                    fetchArtifactFromMetadata(file, dependency, moduleName, version).getAbsolutePath()
-                }
-            } else emptyList()
-        }
-
-        val newChildDeps = targetVariant.dependencies
-            .filter { !it.module.startsWith("kotlin-stdlib") && !it.module.endsWith("-bom") }
-            .map { gradleDep ->
-                val newNode = ChildDependencyNode(
-                    localModule = null,
-                    dependencyConf = DependencyConf.MavenDependency(
-                        groupId = gradleDep.group,
-                        artifactId = gradleDep.module,
-                        version = gradleDep.version.requires,
-                        scope = DependencyScope.IMPLEMENTATION,
-                    ),
-                    children = emptyList(),
-                    artifacts = emptyList(),
-                )
-                fetchMavenDependency(newNode, releaseMode, target, downloadArtifacts)
-            }
-
-        return child.copy(
-            children = newChildDeps,
-            artifacts = (files + newChildDeps.flatMap { it.artifacts }).distinct(),
-        ).also { mavenDepCache[dependency.toMavenString()] = it }
-    }
-
-    private suspend fun fetchPomDependency(
-        dependency: DependencyConf.MavenDependency,
-        artifactRemotePath: String,
-        releaseMode: Boolean,
-        target: KotlinTarget,
-        child: ChildDependencyNode,
-        downloadArtifacts: Boolean,
-    ): ChildDependencyNode {
-        val pomFileName = "${dependency.artifactId}-${dependency.version}.pom"
-        val pomFileNameCacheFile = cacheRoot
-            .nestedFile(artifactRemotePath.replace('/', filePathSeparator))
-            .nestedFile(pomFileName)
-
-        val pom: MavenProject = if (pomFileNameCacheFile.exists()) {
-            xml.decodeFromString(pomFileNameCacheFile.readText())
-        } else {
-            val pomUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactRemotePath/$pomFileName"
-            val response = context.http.get(pomUrl)
-            if (!response.status.isSuccess()) {
-                context.term.println("${failed("Failed")} Could not find pom at $pomUrl")
-                exitProcess(1)
-            }
-
-            val pomBody = response.bodyAsText()
-            pomFileNameCacheFile.apply {
-                getParentFile()?.mkdirs()
-                createNewFile()
-                writeText(pomBody)
-            }
-
-            xml.decodeFromString(pomBody)
-        }
-
-        val artifactFile = if (downloadArtifacts) fetchArtifact(dependency).getAbsolutePath() else null
-
-        val childDeps = pom.dependencies
-            .filter { it.scope?.value != "test" && it.version != null }
-            .map { mavenDep ->
-                val newChild = ChildDependencyNode(
-                    localModule = null,
-                    dependencyConf = DependencyConf.MavenDependency(
-                        groupId = mavenDep.groupId.value,
-                        artifactId = mavenDep.artifactId.value,
-                        version = checkNotNull(mavenDep.version).value,
-                        scope = when (mavenDep.scope?.value) {
-                            "compile" -> DependencyScope.COMPILE
-                            "runtime" -> DependencyScope.IMPLEMENTATION
-                            else -> DependencyScope.IMPLEMENTATION
-                        }
-                    ),
-                    children = emptyList(),
-                    artifacts = emptyList(),
-                )
-                fetchMavenDependency(newChild, releaseMode, target, downloadArtifacts)
-            }
-        return child.copy(
-            children = childDeps,
-            artifacts = childDeps.flatMap { it.artifacts } + listOfNotNull(artifactFile),
-        )
-    }
-
-    private suspend fun fetchArtifact(dependency: DependencyConf.MavenDependency): File {
-        val actualArtifactName = "${dependency.artifactId}-${dependency.version}.jar"
-        val actualArtifactPath = dependency.groupId.split('.')
-            .plus(dependency.artifactId)
-            .plus(dependency.version)
-            .plus(actualArtifactName)
-            .joinToString("/")
-        return fetchMavenArtifact(actualArtifactPath)
-    }
-
-    private suspend fun fetchArtifactFromMetadata(
-        targetFile: GradleModule.Variant.File,
-        dependency: DependencyConf.MavenDependency,
-        moduleName: String,
-        version: String,
-    ): File {
-        val actualArtifactName = targetFile.url
-        val actualArtifactPath = dependency.groupId.split('.')
-            .plus(moduleName)
-            .plus(version)
-            .plus(actualArtifactName)
-            .joinToString("/")
-        return fetchMavenArtifact(actualArtifactPath)
-    }
-
-    private suspend fun fetchMavenArtifact(artifactPath: String): File {
-        val cacheFile = cacheRoot.nestedFile(artifactPath.replace('/', filePathSeparator))
-
-        return if (cacheFile.exists()) {
-            cacheFile
-        } else {
-            val moduleUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactPath"
-            val response = context.http.get(moduleUrl)
-            if (!response.status.isSuccess()) {
-                context.term.println("${failed("Failed")} Could not find module at $moduleUrl")
-                exitProcess(1)
-            }
-            cacheFile.apply {
-                getParentFile()?.mkdirs()
-                createNewFile()
-                writeBytes(response.bodyAsChannel().toByteArray())
-            }
-        }
-    }
-
-    private suspend fun fetchGradleModule(
-        artifactModuleCacheFile: File,
-        artifactRemotePath: String,
-        artifactModuleName: String
-    ): GradleModule? = if (artifactModuleCacheFile.exists()) {
-        json.decodeFromString(artifactModuleCacheFile.readText())
-    } else {
-        val moduleUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactRemotePath/$artifactModuleName"
-        val response = context.http.get(moduleUrl)
-        if (response.status.isSuccess()) {
-            val bodyText = response.bodyAsText()
-            artifactModuleCacheFile.apply {
-                getParentFile()?.mkdirs()
-                createNewFile()
-                writeText(bodyText)
-            }
-            json.decodeFromString(bodyText)
-        } else {
-            null
-        }
+        return resolver.resolve(node, releaseMode, target, downloadArtifacts, recurse = true)
     }
 
     suspend fun resolveDependencyTree(

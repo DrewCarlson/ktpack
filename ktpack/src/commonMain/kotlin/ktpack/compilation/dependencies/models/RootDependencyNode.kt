@@ -1,4 +1,4 @@
-package ktpack.compilation.dependencies
+package ktpack.compilation.dependencies.models
 
 import io.github.z4kn4fein.semver.Version
 import kotlinx.serialization.Serializable
@@ -35,7 +35,7 @@ data class RootDependencyNode(
         }
     }
 
-    fun resolve(): List<ChildDependencyNode> {
+    fun filterChildVersions(): List<ChildDependencyNode> {
         val dependencyMap = mutableMapOf<String, ChildDependencyNode>()
         val allDependencies = mutableListOf<ChildDependencyNode>()
         children.forEach {
