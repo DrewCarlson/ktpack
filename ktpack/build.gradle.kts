@@ -159,14 +159,16 @@ kotlin {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xallocator=mimalloc")
             }
-            compileKotlinTask.dependsOn(
-                buildRuntimeConstants,
-                buildRuntimeBundle,
-            )
+            compileTaskProvider.configure {
+                dependsOn(
+                    buildRuntimeConstants,
+                    buildRuntimeBundle,
+                )
+            }
         }
 
         compilations.named("test") {
-            compileKotlinTask.dependsOn(buildTestConstants)
+            compileTaskProvider.configure { dependsOn(buildTestConstants) }
         }
 
         binaries {
@@ -191,7 +193,9 @@ kotlin {
                     )
                 }
                 compilation.apply {
-                    compileKotlinTask.dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
+                    compileTaskProvider.configure {
+                        dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
+                    }
                     kotlinOptions {
                         freeCompilerArgs = freeCompilerArgs + libLinks
                     }

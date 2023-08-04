@@ -99,11 +99,13 @@ kotlin {
                 Architecture.ARM64 -> "Arm64"
                 else -> konanTarget.architecture.name
             }
-            compileKotlinTask.dependsOn(
-                project(":ktpack").tasks.findByName("linkDebugExecutable$osName${arch}"),
-                installTestConfig,
-                installKotlincForTests,
-            )
+            compileTaskProvider.configure {
+                dependsOn(
+                    project(":ktpack").tasks.findByName("linkDebugExecutable$osName${arch}"),
+                    installTestConfig,
+                    installKotlincForTests,
+                )
+            }
         }
     }
 
