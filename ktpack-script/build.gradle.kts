@@ -25,8 +25,9 @@ sourceSets {
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveFileName.set("ktpack-script.jar")
+    // TODO: The following doesn't seem to be consistent with 1.9, needs investigation
     // stdlib will be provided by kotlinc
-    dependencies { exclude(dependency("org.jetbrains.kotlin:.*:.*")) }
+    //dependencies { exclude(dependency("org.jetbrains.kotlin:.*:.*")) }
 }
 
 spotless {

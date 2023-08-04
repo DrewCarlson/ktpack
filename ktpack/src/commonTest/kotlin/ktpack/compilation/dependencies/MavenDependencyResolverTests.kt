@@ -21,12 +21,14 @@ class MavenDependencyResolverTests {
 
     @BeforeTest
     fun setup() = runTest {
+        val sampleRoot = sampleDir.nestedFile("6-dependencies")
+        val packScript = sampleRoot.nestedFile(PACK_SCRIPT_FILENAME)
         context = TestCliContext()
-        module = context.loadKtpackConf(sampleDir.nestedFile("6-dependencies\\${PACK_SCRIPT_FILENAME}").getAbsolutePath()).module
+        module = context.loadKtpackConf(packScript.getAbsolutePath(), forceRebuild = true).module
         builder = ModuleBuilder(
             module,
             context,
-            sampleDir.nestedFile("6-dependencies").getAbsolutePath()
+            sampleRoot.getAbsolutePath()
         )
         resolver = MavenDependencyResolver(module, context.http)
     }
