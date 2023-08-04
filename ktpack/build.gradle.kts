@@ -131,7 +131,7 @@ kotlin {
 
     targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
         binaries.all {
-            freeCompilerArgs += "-Xincremental"
+            //freeCompilerArgs += "-Xincremental"
         }
     }
     val nativeTargets = listOfNotNull(
