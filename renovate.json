@@ -1,5 +1,5 @@
 {
-  "dependencyDashboard": false,
+  "dependencyDashboard": true,
   "extends": [
     "config:base"
   ]
