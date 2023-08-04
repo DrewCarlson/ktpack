@@ -76,7 +76,7 @@ jobs:
         name: Test Linux Target
         if: startsWith(matrix.os, 'ubuntu')
         env:
-          HOME: /home/runner/work/ktpack
+          KTPACK_PATH: /home/runner/work/ktpack
         with:
           arguments: :ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
 

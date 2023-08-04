@@ -1,7 +1,9 @@
 package ktpack.util
 
+import kotlinx.cinterop.toKString
 import ktfio.*
 import ktpack.configuration.KotlinTarget
+import platform.posix.getenv
 
 /**
  * Attempt to find the user's home directory first by the
@@ -25,7 +27,7 @@ val USER_HOME = checkNotNull(getHomePath()) {
 }
 
 @SharedImmutable
-val KTPACK_ROOT = "${USER_HOME}$filePathSeparator.ktpack"
+val KTPACK_ROOT = "${getenv("KTPACK_PATH")?.toKString() ?: USER_HOME}$filePathSeparator.ktpack"
 
 @SharedImmutable
 val ARCH by lazy {
