@@ -114,12 +114,12 @@ class ModuleBuilder(
         binName: String,
         target: KotlinTarget,
         libs: List<String>? = null,
-    ): ArtifactResult = Dispatchers.Default {
+    ): ArtifactResult = Dispatchers.Main {
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
 
         val collectedSourceFiles = collectSourceFiles(target, BuildType.BIN)
         if (collectedSourceFiles.isEmpty) {
-            return@Default ArtifactResult.NoSourceFiles
+            return@Main ArtifactResult.NoSourceFiles
         }
         val selectedBinFile = if (binName == module.name) {
             collectedSourceFiles.mainFile?.run(::File)
@@ -127,7 +127,7 @@ class ModuleBuilder(
             collectedSourceFiles.binFiles.firstNotNullOf { filePath ->
                 File(filePath).takeIf { it.nameWithoutExtension == binName }
             }
-        } ?: return@Default ArtifactResult.NoArtifactFound
+        } ?: return@Main ArtifactResult.NoArtifactFound
 
         val modeString = if (releaseMode) "release" else "debug"
         val targetBinDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "bin")
@@ -148,7 +148,7 @@ class ModuleBuilder(
                 resolvedLibs
             )
         }
-        return@Default if (result.exitCode == 0) {
+        return@Main if (result.exitCode == 0) {
             ArtifactResult.Success(
                 target = target,
                 compilationDuration = duration,
@@ -165,11 +165,11 @@ class ModuleBuilder(
         releaseMode: Boolean,
         target: KotlinTarget,
         libs: List<String>? = null,
-    ): ArtifactResult = Dispatchers.Default {
+    ): ArtifactResult = Dispatchers.Main {
         val collectedSourceFiles = collectSourceFiles(target, BuildType.LIB)
         val sourceFiles = collectedSourceFiles.sourceFiles
         if (collectedSourceFiles.isEmpty || !collectedSourceFiles.hasLibFile) {
-            return@Default ArtifactResult.NoArtifactFound
+            return@Main ArtifactResult.NoArtifactFound
         }
         val libFile = File(checkNotNull(collectedSourceFiles.mainFile))
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
@@ -192,7 +192,7 @@ class ModuleBuilder(
                 resolvedLibs
             )
         }
-        return@Default if (result.exitCode == 0) {
+        return@Main if (result.exitCode == 0) {
             ArtifactResult.Success(
                 target = target,
                 artifactPath = "${outputPath}${getLibExtension(target)}",
