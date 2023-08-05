@@ -70,7 +70,7 @@ jobs:
         name: Test Apple Targets
         if: startsWith(matrix.os, 'macos')
         with:
-          arguments: :ktpack:macosX64Test :ktpack-cli-tests:macosX64Test
+          arguments: linkMacosX64 #:ktpack:macosX64Test :ktpack-cli-tests:macosX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Linux Target
@@ -84,7 +84,7 @@ jobs:
         name: Test Windows Target
         if: startsWith(matrix.os, 'windows')
         with:
-          arguments: :ktpack:windowsX64Test :ktpack-cli-tests:windowsX64Test
+          arguments: linkWindowsX64 #:ktpack:windowsX64Test :ktpack-cli-tests:windowsX64Test
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v3
