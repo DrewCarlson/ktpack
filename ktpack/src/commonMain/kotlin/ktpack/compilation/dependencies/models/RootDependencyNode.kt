@@ -47,7 +47,7 @@ data class RootDependencyNode(
     private fun collectDependencies(
         node: ChildDependencyNode,
         allDependencies: MutableList<ChildDependencyNode>,
-        dependencyMap: MutableMap<String, ChildDependencyNode>
+        dependencyMap: MutableMap<String, ChildDependencyNode>,
     ) {
         val key = node.dependencyConf.key
         val existingNode = dependencyMap[key]

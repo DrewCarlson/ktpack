@@ -39,7 +39,7 @@ data class KotlincInstalls(private val context: CliContext) {
         file: File,
         fileName: String,
         type: CompilerType,
-        pathEnv: String
+        pathEnv: String,
     ): InstallDetails {
         val version = fileName.split('-').last()
         val path = file.getAbsolutePath()

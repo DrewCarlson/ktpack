@@ -13,13 +13,13 @@ data class KtpackUserConfig(
     @Serializable
     data class KotlinConfig(
         val version: String = Ktpack.KOTLIN_VERSION,
-        val rootPath: String = "${USER_HOME}$filePathSeparator.konan"
+        val rootPath: String = "${USER_HOME}$filePathSeparator.konan",
     )
 
     @Serializable
     data class JdkConfig(
         val distribution: JdkDistribution = JdkDistribution.Zulu,
         val version: String = "17",
-        val rootPath: String = "${USER_HOME}$filePathSeparator.jdks"
+        val rootPath: String = "${USER_HOME}$filePathSeparator.jdks",
     )
 }

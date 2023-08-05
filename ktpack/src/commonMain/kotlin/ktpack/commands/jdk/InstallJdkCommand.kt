@@ -70,7 +70,7 @@ class InstallJdkCommand : CliktCommand(
                         append("' in ")
                         append(duration)
                         append('s')
-                    }
+                    },
                 )
             }
 

@@ -7,7 +7,7 @@ import ktpack.util.info
 import ktpack.util.verbose
 
 class VersionCommand : CliktCommand(
-    help = "Show Ktpack version information."
+    help = "Show Ktpack version information.",
 ) {
     private val context by requireObject<CliContext>()
 

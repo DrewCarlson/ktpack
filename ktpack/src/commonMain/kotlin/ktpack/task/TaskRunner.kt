@@ -1,7 +1,7 @@
 package ktpack.task
 
 class TaskRunner(
-    launchTasks: List<Task> = emptyList()
+    launchTasks: List<Task> = emptyList(),
 ) {
     private val taskList: MutableList<Task> = launchTasks.toMutableList()
 

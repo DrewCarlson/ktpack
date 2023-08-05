@@ -50,7 +50,7 @@ class JdkInstalls(
         return findJdk(
             File(checkNotNull(config.rootPath)),
             config.version,
-            config.distribution
+            config.distribution,
         )
     }
 
@@ -99,7 +99,9 @@ class JdkInstalls(
                 null
             } else if (file.isDirectory() && file.list().isNotEmpty()) {
                 createInstallationDetails(file, pathEnv)
-            } else null
+            } else {
+                null
+            }
         }
     }
 
@@ -215,7 +217,7 @@ class JdkInstalls(
 
     private suspend fun availableTemurinVersions(
         http: HttpClient,
-        jdkVersion: String
+        jdkVersion: String,
     ): Triple<String?, String?, String?> {
         val osName = when (Platform.osFamily) {
             OsFamily.MACOSX -> "mac"
@@ -260,7 +262,7 @@ class JdkInstalls(
 
     private suspend fun availableCorrettoVersions(
         http: HttpClient,
-        jdkVersion: String
+        jdkVersion: String,
     ): Triple<String?, String?, String?> {
         val osName = when (Platform.osFamily) {
             OsFamily.MACOSX -> "macosx"
@@ -346,7 +348,7 @@ sealed class JdkInstallProgress {
 
 sealed class JdkInstallResult {
     data class Success(
-        val installation: InstallationDetails
+        val installation: InstallationDetails,
     ) : JdkInstallResult()
 
     object NoMatchingVersion : JdkInstallResult()

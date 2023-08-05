@@ -33,42 +33,42 @@ data class MavenProject(
     @XmlSerialName("groupId", namespace = NAMESPACE, prefix = "")
     data class PomGroup(
         @XmlValue(true)
-        val value: String
+        val value: String,
     )
 
     @Serializable
     @XmlSerialName("artifactId", namespace = NAMESPACE, prefix = "")
     data class PomArtifact(
         @XmlValue(true)
-        val value: String
+        val value: String,
     )
 
     @Serializable
     @XmlSerialName("version", namespace = NAMESPACE, prefix = "")
     data class PomVersion(
         @XmlValue(true)
-        val value: String
+        val value: String,
     )
 
     @Serializable
     @XmlSerialName("name", namespace = NAMESPACE, prefix = "")
     data class PomName(
         @XmlValue(true)
-        val value: String = ""
+        val value: String = "",
     )
 
     @Serializable
     @XmlSerialName("description", namespace = NAMESPACE, prefix = "")
     data class PomDescription(
         @XmlValue(true)
-        val value: String = ""
+        val value: String = "",
     )
 
     @Serializable
     @XmlSerialName("url", namespace = NAMESPACE, prefix = "")
     data class PomUrl(
         @XmlValue(true)
-        val value: String = ""
+        val value: String = "",
     )
 
     @Serializable
@@ -92,7 +92,7 @@ data class MavenProject(
     @XmlSerialName("organization", namespace = NAMESPACE, prefix = "")
     data class PomOrganization(
         @XmlValue(true)
-        val name: String?
+        val name: String?,
     )
 
     @Serializable

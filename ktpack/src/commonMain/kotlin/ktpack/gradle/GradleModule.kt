@@ -9,7 +9,7 @@ data class GradleModule(
     val component: Component? = null,
     val createdBy: CreatedBy? = null,
     val formatVersion: String,
-    val variants: List<Variant> = listOf()
+    val variants: List<Variant> = listOf(),
 ) {
     @Serializable
     data class Component(
@@ -22,7 +22,7 @@ data class GradleModule(
 
     @Serializable
     data class CreatedBy(
-        val gradle: Gradle? = null
+        val gradle: Gradle? = null,
     ) {
         @Serializable
         data class Gradle(
@@ -38,7 +38,7 @@ data class GradleModule(
         val availableAt: AvailableAt? = null,
         val dependencies: List<Dependency> = listOf(),
         val files: List<File> = listOf(),
-        val name: String
+        val name: String,
     ) {
 
         @Serializable
@@ -46,18 +46,18 @@ data class GradleModule(
             val group: String,
             val module: String,
             val url: String,
-            val version: String
+            val version: String,
         )
 
         @Serializable
         data class Dependency(
             val group: String,
             val module: String,
-            val version: Version
+            val version: Version,
         ) {
             @Serializable
             data class Version(
-                val requires: String
+                val requires: String,
             )
         }
 
@@ -69,7 +69,7 @@ data class GradleModule(
             val sha256: String,
             val sha512: String,
             val size: Int,
-            val url: String
+            val url: String,
         )
     }
 
@@ -89,6 +89,6 @@ data class GradleModule(
         @SerialName("org.jetbrains.kotlin.native.target")
         val orgJetbrainsKotlinNativeTarget: String? = null,
         @SerialName("org.jetbrains.kotlin.platform.type")
-        val orgJetbrainsKotlinPlatformType: String? = null
+        val orgJetbrainsKotlinPlatformType: String? = null,
     )
 }

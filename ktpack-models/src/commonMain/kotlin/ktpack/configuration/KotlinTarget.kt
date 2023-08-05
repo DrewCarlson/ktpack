@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class KotlinTarget(
     val isNative: Boolean = false,
-    val isJs: Boolean = false
+    val isJs: Boolean = false,
 ) {
     @SerialName("jvm")
     JVM,
@@ -30,5 +30,5 @@ enum class KotlinTarget(
     LINUX_ARM64(isNative = true),
 
     @SerialName("linux_x64")
-    LINUX_X64(isNative = true);
+    LINUX_X64(isNative = true),
 }

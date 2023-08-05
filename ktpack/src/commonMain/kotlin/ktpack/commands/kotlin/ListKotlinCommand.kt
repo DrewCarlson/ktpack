@@ -41,7 +41,7 @@ class ListKotlinCommand : CliktCommand(
                         }
                     }
                 }
-            }
+            },
         )
     }
 }

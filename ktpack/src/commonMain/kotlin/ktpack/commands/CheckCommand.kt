@@ -6,7 +6,7 @@ import kotlinx.coroutines.runBlocking
 import ktpack.*
 
 class CheckCommand : CliktCommand(
-    help = "Check a package for errors."
+    help = "Check a package for errors.",
 ) {
 
     private val filePath by argument("file")

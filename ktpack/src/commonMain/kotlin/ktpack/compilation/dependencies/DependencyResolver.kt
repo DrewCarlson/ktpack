@@ -14,6 +14,6 @@ abstract class DependencyResolver {
         releaseMode: Boolean,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
-        recurse: Boolean
+        recurse: Boolean,
     ): ChildDependencyNode
 }

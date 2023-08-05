@@ -55,7 +55,7 @@ class RunCommand : CliktCommand(
                 append(" ${packageConf.module.name}")
                 append(" v${packageConf.module.version}")
                 append(" (${moduleBuilder.srcFolder.getParent()})")
-            }
+            },
         )
         val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         when (val result = moduleBuilder.buildBin(releaseMode, targetBin, target)) {
@@ -72,7 +72,7 @@ class RunCommand : CliktCommand(
                             append(" dev [unoptimized + debuginfo] target(s)")
                         }
                         append(" in ${result.compilationDuration}s")
-                    }
+                    },
                 )
                 context.term.println("${success("Running")} '${result.artifactPath}'")
                 try {
@@ -189,7 +189,7 @@ private val httpFunc: mg_event_handler_t = staticCFunction { con, ev, evData, fn
                     DEFAULT_HTML,
                     module.name,
                     module.kotlinVersion,
-                    artifactName
+                    artifactName,
                 )
             } else if (mg_http_match_uri(hm.ptr, "/$artifactName")) {
                 val opts = alloc<mg_http_serve_opts> {

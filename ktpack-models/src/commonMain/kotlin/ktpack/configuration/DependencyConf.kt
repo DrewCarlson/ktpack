@@ -14,7 +14,7 @@ sealed class DependencyConf {
     @Serializable
     data class LocalPathDependency(
         val path: String,
-        override val scope: DependencyScope
+        override val scope: DependencyScope,
     ) : DependencyConf() {
         override val key: String = path
 
@@ -27,7 +27,7 @@ sealed class DependencyConf {
         val tag: String?,
         val branch: String?,
         override val version: String?,
-        override val scope: DependencyScope
+        override val scope: DependencyScope,
     ) : DependencyConf() {
         override val key: String = gitUrl
     }
@@ -37,7 +37,7 @@ sealed class DependencyConf {
         val groupId: String,
         val artifactId: String,
         override val version: String,
-        override val scope: DependencyScope
+        override val scope: DependencyScope,
     ) : DependencyConf() {
         fun toMavenString(): String = "$groupId:$artifactId:$version"
         fun toPathString(separator: String): String =
@@ -57,7 +57,7 @@ sealed class DependencyConf {
         val name: String,
         override val version: String,
         val isDev: Boolean,
-        override val scope: DependencyScope
+        override val scope: DependencyScope,
     ) : DependencyConf() {
         override val key: String = name
     }

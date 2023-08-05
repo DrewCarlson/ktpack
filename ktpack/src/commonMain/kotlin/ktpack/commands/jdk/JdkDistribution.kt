@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 enum class JdkDistribution {
     Zulu,
     Temurin,
-    Corretto;
+    Corretto,
 }

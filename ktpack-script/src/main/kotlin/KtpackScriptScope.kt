@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 
 public open class KtpackScriptScope {
 
-    private val jsTargets = KotlinTarget.values().filter(KotlinTarget::isJs)
+    private val jsTargets = KotlinTarget.entries.filter(KotlinTarget::isJs)
     private val json = Json {
         ignoreUnknownKeys = true
     }

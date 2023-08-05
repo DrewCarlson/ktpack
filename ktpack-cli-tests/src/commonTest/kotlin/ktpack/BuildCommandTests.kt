@@ -61,7 +61,7 @@ class BuildCommandTests {
                 appendLine(result.output)
                 append("Error: ")
                 appendLine(result.errors)
-            }
+            },
         )
     }
 }

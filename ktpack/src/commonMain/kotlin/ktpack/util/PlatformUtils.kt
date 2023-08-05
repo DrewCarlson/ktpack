@@ -39,7 +39,8 @@ val ARCH by lazy {
         }
 
         CpuArchitecture.X86,
-        CpuArchitecture.X64 -> "x86_64"
+        CpuArchitecture.X64,
+        -> "x86_64"
 
         else -> error("Unsupported Host ${Platform.osFamily} ${Platform.cpuArchitecture}")
     }
@@ -70,12 +71,13 @@ object PlatformUtils {
             KotlinTarget.JS_NODE,
             KotlinTarget.JS_BROWSER,
             KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64 -> true
+            KotlinTarget.LINUX_X64,
+            -> true
 
             KotlinTarget.MINGW_X64 -> Platform.osFamily != OsFamily.LINUX
             KotlinTarget.MACOS_ARM64, KotlinTarget.MACOS_X64 -> Platform.osFamily == OsFamily.MACOSX
         }
     }
 
-    fun getHostSupportedTargets() = KotlinTarget.values().filter(::canHostBuildFor)
+    fun getHostSupportedTargets() = KotlinTarget.entries.filter(::canHostBuildFor)
 }

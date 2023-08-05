@@ -80,7 +80,9 @@ class ModuleBuilder(
                 .onEnter { folder ->
                     if (folder.getParentFileUnsafe() == targetKotlinRoot) {
                         folder.getName() != secondaryDir
-                    } else true
+                    } else {
+                        true
+                    }
                 }
                 .filter { file ->
                     val fileName = file.getName()
@@ -99,7 +101,9 @@ class ModuleBuilder(
                     .drop(1) // Ignore the parent folder
                     .map(File::getAbsolutePath)
                     .toList()
-            } else emptyList()
+            } else {
+                emptyList()
+            }
         }
 
         return CollectedSource(
@@ -145,7 +149,7 @@ class ModuleBuilder(
                 outputPath,
                 target,
                 true,
-                resolvedLibs
+                resolvedLibs,
             )
         }
         return@Default if (result.exitCode == 0) {
@@ -189,7 +193,7 @@ class ModuleBuilder(
                 outputPath,
                 target,
                 false,
-                resolvedLibs
+                resolvedLibs,
             )
         }
         return@Default if (result.exitCode == 0) {
@@ -220,7 +224,9 @@ class ModuleBuilder(
         return listOfNotNull(
             if (mainSource?.exists() == true) {
                 buildBin(releaseMode, module.name, target, resolvedDeps.artifacts)
-            } else null,
+            } else {
+                null
+            },
         ) + sourceFiles.binFiles.map { otherBin ->
             val binFile = File(otherBin)
             buildBin(releaseMode, binFile.nameWithoutExtension, target, resolvedDeps.artifacts)
@@ -275,7 +281,7 @@ class ModuleBuilder(
         releaseMode: Boolean,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
-        libs: List<String>? = null
+        libs: List<String>? = null,
     ): ChildDependencyNode {
         val childPath = "${basePath}${filePathSeparator}${child.localModule!!.name}"
         val childBuilder = ModuleBuilder(child.localModule, context, childPath)
@@ -294,11 +300,13 @@ class ModuleBuilder(
                 ArtifactResult.NoArtifactFound -> error("No artifact found at $childPath")
                 is ArtifactResult.ProcessError -> error(result.message.orEmpty())
             }
-        } else null
+        } else {
+            null
+        }
 
         return child.copy(
             children = innerDepNodes,
-            artifacts = innerLibs + listOfNotNull(result)
+            artifacts = innerLibs + listOfNotNull(result),
         )
     }
 
@@ -314,7 +322,7 @@ class ModuleBuilder(
     suspend fun resolveDependencyTree(
         root: ModuleConf,
         rootFolder: File,
-        targets: List<KotlinTarget>
+        targets: List<KotlinTarget>,
     ): RootDependencyNode {
         val dependencies = root.dependencies
             .filter { it.targets.isEmpty() || (targets.isNotEmpty() && it.targets.containsAll(targets)) }
@@ -333,7 +341,7 @@ class ModuleBuilder(
     suspend fun resolveMavenDependency(
         dependencyConf: DependencyConf.MavenDependency,
         rootFolder: File,
-        targets: List<KotlinTarget>
+        targets: List<KotlinTarget>,
     ): ChildDependencyNode {
         return fetchMavenDependency(
             ChildDependencyNode(
@@ -350,7 +358,7 @@ class ModuleBuilder(
     private suspend fun resolveLocalDependency(
         dependencyConf: DependencyConf.LocalPathDependency,
         rootFolder: File,
-        targets: List<KotlinTarget>
+        targets: List<KotlinTarget>,
     ): ChildDependencyNode {
         val packFile = rootFolder.nestedFile(dependencyConf.path).nestedFile(PACK_SCRIPT_FILENAME)
         val localModule = context.loadKtpackConf(packFile.getAbsolutePath()).module
@@ -369,12 +377,14 @@ class ModuleBuilder(
             KotlinTarget.MINGW_X64 -> ".exe"
 
             KotlinTarget.JS_NODE,
-            KotlinTarget.JS_BROWSER -> ".js"
+            KotlinTarget.JS_BROWSER,
+            -> ".js"
 
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
             KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64 -> ".kexe"
+            KotlinTarget.LINUX_X64,
+            -> ".kexe"
         }
     }
 
@@ -382,13 +392,15 @@ class ModuleBuilder(
         return when (target) {
             KotlinTarget.JVM -> ".jar"
             KotlinTarget.JS_NODE,
-            KotlinTarget.JS_BROWSER -> ""
+            KotlinTarget.JS_BROWSER,
+            -> ""
 
             KotlinTarget.MINGW_X64,
             KotlinTarget.MACOS_ARM64,
             KotlinTarget.MACOS_X64,
             KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64 -> ".klib"
+            KotlinTarget.LINUX_X64,
+            -> ".klib"
         }
     }
 
@@ -450,7 +462,8 @@ class ModuleBuilder(
             KotlinTarget.MACOS_X64,
             KotlinTarget.MINGW_X64,
             KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64 -> {
+            KotlinTarget.LINUX_X64,
+            -> {
                 val targetOutPath = if (isBinary) {
                     "${outputPath}${getExeExtension(target)}"
                 } else {

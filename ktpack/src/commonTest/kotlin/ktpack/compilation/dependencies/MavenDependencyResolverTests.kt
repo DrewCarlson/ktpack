@@ -28,7 +28,7 @@ class MavenDependencyResolverTests {
         builder = ModuleBuilder(
             module,
             context,
-            sampleRoot.getAbsolutePath()
+            sampleRoot.getAbsolutePath(),
         )
         resolver = MavenDependencyResolver(module, context.http)
     }
@@ -38,7 +38,7 @@ class MavenDependencyResolverTests {
         val depTree = builder.resolveDependencyTree(
             root = module,
             rootFolder = sampleDir.nestedFile("6-dependencies"),
-            targets = listOf(KotlinTarget.MINGW_X64)
+            targets = listOf(KotlinTarget.MINGW_X64),
         )
 
         val children = depTree.filterChildVersions()
@@ -67,7 +67,7 @@ class MavenDependencyResolverTests {
                 maven: io.ktor:ktor-client-winhttp:2.2.4
                 maven: io.ktor:ktor-http-cio:2.2.4
             """.trimIndent(),
-            updated
+            updated,
         )
     }
 }

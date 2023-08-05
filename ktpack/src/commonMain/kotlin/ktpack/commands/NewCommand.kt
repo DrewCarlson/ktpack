@@ -45,7 +45,7 @@ class NewCommand : CliktCommand(
         option("--no-interactive", "-noin")
             .help("Disable all interactive prompts, using empty values where no defaults are available")
             .flag()
-            .convert { !it }
+            .convert { !it },
     ).single()
 
     private val kotlinVersion by option("--kotlin-version", "-k")
@@ -145,7 +145,7 @@ class NewCommand : CliktCommand(
                 }
                 append("`$moduleName`")
                 append(" package")
-            }
+            },
         )
     }
 
@@ -191,7 +191,7 @@ class NewCommand : CliktCommand(
                 val response = context.term.prompt("Comma separated list of targets")
                 checkNotNull(response).split(", ", ",").map { KotlinTarget.valueOf(it.uppercase()) }
             },
-        )
+        ),
     )
 
     private inline fun <reified T> flagOrUserPrompt(

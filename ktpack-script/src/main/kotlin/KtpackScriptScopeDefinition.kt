@@ -6,11 +6,11 @@ import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 
 @KotlinScript(
-    compilationConfiguration = KtpackScriptCompilationConfiguration::class
+    compilationConfiguration = KtpackScriptCompilationConfiguration::class,
 )
 public abstract class KtpackScriptScopeDefinition(
     @Suppress("unused")
-    public val args: Array<String> // DO NOT REMOVE
+    public val args: Array<String>, // DO NOT REMOVE
 ) : KtpackScriptScope()
 
 internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfiguration({
@@ -18,7 +18,7 @@ internal object KtpackScriptCompilationConfiguration : ScriptCompilationConfigur
     defaultImports(
         "ktpack.configuration.*",
         "ktpack.configuration.KotlinTarget",
-        "ktpack.configuration.KotlinTarget.*"
+        "ktpack.configuration.KotlinTarget.*",
     )
 }) {
     private fun readResolve(): Any = KtpackScriptCompilationConfiguration

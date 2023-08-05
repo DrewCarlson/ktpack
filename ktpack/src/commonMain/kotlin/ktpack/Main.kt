@@ -22,7 +22,7 @@ val json = kotlinx.serialization.json.Json {
 val xml = XML {
     policy = DefaultXmlSerializationPolicy(
         pedantic = false,
-        unknownChildHandler = { _, _, _, _, _ -> emptyList() }
+        unknownChildHandler = { _, _, _, _, _ -> emptyList() },
     )
 }
 
@@ -63,7 +63,7 @@ fun main(args: Array<String>) {
                 append(failed("Failed"))
                 append(" Uncaught error: ")
                 e.message?.let(::append)
-            }
+            },
         )
         if (command.stacktrace) {
             term.println(e.stackTraceToString())

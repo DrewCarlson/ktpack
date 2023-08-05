@@ -122,6 +122,6 @@ class RemoveJdkCommand : CliktCommand(
                     }
                 }
             }
-        }
+        },
     )
 }

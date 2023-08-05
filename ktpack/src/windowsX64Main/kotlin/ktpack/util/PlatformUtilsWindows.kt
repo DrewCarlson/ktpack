@@ -11,7 +11,9 @@ actual fun getHomePath(): String? {
         val path = allocArray<WCHARVar>(MAX_PATH)
         if (SHGetFolderPathW(null, CSIDL_PROFILE, NULL, 0u, path) == 0) {
             path.toKString()
-        } else null
+        } else {
+            null
+        }
     }
 }
 

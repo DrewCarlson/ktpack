@@ -33,7 +33,7 @@ class CleanCommand : CliktCommand(
             child.localModule?.name
         }.forEach { name ->
             if (userTarget == null) {
-                File(name, "out",)
+                File(name, "out")
             } else {
                 File(name, "out", userTarget.name.lowercase())
             }

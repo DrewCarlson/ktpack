@@ -40,14 +40,14 @@ class MavenDependencyResolver(
         releaseMode: Boolean,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
-        recurse: Boolean
+        recurse: Boolean,
     ): ChildDependencyNode {
         val dependency = node.dependencyConf as DependencyConf.MavenDependency
         val artifactRemotePath = dependency.toPathString("/")
 
-        //if (context.debug) {
+        // if (context.debug) {
         //    println("Fetching maven dependency: ${dependency.toMavenString()}")
-        //}
+        // }
 
         val gradleModule = fetchGradleModule(dependency, artifactRemotePath)
         if (gradleModule == null) {
@@ -58,7 +58,7 @@ class MavenDependencyResolver(
                 target,
                 node,
                 downloadArtifacts,
-                recurse
+                recurse,
             ).also {
                 mavenDepCache[dependency.toMavenString()] = it
             }
@@ -100,7 +100,7 @@ class MavenDependencyResolver(
         target: KotlinTarget,
         child: ChildDependencyNode,
         downloadArtifacts: Boolean,
-        recurse: Boolean
+        recurse: Boolean,
     ): ChildDependencyNode {
         val pom: MavenProject = fetchPom(artifactRemotePath, dependency)
 
@@ -133,7 +133,7 @@ class MavenDependencyResolver(
         val pomUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactRemotePath/$pomFileName"
         val response = http.get(pomUrl)
         if (!response.status.isSuccess()) {
-            //TODO: context.term.println("${failed("Failed")} Could not find pom at $pomUrl")
+            // TODO: context.term.println("${failed("Failed")} Could not find pom at $pomUrl")
             println("${failed("Failed")} Could not find pom at $pomUrl")
             exitProcess(1)
         }
@@ -167,7 +167,7 @@ class MavenDependencyResolver(
                             "compile" -> DependencyScope.COMPILE
                             "runtime" -> DependencyScope.IMPLEMENTATION
                             else -> DependencyScope.IMPLEMENTATION
-                        }
+                        },
                     ),
                     children = emptyList(),
                     artifacts = emptyList(),
@@ -204,7 +204,7 @@ class MavenDependencyResolver(
     private suspend fun fetchGradleModule(
         dependency: DependencyConf.MavenDependency,
         artifactRemotePath: String,
-        artifactName: String = dependency.artifactId
+        artifactName: String = dependency.artifactId,
     ): GradleModule? {
         val artifactModuleName = "$artifactName-${dependency.version}.module"
         val artifactModuleCacheFile = cacheRoot
@@ -243,7 +243,7 @@ class MavenDependencyResolver(
     }
 
     private fun List<GradleModule.Variant>.findVariantFor(
-        target: KotlinTarget
+        target: KotlinTarget,
     ): GradleModule.Variant? = if (target.isNative) {
         val knTarget = target.name.lowercase()
         firstOrNull { variant ->
@@ -269,7 +269,7 @@ class MavenDependencyResolver(
         target: KotlinTarget,
         variants: List<GradleModule.Variant>,
         downloadArtifacts: Boolean,
-        dependency: DependencyConf.MavenDependency
+        dependency: DependencyConf.MavenDependency,
     ): Pair<GradleModule.Variant, List<String>> {
         val variant = checkNotNull(variants.findVariantFor(target)) {
             "Could not find variant for $target in ${dependency.toMavenString()}"
@@ -280,7 +280,9 @@ class MavenDependencyResolver(
                     fetchArtifactFromMetadata(file, dependency, dependency.artifactId, dependency.version)
                         .getAbsolutePath()
                 }
-            } else emptyList()
+            } else {
+                emptyList()
+            }
         } else {
             followVariantRedirect(variant.availableAt, dependency, downloadArtifacts)
         }
@@ -289,7 +291,7 @@ class MavenDependencyResolver(
     private suspend fun followVariantRedirect(
         availableAt: GradleModule.Variant.AvailableAt,
         dependency: DependencyConf.MavenDependency,
-        downloadArtifacts: Boolean
+        downloadArtifacts: Boolean,
     ): Pair<GradleModule.Variant, List<String>> {
         val artifactRemotePath = dependency.groupId.split('.')
             .plus(availableAt.module)
@@ -305,6 +307,8 @@ class MavenDependencyResolver(
             targetVariant.files.map { file ->
                 fetchArtifactFromMetadata(file, dependency, moduleName, version).getAbsolutePath()
             }
-        } else emptyList()
+        } else {
+            emptyList()
+        }
     }
 }

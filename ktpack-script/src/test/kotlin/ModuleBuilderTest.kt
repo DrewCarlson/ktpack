@@ -31,7 +31,7 @@ class ModuleBuilderTest {
                |    "version": "0.0.1"
                |}
             """.trimMargin(),
-            confJson
+            confJson,
         )
     }
 
@@ -82,7 +82,7 @@ class ModuleBuilderTest {
                |    "kotlinVersion": "1.7.10"
                |}
             """.trimMargin(),
-            confJson
+            confJson,
         )
     }
 
@@ -149,7 +149,7 @@ class ModuleBuilderTest {
                |    ]
                |}
             """.trimMargin(),
-            confJson
+            confJson,
         )
     }
 

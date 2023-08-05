@@ -51,7 +51,7 @@ class BuildCommand : CliktCommand(
                 append(" ${packageConf.module.name}")
                 append(" v${packageConf.module.version}")
                 append(" (${moduleBuilder.srcFolder.getParent()})")
-            }
+            },
         )
 
         val targetBuildList = if (allTargets) {
@@ -118,7 +118,7 @@ class BuildCommand : CliktCommand(
                     append(" dev [unoptimized + debuginfo] target(s)")
                 }
                 append(" in ${totalDuration}s")
-            }
+            },
         )
     }
 
@@ -129,7 +129,7 @@ class BuildCommand : CliktCommand(
                 append(" failed to compile selected target(s)")
                 appendLine()
                 artifact.message?.lines()?.forEach(::appendLine)
-            }
+            },
         )
     }
 
@@ -140,7 +140,7 @@ class BuildCommand : CliktCommand(
                 append(" Completed build for ")
                 append(verbose(artifact.target.name.lowercase()))
                 append(" in ${artifact.compilationDuration}s")
-            }
+            },
         )
     }
 }

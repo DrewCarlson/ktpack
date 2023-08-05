@@ -68,11 +68,11 @@ class ModuleBuilderTests {
         builder = ModuleBuilder(
             ModuleConf("test", "0.0.0"),
             TestCliContext(),
-            sampleDir.nestedFile(sample).getAbsolutePath()
+            sampleDir.nestedFile(sample).getAbsolutePath(),
         )
 
         if (target == null) {
-            KotlinTarget.values().forEach { currentTarget ->
+            KotlinTarget.entries.forEach { currentTarget ->
                 body(builder.collectSourceFiles(currentTarget, type))
             }
         } else {
