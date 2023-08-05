@@ -22,6 +22,9 @@ import ktpack.util.GitCli
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
 import ktpack.util.verbose
+import okio.FileSystem
+import okio.Path
+import okio.Path.Companion.toPath
 
 class KtpackCommand(
     override val term: Terminal,
@@ -41,9 +44,10 @@ class KtpackCommand(
     override val config: KtpackUserConfig by lazy {
         File(KTPACK_ROOT, "config.json").run {
             if (!exists()) {
-                check(File(KTPACK_ROOT).mkdirs()) {
-                    "Failed to create Ktpack folder $KTPACK_ROOT"
-                }
+                FileSystem.SYSTEM.createDirectory(KTPACK_ROOT.toPath(), mustCreate = true)
+                //check(File(KTPACK_ROOT).mkdirs()) {
+                //    "Failed to create Ktpack folder $KTPACK_ROOT"
+                //}
                 println(getAbsolutePath())
                 if (createNewFile()) {
                     writeText(json.encodeToString(KtpackUserConfig()))
