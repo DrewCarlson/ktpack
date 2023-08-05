@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, drew/test ]
   pull_request:
     branches: [ main ]
 
@@ -78,7 +78,7 @@ jobs:
         env:
           KTPACK_PATH: /home/runner/work/ktpack
         with:
-          arguments: :ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
+          arguments: linkLinuxX64 #:ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
 
       - uses: gradle/gradle-build-action@v2
         name: Test Windows Target

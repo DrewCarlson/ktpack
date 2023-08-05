@@ -8,6 +8,7 @@ import com.github.ajalt.mordant.terminal.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.core.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktfio.File
@@ -22,6 +23,9 @@ import ktpack.util.GitCli
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.info
 import ktpack.util.verbose
+import okio.FileSystem
+import okio.Path
+import okio.Path.Companion.toPath
 
 class KtpackCommand(
     override val term: Terminal,
@@ -41,14 +45,13 @@ class KtpackCommand(
     override val config: KtpackUserConfig by lazy {
         File(KTPACK_ROOT, "config.json").run {
             if (!exists()) {
-                check(File(KTPACK_ROOT).mkdirs()) {
-                    "Failed to create Ktpack folder $KTPACK_ROOT"
-                }
+                FileSystem.SYSTEM.createDirectory(KTPACK_ROOT.toPath(), mustCreate = false)
+                //check(File(KTPACK_ROOT).mkdirs()) {
+                //    "Failed to create Ktpack folder $KTPACK_ROOT"
+                //}
                 println(getAbsolutePath())
-                if (createNewFile()) {
-                    writeText(json.encodeToString(KtpackUserConfig()))
-                } else {
-                    error("Failed to write: ${getAbsolutePath()}")
+                FileSystem.SYSTEM.write("${KTPACK_ROOT}/config.json".toPath(true), true) {
+                    write(json.encodeToString(KtpackUserConfig()).toByteArray())
                 }
             }
 
