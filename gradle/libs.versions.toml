@@ -37,7 +37,7 @@ ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktorio"
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktorio" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.0" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.1" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.1.0" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.5.0" }
