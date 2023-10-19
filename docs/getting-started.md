@@ -30,7 +30,7 @@ The project is described in `pack.kts`:
 ```kotlin
 module("hello_world") {
     version = "1.0.0"
-    kotlinVersion = "1.9.0"
+    kotlinVersion = "1.9.10"
 }
 ```
 

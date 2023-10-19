@@ -1,6 +1,6 @@
 module("hello_world") {
     version = "0.0.1"
-    kotlinVersion = "1.9.0"
+    kotlinVersion = "1.9.10"
     description = "A sample that produces a library from multiple files."
     dependencies {
         maven("co.touchlab:kermit:2.0.0-RC3")
