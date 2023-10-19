@@ -4,12 +4,13 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.mordant.rendering.TextColors.*
+import com.github.ajalt.mordant.rendering.TextStyles.bold
+import com.github.ajalt.mordant.rendering.TextStyles.reset
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import ksubprocess.*
 import ktfio.File
 import ktfio.filePathSeparator
@@ -58,7 +59,14 @@ class RunCommand : CliktCommand(
             },
         )
         val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
-        when (val result = moduleBuilder.buildBin(releaseMode, targetBin, target)) {
+        val result = terminal.loadingIndeterminate(
+            animate = { text, duration ->
+                bold(brightWhite(text)) + reset(brightWhite(" ${duration.inWholeSeconds}s"))
+            },
+        ) {
+            moduleBuilder.buildBin(releaseMode, targetBin, target)
+        }
+        when (result) {
             is ArtifactResult.Success -> {
                 if (context.debug) {
                     context.term.println(result.outputText)
@@ -107,7 +115,7 @@ class RunCommand : CliktCommand(
         }
     }
 
-    private suspend fun runBuildArtifact(
+    private suspend fun CoroutineScope.runBuildArtifact(
         module: ModuleConf,
         target: KotlinTarget,
         artifactPath: String,
@@ -117,7 +125,7 @@ class RunCommand : CliktCommand(
             runJsBrowserArtifact(module, artifactPath)
             return 1
         }
-        return Process {
+        val runProcess = Process {
             when (target) {
                 KotlinTarget.JS_BROWSER -> error("Unsupported run target: $target")
                 KotlinTarget.JVM -> {
@@ -141,14 +149,19 @@ class RunCommand : CliktCommand(
                     arg(artifactPath)
                 }
             }
-        }.run {
-            Dispatchers.Default {
-                val writeLock = Mutex()
-                merge(stdoutLines, stderrLines).collect { line ->
-                    writeLock.withLock { context.term.println(line) }
-                }
-                waitFor()
+        }
+
+        val stdoutPrefix = bold(brightBlue("[out] "))
+        val stderrPrefix = bold(brightRed("[err] "))
+        return Dispatchers.Default {
+            merge(
+                runProcess.stdoutLines.map { stdoutPrefix + reset(it) },
+                runProcess.stderrLines.map { stderrPrefix + reset(it) },
+            ).collect { line ->
+                context.term.println(line)
             }
+
+            runProcess.waitFor()
         }
     }
 

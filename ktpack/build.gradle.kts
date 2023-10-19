@@ -231,6 +231,7 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.serialization)
+                implementation(libs.kotlinx.datetime)
             }
         }
 

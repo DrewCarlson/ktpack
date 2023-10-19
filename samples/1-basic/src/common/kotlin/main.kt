@@ -1,7 +1,9 @@
-
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 fun main() {
     repeat(5) {
-        println("Hello, world!")
+        val message = "Hello, world! $it\n"
+        print(message)
+        platform.posix.fprintf(platform.posix.stderr, message)
     }
 }
 
