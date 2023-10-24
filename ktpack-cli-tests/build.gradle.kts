@@ -28,12 +28,13 @@ val installTestConfig by tasks.creating {
                 else -> error("Unsupported host operating system")
             }
             val ktpackBin =
-                project(":ktpack").file("build/bin/${target}/debugExecutable/ktpack.$extension").absolutePath
+                project(":ktpack-cli")
+                    .file("build/bin/${target}/debugExecutable/ktpack.$extension")
+                    .absolutePath
             configFile.writeText(
                 """|package ktpack
                    |
                    |import okio.*
-                   |import okio.Path.Companion.toPath
                    |import ktpack.util.*
                    |
                    |val KTPACK_BIN = "$ktpackBin"
@@ -43,7 +44,7 @@ val installTestConfig by tasks.creating {
                    |}
                    |
                    |fun getSamplePath(name: String): String = getSample(name).toString()
-                   |""".trimMargin().replace("\\", "\\\\")
+                   |""".trimMargin().replace("\\", "\\\\"),
             )
         }
     }
@@ -100,7 +101,7 @@ kotlin {
             }
             compileTaskProvider.configure {
                 dependsOn(
-                    project(":ktpack").tasks.findByName("linkDebugExecutable$osName${arch}"),
+                    project(":ktpack-cli").tasks.findByName("linkDebugExecutable$osName${arch}"),
                     installTestConfig,
                     installKotlincForTests,
                 )
@@ -119,7 +120,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                implementation(project(":ktpack"))
+                implementation(project(":ktpack-cli"))
                 implementation(project(":ktpack-models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
