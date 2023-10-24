@@ -1,6 +1,5 @@
 package ktpack.compilation
 
-import ktfio.nestedFile
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder.BuildType
 import ktpack.configuration.KotlinTarget
@@ -36,8 +35,8 @@ class ModuleBuilderTests {
     fun testCollectSourceFiles_3_multiple_bins() {
         collectSourceFiles("3-multiple-bins", BuildType.BIN) {
             assertNotNull(mainFile)
-            assertEquals(1, binFiles.size)
-            assertEquals(1, sourceFiles.size)
+            assertEquals(1, binFiles.size, "A: ${binFiles.joinToString()}")
+            assertEquals(1, sourceFiles.size, "B: ${sourceFiles.joinToString()}")
         }
     }
 
@@ -68,7 +67,7 @@ class ModuleBuilderTests {
         builder = ModuleBuilder(
             ModuleConf("test", "0.0.0"),
             TestCliContext(),
-            sampleDir.nestedFile(sample).getAbsolutePath(),
+            (sampleDir / sample).toString(),
         )
 
         if (target == null) {

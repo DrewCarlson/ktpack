@@ -1,7 +1,8 @@
 package ktpack.util
 
 import kotlinx.cinterop.*
-import ktfio.File
+import okio.Path
+import okio.Path.Companion.toPath
 import platform.posix.*
 import platform.posix.NULL
 import platform.windows.*
@@ -23,11 +24,11 @@ actual val workingDirectory: String by lazy {
     }
 }
 
-actual val TEMP_DIR: File by lazy {
+actual val TEMP_PATH: Path by lazy {
     val tempPath: String = checkNotNull(getenv("temp")).toKStringFromUtf8()
-    File(tempPath).also { file ->
-        if (!file.exists()) {
-            check(file.mkdirs()) { "Failed to create temp directory: ${file.getAbsolutePath()}" }
+    tempPath.toPath().apply {
+        if (!exists()) {
+            check(mkdirs().exists()) { "Failed to create temp directory: ${toString()}" }
         }
     }
 }

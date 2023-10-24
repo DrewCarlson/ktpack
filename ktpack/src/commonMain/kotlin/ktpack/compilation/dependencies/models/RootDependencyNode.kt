@@ -14,9 +14,11 @@ data class RootDependencyNode(
 ) {
     fun printDependencyTree() {
         println("Dependencies for '${module.name}' on ${targets.joinToString().ifBlank { "all targets" }}:")
-        children.forEach { child ->
-            printChild(child, 0)
-        }
+        children
+            .sortedBy { it.children.size }
+            .forEach { child ->
+                printChild(child, 0)
+            }
     }
 
     private fun printChild(child: ChildDependencyNode, level: Int) {

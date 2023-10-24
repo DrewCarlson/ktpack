@@ -70,11 +70,11 @@ val buildRuntimeBundle by tasks.creating {
         }
         bundledFile.writeText(
             """|package ktpack
-               |import ktfio.File
+               |import ktpack.util.pathFrom
                |import ktpack.util.USER_HOME
                |
                |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-script.jar"
-               |val ktpackScriptJarPath by lazy { File($pathValue) }
+               |val ktpackScriptJarPath = pathFrom($pathValue)
                |""".trimMargin()
         )
     }
@@ -87,10 +87,10 @@ val buildTestConstants by tasks.creating {
         file(testGenSrcPath).mkdirs()
         constantsFile.writeText(
             """|package ktpack
-               |import ktfio.File
+               |import okio.Path.Companion.toPath
                |
-               |val buildDir = File("${buildDir.absolutePath.replace("\\", "\\\\")}")
-               |val sampleDir = File("${rootProject.file("samples").absolutePath.replace("\\", "\\\\")}")
+               |val buildDir = "${buildDir.absolutePath.replace("\\", "\\\\")}".toPath()
+               |val sampleDir = "${rootProject.file("samples").absolutePath.replace("\\", "\\\\")}".toPath()
                |""".trimMargin()
         )
     }

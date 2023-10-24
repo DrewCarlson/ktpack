@@ -1,7 +1,6 @@
 package ktpack.compilation.dependencies
 
 import kotlinx.coroutines.test.runTest
-import ktfio.nestedFile
 import ktpack.PACK_SCRIPT_FILENAME
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder
@@ -21,14 +20,14 @@ class MavenDependencyResolverTests {
 
     @BeforeTest
     fun setup() = runTest {
-        val sampleRoot = sampleDir.nestedFile("6-dependencies")
-        val packScript = sampleRoot.nestedFile(PACK_SCRIPT_FILENAME)
+        val sampleRoot = sampleDir / "6-dependencies"
+        val packScript = sampleRoot / PACK_SCRIPT_FILENAME
         context = TestCliContext()
-        module = context.loadKtpackConf(packScript.getAbsolutePath(), forceRebuild = true).module
+        module = context.loadKtpackConf(packScript.toString()).module
         builder = ModuleBuilder(
             module,
             context,
-            sampleRoot.getAbsolutePath(),
+            sampleRoot.toString(),
         )
         resolver = MavenDependencyResolver(module, context.http)
     }
@@ -37,7 +36,7 @@ class MavenDependencyResolverTests {
     fun test() = runTest {
         val depTree = builder.resolveDependencyTree(
             root = module,
-            rootFolder = sampleDir.nestedFile("6-dependencies"),
+            rootFolder = sampleDir / "6-dependencies",
             targets = listOf(KotlinTarget.MINGW_X64),
         )
 

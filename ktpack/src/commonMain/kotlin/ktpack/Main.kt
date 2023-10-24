@@ -40,6 +40,7 @@ fun main(args: Array<String>) {
             DocCommand(),
             VersionCommand(),
             DependenciesCommand(),
+            PublishCommand(),
             KotlinCommand()
                 .subcommands(InstallKotlinCommand())
                 .subcommands(RemoveKotlinCommand())

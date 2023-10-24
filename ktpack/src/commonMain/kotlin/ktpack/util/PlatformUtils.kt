@@ -1,8 +1,9 @@
 package ktpack.util
 
 import kotlinx.cinterop.toKString
-import ktfio.*
 import ktpack.configuration.KotlinTarget
+import okio.Path
+import okio.Path.Companion.DIRECTORY_SEPARATOR
 import platform.posix.getenv
 
 /**
@@ -14,7 +15,7 @@ expect fun getHomePath(): String?
 
 expect val workingDirectory: String
 
-expect val TEMP_DIR: File
+expect val TEMP_PATH: Path
 
 @SharedImmutable
 val EXE_EXTENSION by lazy {
@@ -27,7 +28,7 @@ val USER_HOME = checkNotNull(getHomePath()) {
 }
 
 @SharedImmutable
-val KTPACK_ROOT = "${getenv("KTPACK_PATH")?.toKString() ?: USER_HOME}$filePathSeparator.ktpack"
+val KTPACK_ROOT = "${getenv("KTPACK_PATH")?.toKString() ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack"
 
 @SharedImmutable
 val ARCH by lazy {

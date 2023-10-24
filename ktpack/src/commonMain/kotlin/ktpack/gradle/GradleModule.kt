@@ -3,17 +3,20 @@ package ktpack.gradle
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+/**
+ * Models representing the Gradle Module Metadata specification.
+ *
+ * https://github.com/gradle/gradle/blob/fd135460bb8587bd85c6d507c0bfd805d0d3e73b/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+ */
 @Serializable
 data class GradleModule(
+    val formatVersion: String,
     val component: Component? = null,
     val createdBy: CreatedBy? = null,
-    val formatVersion: String,
     val variants: List<Variant> = listOf(),
 ) {
     @Serializable
     data class Component(
-        val attributes: Attributes? = null,
         val group: String,
         val module: String,
         val version: String,
@@ -33,13 +36,22 @@ data class GradleModule(
 
     @Serializable
     data class Variant(
+        val name: String,
         val attributes: Attributes? = null,
         @SerialName("available-at")
         val availableAt: AvailableAt? = null,
         val dependencies: List<Dependency> = listOf(),
+        //val dependencyConstraints: DependencyConstraints
         val files: List<File> = listOf(),
-        val name: String,
+        val capabilities: Capabilities? = null,
     ) {
+
+        @Serializable
+        data class Capabilities(
+            val group: String,
+            val name: String,
+            val version: String,
+        )
 
         @Serializable
         data class AvailableAt(
@@ -54,10 +66,25 @@ data class GradleModule(
             val group: String,
             val module: String,
             val version: Version,
+            val excludes: List<Excludes>? = null,
+            val reason: String? = null,
+            val attributes: Attributes? = null,
+            val requestedCapabilities: List<Capabilities>? = null,
+            val endorseStrictVersions: Boolean = false,
+            // val thirdPartyCompatibility
         ) {
             @Serializable
             data class Version(
                 val requires: String,
+                val prefers: String? = null,
+                val strictly: String? = null,
+                val rejects: String? = null,
+            )
+
+            @Serializable
+            data class Excludes(
+                val group: String,
+                val module: String,
             )
         }
 

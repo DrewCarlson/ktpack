@@ -1,20 +1,17 @@
 package ktpack.util
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import ktfio.deleteRecursively
-import ktfio.nestedFile
 import ktpack.buildDir
+import okio.IOException
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class GitCliTests {
 
     private lateinit var gitCli: GitCli
-    private val testDir = buildDir.nestedFile("test-temp")
+    private val testDir = buildDir / "test-temp"
 
     @BeforeTest
     fun setup() {
@@ -24,7 +21,11 @@ class GitCliTests {
 
     @AfterTest
     fun cleanup() {
-        testDir.deleteRecursively()
+        try {
+            testDir.deleteRecursively()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     @Test
@@ -34,9 +35,9 @@ class GitCliTests {
 
     @Test
     fun testInitRepository() = runTest {
-        assertTrue(gitCli.initRepository(testDir))
+        assertTrue(gitCli.initRepository(testDir.toString()))
 
-        val gitDir = testDir.nestedFile(".git")
+        val gitDir = testDir / ".git"
         assertTrue(gitDir.exists(), "Git directory does not exist")
     }
 }

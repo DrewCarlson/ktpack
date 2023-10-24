@@ -3,10 +3,10 @@ package ktpack.commands
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.requireObject
 import kotlinx.coroutines.runBlocking
-import ktfio.File
 import ktpack.CliContext
 import ktpack.compilation.ModuleBuilder
 import ktpack.util.workingDirectory
+import okio.Path.Companion.toPath
 
 class DependenciesCommand : CliktCommand(
     help = "Manage project dependencies.",
@@ -17,7 +17,7 @@ class DependenciesCommand : CliktCommand(
         val packageConf = context.loadKtpackConf()
         val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
 
-        moduleBuilder.resolveDependencyTree(packageConf.module, File(workingDirectory), emptyList())
+        moduleBuilder.resolveDependencyTree(packageConf.module, workingDirectory.toPath(), emptyList())
             .printDependencyTree()
     }
 }

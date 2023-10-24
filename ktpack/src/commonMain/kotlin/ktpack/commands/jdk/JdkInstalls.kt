@@ -12,12 +12,12 @@ import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flowOn
-import ktfio.File
-import ktfio.appendBytes
-import ktfio.filePathSeparator
-import ktfio.nestedFile
 import ktpack.CliContext
 import ktpack.util.*
+import okio.FileSystem
+import okio.Path
+import okio.Path.Companion.toPath
+import okio.buffer
 import platform.posix.getenv
 
 data class InstallationDetails(
@@ -48,7 +48,7 @@ class JdkInstalls(
 
     fun getDefaultJdk(): InstallationDetails? {
         return findJdk(
-            File(checkNotNull(config.rootPath)),
+            checkNotNull(config.rootPath).toPath(),
             config.version,
             config.distribution,
         )
@@ -57,9 +57,9 @@ class JdkInstalls(
     /**
      * Check if the [jdksRoot] contains any JDK install we recognize.
      */
-    fun hasAnyJdks(jdksRoot: File): Boolean {
-        return jdksRoot.listFiles().any { file ->
-            val fileName = file.getName() // JDK folders use the `zulu-18.0.1` format
+    fun hasAnyJdks(jdksRoot: Path): Boolean {
+        return jdksRoot.list().any { file ->
+            val fileName = file.name // JDK folders use the `zulu-18.0.1` format
             val distribution = try {
                 JdkDistribution.valueOf(fileName.substringBefore('-').replaceFirstChar(Char::uppercase))
             } catch (e: IllegalArgumentException) {
@@ -75,10 +75,10 @@ class JdkInstalls(
      * matches the JDK [version] in [jdksRoot], and optionally matches
      * the [distribution] if provided.
      */
-    fun findJdk(jdksRoot: File, version: String, distribution: JdkDistribution? = null): InstallationDetails? {
+    fun findJdk(jdksRoot: Path, version: String, distribution: JdkDistribution? = null): InstallationDetails? {
         return distribution?.let { dist ->
-            jdksRoot.nestedFile("${dist.name.lowercase()}-$version")
-                .takeIf(File::exists)
+            (jdksRoot / "${dist.name.lowercase()}-$version")
+                .takeIf(Path::exists)
                 ?.let { jdkFolder ->
                     val pathEnv = getenv("PATH")?.toKString().orEmpty()
                     createInstallationDetails(jdkFolder, pathEnv)
@@ -91,11 +91,11 @@ class JdkInstalls(
     /**
      * Find all [InstallationDetails] for JDK installs in [jdksRoot].
      */
-    fun discover(jdksRoot: File, distribution: JdkDistribution? = null): List<InstallationDetails> {
+    fun discover(jdksRoot: Path, distribution: JdkDistribution? = null): List<InstallationDetails> {
         val pathEnv = getenv("PATH")?.toKString().orEmpty()
         val distName = distribution?.name?.lowercase()
-        return jdksRoot.listFiles().mapNotNull { file ->
-            if (distName != null && !file.getName().startsWith(distName)) {
+        return jdksRoot.list().mapNotNull { file ->
+            if (distName != null && !file.name.startsWith(distName)) {
                 null
             } else if (file.isDirectory() && file.list().isNotEmpty()) {
                 createInstallationDetails(file, pathEnv)
@@ -107,7 +107,7 @@ class JdkInstalls(
 
     suspend fun findAndInstallJdk(
         http: HttpClient,
-        jdksRoot: File,
+        jdksRoot: Path,
         version: String,
         distribution: JdkDistribution,
         onProgress: (JdkInstallProgress) -> Unit,
@@ -126,8 +126,8 @@ class JdkInstalls(
             return JdkInstallResult.AlreadyInstalled(existingInstallation)
         }
 
-        val tempArchiveFile = TEMP_DIR.nestedFile(archiveName)
-        val tempExtractedFolder = TEMP_DIR.nestedFile(archiveName.substringBeforeLast(packageExtension))
+        val tempArchiveFile = TEMP_PATH / archiveName
+        val tempExtractedFolder = TEMP_PATH / archiveName.substringBeforeLast(packageExtension)
         if (!tempArchiveFile.createNewFile()) {
             return JdkInstallResult.FileIOError(tempArchiveFile, "Unable to create temp file")
         }
@@ -142,13 +142,13 @@ class JdkInstalls(
         }
 
         val compressor = if (Platform.osFamily == OsFamily.WINDOWS) Zip else Tar
-        val archivePath = tempArchiveFile.getAbsolutePath()
+        val archivePath = tempArchiveFile.toString()
         val fileCount = compressor.countFiles(archivePath)
         val lastFileIndex = (fileCount - 1).toDouble()
         var lastReportedProgress = 0
         check(tempArchiveFile.exists()) { "Downloaded temp archive does not exist." }
         tempExtractedFolder.mkdirs()
-        compressor.extract(archivePath, tempExtractedFolder.getAbsolutePath())
+        compressor.extract(archivePath, tempExtractedFolder.toString())
             .flowOn(Dispatchers.Default)
             .collectIndexed { index, _ ->
                 val completed = ((index / lastFileIndex) * 100).toInt()
@@ -159,10 +159,10 @@ class JdkInstalls(
             }
         tempArchiveFile.delete()
         val newJdkName = "${distribution.name.lowercase()}-$jdkVersionString"
-        val newJdkFolder = jdksRoot.nestedFile(newJdkName)
+        val newJdkFolder = jdksRoot / newJdkName
         // If extracted archive contains a single child folder, move that instead
-        val moveTarget = tempExtractedFolder.listFiles().singleOrNull() ?: tempExtractedFolder
-        return if (newJdkFolder.exists() && newJdkFolder.listFiles().isNotEmpty()) {
+        val moveTarget = tempExtractedFolder.list().singleOrNull() ?: tempExtractedFolder
+        return if (newJdkFolder.exists() && newJdkFolder.list().isNotEmpty()) {
             JdkInstallResult.FileIOError(newJdkFolder, "JDK folder already exists and is not empty.")
         } else if (moveTarget.renameTo(newJdkFolder)) {
             JdkInstallResult.Success(checkNotNull(createInstallationDetails(newJdkFolder, pathEnv)))
@@ -174,7 +174,7 @@ class JdkInstalls(
     private suspend fun HttpClient.downloadPackage(
         downloadUrl: String,
         onProgress: (JdkInstallProgress) -> Unit,
-        tempArchiveFile: File,
+        tempArchiveFile: Path,
     ): HttpResponse = prepareGet(downloadUrl) {
         onProgress(JdkInstallProgress.Started(downloadUrl))
         var lastReportedProgress = 0
@@ -187,30 +187,37 @@ class JdkInstalls(
         }
     }.execute { response ->
         val body = response.bodyAsChannel()
-        while (!body.isClosedForRead) {
-            val packet = body.readRemaining(DOWNLOAD_BUFFER_SIZE)
-            while (packet.isNotEmpty) {
-                tempArchiveFile.appendBytes(packet.readBytes())
+        val sink = FileSystem.SYSTEM.appendingSink(tempArchiveFile)
+        val bufferedSink = sink.buffer()
+        try {
+            while (!body.isClosedForRead) {
+                val packet = body.readRemaining(DOWNLOAD_BUFFER_SIZE)
+                while (packet.isNotEmpty) {
+                    bufferedSink.write(packet.readBytes())
+                }
             }
+        } finally {
+            bufferedSink.close()
+            sink.close()
         }
         response
     }
 
-    private fun createInstallationDetails(file: File, pathEnv: String): InstallationDetails? {
-        val fileName = file.getName() // JDK folders use the `zulu-18.0.1` format
+    private fun createInstallationDetails(file: Path, pathEnv: String): InstallationDetails? {
+        val fileName = file.name // JDK folders use the `zulu-18.0.1` format
         val distribution = try {
             JdkDistribution.valueOf(fileName.substringBefore('-').replaceFirstChar(Char::uppercase))
         } catch (e: IllegalArgumentException) {
             return null
         }
-        val intellijManifestFilename = "${file.getParent()}$filePathSeparator.$fileName.intellij"
+        val intellijManifestFilename = file / ".$fileName.intellij"
         return InstallationDetails(
             distribution = distribution,
             version = fileName.substringAfter('-'),
-            intellijManifest = File(intellijManifestFilename).run {
-                if (exists()) getAbsolutePath() else null
+            intellijManifest = intellijManifestFilename.run {
+                if (exists()) toString() else null
             },
-            path = file.getAbsolutePath(),
+            path = file.toString(),
             isActive = pathEnv.contains(fileName),
         )
     }
@@ -351,14 +358,14 @@ sealed class JdkInstallResult {
         val installation: InstallationDetails,
     ) : JdkInstallResult()
 
-    object NoMatchingVersion : JdkInstallResult()
+    data object NoMatchingVersion : JdkInstallResult()
 
     data class AlreadyInstalled(
         val installation: InstallationDetails,
     ) : JdkInstallResult()
 
     data class FileIOError(
-        val file: File,
+        val file: Path,
         val message: String,
     ) : JdkInstallResult()
 

@@ -8,20 +8,13 @@ import com.github.ajalt.mordant.terminal.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.utils.io.core.*
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import ktfio.File
-import ktfio.readText
 import ktpack.*
 import ktpack.commands.jdk.JdkInstalls
 import ktpack.commands.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
 import ktpack.task.TaskRunner
-import ktpack.util.GitCli
-import ktpack.util.KTPACK_ROOT
-import ktpack.util.info
-import ktpack.util.verbose
+import ktpack.util.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -41,19 +34,19 @@ class KtpackCommand(
     }
 
     override val config: KtpackUserConfig by lazy {
-        File(KTPACK_ROOT, "config.json").run {
+        pathFrom(KTPACK_ROOT, "config.json").run {
             if (!exists()) {
                 FileSystem.SYSTEM.createDirectory(KTPACK_ROOT.toPath(), mustCreate = false)
                 // check(File(KTPACK_ROOT).mkdirs()) {
                 //    "Failed to create Ktpack folder $KTPACK_ROOT"
                 // }
-                println(getAbsolutePath())
-                FileSystem.SYSTEM.write("${KTPACK_ROOT}/config.json".toPath(true), true) {
-                    write(json.encodeToString(KtpackUserConfig()).toByteArray())
+                println(toString())
+                writeUtf8(json.encodeToString(KtpackUserConfig())) { error ->
+                    logError(error)
                 }
             }
 
-            json.decodeFromString(readText())
+            json.decodeFromString(readUtf8())
         }
     }
 
@@ -62,6 +55,10 @@ class KtpackCommand(
     override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
 
     override val gitCli: GitCli = GitCli()
+
+    override val rebuild: Boolean by option()
+        .help("Force the pack script to be rebuilt, even if it has not changed.")
+        .flag()
 
     override val stacktrace: Boolean by option()
         .help("Print the stacktrace in the case of an unhandled exception.")
@@ -72,8 +69,8 @@ class KtpackCommand(
 
     override val taskRunner: TaskRunner = TaskRunner()
 
-    override suspend fun loadKtpackConf(filePath: String, forceRebuild: Boolean): KtpackConf {
-        return ktpack.script.loadKtpackConf(this, filePath, forceRebuild)
+    override suspend fun loadKtpackConf(filePath: String): KtpackConf {
+        return ktpack.script.loadKtpackConf(this, filePath, rebuild)
     }
 
     override fun run() {

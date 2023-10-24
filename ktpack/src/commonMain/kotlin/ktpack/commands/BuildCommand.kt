@@ -50,7 +50,7 @@ class BuildCommand : CliktCommand(
                 append(success("Compiling"))
                 append(" ${packageConf.module.name}")
                 append(" v${packageConf.module.version}")
-                append(" (${moduleBuilder.srcFolder.getParent()})")
+                append(" (${moduleBuilder.srcFolder.parent})")
             },
         )
 

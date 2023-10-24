@@ -5,9 +5,9 @@ import com.github.ajalt.clikt.parameters.arguments.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
-import ktfio.File
 import ktpack.CliContext
 import ktpack.util.*
+import okio.Path.Companion.toPath
 
 class InstallJdkCommand : CliktCommand(
     name = "install",
@@ -29,10 +29,10 @@ class InstallJdkCommand : CliktCommand(
 
     private val path by option()
         .help("The root path to store the JDK installation.")
-        .convert { File(it) }
-        .defaultLazy { File(checkNotNull(context.config.jdk.rootPath)) }
+        .convert { it.toPath() }
+        .defaultLazy { checkNotNull(context.config.jdk.rootPath).toPath() }
         .check({ "JDK root path must exist." }) { path ->
-            (path.exists() && path.isDirectory()) || path.mkdirs()
+            (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }
 
     override fun run() = runBlocking {
@@ -88,7 +88,7 @@ class InstallJdkCommand : CliktCommand(
             }
 
             is JdkInstallResult.FileIOError -> {
-                context.term.println("${failed("Extracting")} ${installResult.message} ${installResult.file.getAbsolutePath()}")
+                context.term.println("${failed("Extracting")} ${installResult.message} ${installResult.file}")
             }
 
             JdkInstallResult.NoMatchingVersion -> {

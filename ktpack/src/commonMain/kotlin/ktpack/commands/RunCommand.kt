@@ -12,8 +12,6 @@ import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ksubprocess.*
-import ktfio.File
-import ktfio.filePathSeparator
 import ktpack.*
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
@@ -21,6 +19,7 @@ import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
+import okio.Path.Companion.DIRECTORY_SEPARATOR
 import kotlin.system.exitProcess
 
 class RunCommand : CliktCommand(
@@ -55,13 +54,13 @@ class RunCommand : CliktCommand(
                 append(success("Compiling"))
                 append(" ${packageConf.module.name}")
                 append(" v${packageConf.module.version}")
-                append(" (${moduleBuilder.srcFolder.getParent()})")
+                append(" (${moduleBuilder.srcFolder.parent})")
             },
         )
         val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         val result = terminal.loadingIndeterminate(
             animate = { text, duration ->
-                bold(brightWhite(text)) + reset(brightWhite(" ${duration.inWholeSeconds}s"))
+                bold(brightWhite(text)) + reset(white(" ${duration.inWholeSeconds}s"))
             },
         ) {
             moduleBuilder.buildBin(releaseMode, targetBin, target)
@@ -79,7 +78,7 @@ class RunCommand : CliktCommand(
                         } else {
                             append(" dev [unoptimized + debuginfo] target(s)")
                         }
-                        append(" in ${result.compilationDuration}s")
+                        append(" in ${bold(white(result.compilationDuration.toString()))}s")
                     },
                 )
                 context.term.println("${success("Running")} '${result.artifactPath}'")
@@ -88,15 +87,13 @@ class RunCommand : CliktCommand(
                         runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     if (exitCode == 0) {
-                        context.term.println("${success("Finished")} Program completed successfully in ${duration}s")
+                        context.term.println("${success("Finished")} Program completed successfully in ${bold(white(duration.toString()))}s")
                     } else {
-                        context.term.println("${failed("Failed")} Program terminated with code ($exitCode) in ${duration}s")
+                        context.term.println("${failed("Failed")} Program terminated with code ($exitCode) in ${bold(white(duration.toString()))}s")
                     }
                 } catch (e: IOException) {
                     context.term.println("${failed("Failed")} Program could not be started due to an IO error")
-                    if (context.stacktrace) {
-                        context.term.println((e.cause ?: e).stackTraceToString())
-                    }
+                    context.logError(e)
                 }
             }
 
@@ -134,7 +131,7 @@ class RunCommand : CliktCommand(
                         context.term.println("${failed("Failed")} Could not find JDK installation.")
                         exitProcess(1)
                     }
-                    arg(File(jdkInstallation.path, "bin", "java").getAbsolutePath())
+                    arg(pathFrom(jdkInstallation.path, "bin", "java").name)
                     args("-classpath", (dependencyArtifacts + artifactPath).joinToString(CPSEP))
                     arg("MainKt") // TODO: get main class from artifact
                 }
@@ -166,7 +163,7 @@ class RunCommand : CliktCommand(
     }
 
     private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) = memScoped {
-        val artifactName = artifactPath.substringAfterLast(filePathSeparator)
+        val artifactName = artifactPath.substringAfterLast(DIRECTORY_SEPARATOR)
         val manager = alloc<mg_mgr>()
         val arg = StableRef.create(HttpAccessHandlerData(module, artifactPath, artifactName))
         mg_mgr_init(manager.ptr)

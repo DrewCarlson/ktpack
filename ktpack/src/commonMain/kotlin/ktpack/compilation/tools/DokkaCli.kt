@@ -1,8 +1,8 @@
 package ktpack.compilation.tools
 
 import ksubprocess.Process
-import ktfio.File
 import ktpack.configuration.KtpackConf
+import ktpack.util.pathFrom
 
 // https://kotlin.github.io/dokka/1.7.10/user_guide/cli/usage/
 // 1. Download dokka-cli (and deps) from https://repo1.maven.org/maven2/org/jetbrains/dokka/dokka-cli/1.7.10/dokka-cli-1.7.10.jar
@@ -11,10 +11,10 @@ import ktpack.configuration.KtpackConf
 class DokkaCli {
 
     fun runDokka(ktpackConf: KtpackConf) {
-        val outputDir = File("out", "docs", ktpackConf.module.name)
+        val outputDir = pathFrom("out", "docs", ktpackConf.module.name)
         Process {
             // the output directory where the documentation is generated
-            args("-outputDir", outputDir.getAbsolutePath())
+            args("-outputDir", outputDir.toString())
             // (required) - module name used as a part of source set ID when declaring dependent source sets
             args("-moduleName", ktpackConf.module.name)
             // cache directory to enable package-list caching

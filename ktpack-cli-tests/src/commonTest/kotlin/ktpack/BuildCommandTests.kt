@@ -6,7 +6,9 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import ksubprocess.ProcessException
 import ksubprocess.exec
+import ktfio.File
 import ktfio.deleteRecursively
+import ktpack.util.deleteRecursively
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
@@ -32,7 +34,9 @@ class BuildCommandTests {
     fun `6 dependencies`() = buildSample("6-dependencies")
 
     private fun buildSample(name: String): TestResult = runTest(timeout = 180.seconds) {
+        //File(getSample(name, "out").toString()).deleteRecursively()
         getSample(name, "out").deleteRecursively()
+
         val workingDir = getSamplePath(name)
         val result = Dispatchers.Default {
             try {

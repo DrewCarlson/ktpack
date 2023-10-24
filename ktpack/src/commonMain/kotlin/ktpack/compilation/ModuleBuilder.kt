@@ -9,8 +9,9 @@ import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.dependencies.models.ChildDependencyNode
 import ktpack.compilation.dependencies.models.RootDependencyNode
 import ktpack.configuration.*
-import ktpack.util.CPSEP
-import ktpack.util.measureSeconds
+import ktpack.util.*
+import okio.Path
+import okio.Path.Companion.toPath
 
 sealed class ArtifactResult {
     data class Success(
@@ -36,9 +37,9 @@ class ModuleBuilder(
     private val context: CliContext,
     private val basePath: String,
 ) {
-    private val moduleFolder = File(basePath)
-    val outFolder = moduleFolder.nestedFile("out")
-    val srcFolder = moduleFolder.nestedFile("src")
+    private val moduleFolder = basePath.toPath()
+    val outFolder = moduleFolder / "out"
+    val srcFolder = moduleFolder / "src"
 
     private val resolver = MavenDependencyResolver(module, context.http)
 
@@ -65,20 +66,20 @@ class ModuleBuilder(
     enum class BuildType { BIN, LIB }
 
     fun collectSourceFiles(target: KotlinTarget, buildType: BuildType): CollectedSource {
-        check(srcFolder.isDirectory()) { "Expected directory at ${srcFolder.getAbsolutePath()}" }
+        check(srcFolder.isDirectory()) { "Expected directory at $srcFolder" }
         val (mainFileName, secondaryDir) = when (buildType) {
             BuildType.BIN -> "main.kt" to "bin"
             BuildType.LIB -> "lib.kt" to "lib"
         }
         val sourceAliases = targetFolderAliases.getValue(target)
-        val sourceFolderPath = srcFolder.getAbsolutePath()
         val targetKotlinRoots = (sourceAliases + "common").mapNotNull { alias ->
-            File(sourceFolderPath, alias, "kotlin").takeIf(File::exists)
+            (srcFolder / alias / "kotlin").takeIf(Path::exists)
         }
         val sourceFiles = targetKotlinRoots.flatMap { targetKotlinRoot ->
-            targetKotlinRoot.walkTopDown()
+            val targetFolder = File(targetKotlinRoot.toString())
+            targetFolder.walkTopDown()
                 .onEnter { folder ->
-                    if (folder.getParentFileUnsafe() == targetKotlinRoot) {
+                    if (folder.getParentFileUnsafe() == targetFolder) {
                         folder.getName() != secondaryDir
                     } else {
                         true
@@ -92,10 +93,10 @@ class ModuleBuilder(
                 .toList()
         }
         val mainFile = targetKotlinRoots.firstNotNullOfOrNull { kotlinRoot ->
-            kotlinRoot.nestedFile(mainFileName).takeIf(File::exists)
+            (kotlinRoot / mainFileName).takeIf(Path::exists)
         }
         val binFiles = targetKotlinRoots.flatMap { kotlinRoot ->
-            val binRoot = kotlinRoot.nestedFile(secondaryDir)
+            val binRoot = File(kotlinRoot.toString()).nestedFile(secondaryDir)
             if (binRoot.exists()) {
                 binRoot.walk()
                     .drop(1) // Ignore the parent folder
@@ -108,7 +109,7 @@ class ModuleBuilder(
 
         return CollectedSource(
             sourceFiles = sourceFiles,
-            mainFile = mainFile?.getAbsolutePath(),
+            mainFile = mainFile?.toString(),
             binFiles = binFiles,
         )
     }
@@ -134,9 +135,9 @@ class ModuleBuilder(
         } ?: return@Default ArtifactResult.NoArtifactFound
 
         val modeString = if (releaseMode) "release" else "debug"
-        val targetBinDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "bin")
+        val targetBinDir = outFolder / target.name.lowercase() / modeString / "bin"
         if (!targetBinDir.exists()) targetBinDir.mkdirs()
-        val outputPath = targetBinDir.nestedFile(binName).getAbsolutePath()
+        val outputPath = (targetBinDir / binName).toString()
         val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, false)
             .filterChildVersions()
             .map { resolver.resolve(it, releaseMode, target, downloadArtifacts = true, recurse = false) }
@@ -179,12 +180,11 @@ class ModuleBuilder(
         val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
 
         val modeString = if (releaseMode) "release" else "debug"
-        val targetLibDir = File(outFolder.getAbsolutePath(), target.name.lowercase(), modeString, "lib")
+        val targetLibDir = outFolder / target.name.lowercase() / modeString / "lib"
         if (!targetLibDir.exists()) targetLibDir.mkdirs()
 
         val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
-        val outputPath = listOf(targetLibDir.getAbsolutePath(), module.name)
-            .joinToString(filePathSeparator.toString())
+        val outputPath = (targetLibDir / module.name).toString()
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
                 libFile,
@@ -214,13 +214,13 @@ class ModuleBuilder(
             if (context.debug) it.printDependencyTree()
         }
 
-        if (!outFolder.exists() && !outFolder.mkdirs()) {
-            error("Could not create build folder: ${outFolder.getAbsolutePath()}")
+        if (!outFolder.exists() && !outFolder.mkdirs().exists()) {
+            error("Could not create build folder: $outFolder")
         }
 
         val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
         val sourceFiles = collectSourceFiles(target, BuildType.BIN) // TODO: Scan only for main.kt and bin files
-        val mainSource: File? = sourceFiles.mainFile?.run(::File)
+        val mainSource: Path? = sourceFiles.mainFile?.toPath()
         return listOfNotNull(
             if (mainSource?.exists() == true) {
                 buildBin(releaseMode, module.name, target, resolvedDeps.artifacts)
@@ -228,8 +228,7 @@ class ModuleBuilder(
                 null
             },
         ) + sourceFiles.binFiles.map { otherBin ->
-            val binFile = File(otherBin)
-            buildBin(releaseMode, binFile.nameWithoutExtension, target, resolvedDeps.artifacts)
+            buildBin(releaseMode, otherBin.toPath().nameWithoutExtension, target, resolvedDeps.artifacts)
         }
     }
 
@@ -283,8 +282,8 @@ class ModuleBuilder(
         downloadArtifacts: Boolean,
         libs: List<String>? = null,
     ): ChildDependencyNode {
-        val childPath = "${basePath}${filePathSeparator}${child.localModule!!.name}"
-        val childBuilder = ModuleBuilder(child.localModule, context, childPath)
+        val childPath = pathFrom(basePath, child.localModule!!.name)
+        val childBuilder = ModuleBuilder(child.localModule, context, childPath.toString())
 
         val innerDepNodes = child.children
             .filter { it.dependencyConf is DependencyConf.LocalPathDependency }
@@ -321,7 +320,7 @@ class ModuleBuilder(
 
     suspend fun resolveDependencyTree(
         root: ModuleConf,
-        rootFolder: File,
+        rootFolder: Path,
         targets: List<KotlinTarget>,
     ): RootDependencyNode {
         val dependencies = root.dependencies
@@ -340,7 +339,7 @@ class ModuleBuilder(
 
     suspend fun resolveMavenDependency(
         dependencyConf: DependencyConf.MavenDependency,
-        rootFolder: File,
+        rootFolder: Path,
         targets: List<KotlinTarget>,
     ): ChildDependencyNode {
         return fetchMavenDependency(
@@ -357,13 +356,13 @@ class ModuleBuilder(
 
     private suspend fun resolveLocalDependency(
         dependencyConf: DependencyConf.LocalPathDependency,
-        rootFolder: File,
+        rootFolder: Path,
         targets: List<KotlinTarget>,
     ): ChildDependencyNode {
-        val packFile = rootFolder.nestedFile(dependencyConf.path).nestedFile(PACK_SCRIPT_FILENAME)
-        val localModule = context.loadKtpackConf(packFile.getAbsolutePath()).module
+        val packFile = rootFolder / dependencyConf.path / PACK_SCRIPT_FILENAME
+        val localModule = context.loadKtpackConf(packFile.toString()).module
         val children =
-            resolveDependencyTree(localModule, rootFolder.nestedFile(dependencyConf.path), targets).children
+            resolveDependencyTree(localModule, rootFolder / dependencyConf.path, targets).children
         return ChildDependencyNode(
             localModule = localModule,
             dependencyConf = dependencyConf,
@@ -519,8 +518,8 @@ class ModuleBuilder(
 
         arg("-Xmulti-platform")
 
-        val serializationPlugin = File(context.kotlinInstalls.findKotlinHome(kotlinVersion), "lib")
-            .nestedFile("kotlinx-serialization-compiler-plugin.jar")
+        //val serializationPlugin = File(context.kotlinInstalls.findKotlinHome(kotlinVersion), "lib")
+        //    .nestedFile("kotlinx-serialization-compiler-plugin.jar")
         // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
 
         // args("-kotlin-home", path)

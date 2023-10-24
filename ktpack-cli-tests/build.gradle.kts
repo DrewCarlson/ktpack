@@ -32,18 +32,17 @@ val installTestConfig by tasks.creating {
             configFile.writeText(
                 """|package ktpack
                    |
-                   |import ktfio.File
-                   |import ktfio.nestedFile
+                   |import okio.*
+                   |import okio.Path.Companion.toPath
+                   |import ktpack.util.*
                    |
                    |val KTPACK_BIN = "$ktpackBin"
                    |
-                   |fun getSample(vararg names: String): File {
-                   |    var file = File("${rootProject.file("samples").absolutePath}")
-                   |    names.forEach { name -> file = file.nestedFile(name) }
-                   |    return file
+                   |fun getSample(vararg names: String): Path {
+                   |    return pathFrom("${rootProject.file("samples").absolutePath}", *names)
                    |}
                    |
-                   |fun getSamplePath(name: String): String = getSample(name).getAbsolutePath()
+                   |fun getSamplePath(name: String): String = getSample(name).toString()
                    |""".trimMargin().replace("\\", "\\\\")
             )
         }

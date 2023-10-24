@@ -8,10 +8,9 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
-import ktfio.File
-import ktfio.deleteRecursively
 import ktpack.CliContext
 import ktpack.util.*
+import okio.Path.Companion.toPath
 
 class RemoveJdkCommand : CliktCommand(
     name = "remove",
@@ -27,10 +26,10 @@ class RemoveJdkCommand : CliktCommand(
 
     private val path by option()
         .help("The folder path where JDKs are stored.")
-        .convert { File(it) }
-        .defaultLazy { File(checkNotNull(context.config.jdk.rootPath)) }
+        .convert { it.toPath() }
+        .defaultLazy { checkNotNull(context.config.jdk.rootPath).toPath() }
         .validate { path ->
-            (path.exists() && path.isDirectory()) || path.mkdirs()
+            (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }
 
     private val context by requireObject<CliContext>()
@@ -82,7 +81,7 @@ class RemoveJdkCommand : CliktCommand(
         }
 
         // Attempt to delete jdk folder
-        if (File(match.path).deleteRecursively()) {
+        if (match.path.toPath().deleteRecursively()) {
             context.term.println("${success("Success")} JDK ${info(match.distribution.name)} ${info(match.version)} was removed")
         } else {
             context.term.println("${failed("Failed")} JDK install was not removed")

@@ -11,6 +11,7 @@ import ktpack.util.GitCli
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
     override val debug: Boolean = true
+    override val rebuild: Boolean = true
     override val taskRunner: TaskRunner = TaskRunner()
     override val http: HttpClient = HttpClient()
     override val term: Terminal
@@ -20,7 +21,7 @@ class TestCliContext : CliContext {
     override val kotlinInstalls: KotlincInstalls = KotlincInstalls(this)
     override val gitCli: GitCli = GitCli()
 
-    override suspend fun loadKtpackConf(filePath: String, forceRebuild: Boolean): KtpackConf {
-        return ktpack.script.loadKtpackConf(this, filePath, forceRebuild)
+    override suspend fun loadKtpackConf(filePath: String): KtpackConf {
+        return ktpack.script.loadKtpackConf(this, filePath, rebuild)
     }
 }

@@ -1,12 +1,12 @@
 package ktpack.util
 
-import ktfio.File
 import platform.Foundation.NSTemporaryDirectory
 
-actual val TEMP_DIR: File by lazy {
-    File(NSTemporaryDirectory()).also { file ->
-        if (!file.exists()) {
-            check(file.mkdirs()) { "Failed to create temp directory: ${file.getAbsolutePath()}" }
+actual val TEMP_PATH: Path by lazy {
+    NSTemporaryDirectory().toPath().apply {
+        if (!exists()) {
+            check(mkdirs().exists()) { "Failed to create temp directory: ${toString()}" }
         }
     }
 }
+

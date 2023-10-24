@@ -9,8 +9,6 @@ copyright: 'Copyright &copy; 2023 Drew Carlson'
 
 theme:
   name: material
-  palette:
-    scheme: slate
   icon:
     repo: fontawesome/brands/github
   palette:
@@ -41,11 +39,11 @@ markdown_extensions:
 plugins:
   - search
   - mike
-  - markdownextradata: {}
+  - markdownextradata: { }
 
 extra:
-  versions:
-    ktpack: !ENV [KTPACK_VERSION, '0.0.1-test']
+  project: Ktpack
+  lib_version: !ENV [ VERSION, '0.0.1-test' ]
   version:
     provider: mike
   social:
@@ -58,5 +56,8 @@ nav:
   - index.md
   - Installation: installation.md
   - Getting Started: getting-started.md
-  - Development: development.md
+  - Development:
+      - Environment Setup: development/environment-setup.md
+      - CLI Architecture: development/cli-architecture.md
+      - Documentation: development/documentation.md
   - Motivation: motivation.md

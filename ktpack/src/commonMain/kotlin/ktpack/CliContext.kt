@@ -11,6 +11,7 @@ import ktpack.util.GitCli
 interface CliContext {
     val stacktrace: Boolean
     val debug: Boolean
+    val rebuild: Boolean
     val taskRunner: TaskRunner
     val http: HttpClient
     val term: Terminal
@@ -19,8 +20,5 @@ interface CliContext {
     val kotlinInstalls: KotlincInstalls
     val gitCli: GitCli
 
-    suspend fun loadKtpackConf(
-        filePath: String = PACK_SCRIPT_FILENAME,
-        forceRebuild: Boolean = false,
-    ): KtpackConf
+    suspend fun loadKtpackConf(filePath: String = PACK_SCRIPT_FILENAME): KtpackConf
 }

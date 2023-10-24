@@ -20,3 +20,14 @@
 </p>
 
 ---
+
+### Overview
+
+Ktpack is a build tool for [Kotlin Multiplatform](https://kotl.in/multiplatform) projects
+providing a comprehensive set of features with one configuration file:
+
+- Multiple binary application outputs and library modules
+- Write tests and benchmarks inside or next to main source files
+- Automatic Kotlin, JVM, and JS toolchain management
+- Consume Maven dependencies or [npm](https://www.npmjs.com/) dependencies
+- Publishing to libraries to Maven and applications to Github

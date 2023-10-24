@@ -5,12 +5,12 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
-import ktfio.File
-import ktfio.deleteRecursively
 import ktpack.CliContext
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
 import ktpack.util.*
+import okio.Path
+import okio.Path.Companion.toPath
 
 class CleanCommand : CliktCommand(
     help = "Remove generated artifacts and folders.",
@@ -28,25 +28,28 @@ class CleanCommand : CliktCommand(
         val module = packageConf.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
-        val dependencyTree = moduleBuilder.resolveDependencyTree(module, File(workingDirectory), listOfNotNull(userTarget))
-        dependencyTree.children.mapNotNull { child ->
-            child.localModule?.name
-        }.forEach { name ->
-            if (userTarget == null) {
-                File(name, "out")
-            } else {
-                File(name, "out", userTarget.name.lowercase())
+        val dependencyTree =
+            moduleBuilder.resolveDependencyTree(module, workingDirectory.toPath(), listOfNotNull(userTarget))
+        dependencyTree.children
+            .mapNotNull { child -> child.localModule?.name }
+            .map { name ->
+                // TODO: Handle cleaning local child dependency build folder
+                if (userTarget == null) {
+                    pathFrom(name, "out")
+                } else {
+                    pathFrom(name, "out", userTarget.name.lowercase())
+                }
             }
-        }
+
         val outDir = if (userTarget == null) {
-            File("out")
+            "out".toPath()
         } else {
-            File("out", userTarget.name.lowercase())
+            pathFrom("out", userTarget.name.lowercase())
         }
         tryDeleteDirectory(outDir, userTarget)
     }
 
-    private fun tryDeleteDirectory(outDir: File, target: KotlinTarget?) {
+    private fun tryDeleteDirectory(outDir: Path, target: KotlinTarget?) {
         if (!outDir.exists() || !outDir.isDirectory()) {
             context.term.println("${success("Clean")} No files to delete")
         } else if (outDir.deleteRecursively()) {
