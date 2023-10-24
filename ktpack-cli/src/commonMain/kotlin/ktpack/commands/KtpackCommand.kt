@@ -10,9 +10,9 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import ktpack.*
-import ktpack.commands.jdk.JdkInstalls
-import ktpack.commands.kotlin.KotlincInstalls
+import ktpack.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
+import ktpack.jdk.JdkInstalls
 import ktpack.task.TaskRunner
 import ktpack.util.*
 import okio.FileSystem

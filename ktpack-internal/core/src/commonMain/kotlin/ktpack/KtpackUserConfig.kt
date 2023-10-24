@@ -1,7 +1,7 @@
 package ktpack
 
 import kotlinx.serialization.Serializable
-import ktpack.commands.jdk.JdkDistribution
+import ktpack.jdk.JdkDistribution
 import ktpack.util.USER_HOME
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 

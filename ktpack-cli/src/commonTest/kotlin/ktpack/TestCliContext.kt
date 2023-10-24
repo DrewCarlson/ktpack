@@ -3,7 +3,7 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
 import ktpack.commands.jdk.JdkInstalls
-import ktpack.commands.kotlin.KotlincInstalls
+import ktpack.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
 import ktpack.task.TaskRunner
 import ktpack.util.GitCli

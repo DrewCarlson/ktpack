@@ -10,9 +10,6 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
 import kotlin.system.*
 
-const val PACK_SCRIPT_FILENAME = "pack.kts"
-
-
 fun main(args: Array<String>) {
     val term = Terminal()
     val command = KtpackCommand(term).apply {

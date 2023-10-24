@@ -4,18 +4,23 @@ import io.ktor.utils.io.errors.*
 import ksubprocess.ProcessException
 import ksubprocess.Redirect
 import ksubprocess.exec
+import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.buffer
+import okio.use
 
 
 // Splits `name = bob` into 1:name and 2:bob
 private val gitconfigRegex = """^\s*([A-Za-z]*)\s?=\s?(.*)$""".toRegex()
 
-class GitCli {
+class GitCli(
+    private val fileSystem: FileSystem = FileSystem.SYSTEM
+) {
 
     private val gitPath: String = when (Platform.osFamily) {
         OsFamily.WINDOWS -> "git.exe"
-        OsFamily.MACOSX -> "/usr/local/bin/git".toPath().run {
-            if (exists()) toString() else "/usr/bin/git"
+        OsFamily.MACOSX -> "/usr/local/bin/git".toPath().let {
+            if (fileSystem.exists(it)) toString() else "/usr/bin/git"
         }
         OsFamily.LINUX -> "/usr/bin/git"
         else -> error("Unsupported host os")
@@ -57,9 +62,11 @@ class GitCli {
     }
 
     fun discoverAuthorDetails(): Map<String, String> {
-        val gitconfig = pathFrom(USER_HOME, ".gitconfig")
-        if (!gitconfig.exists()) return emptyMap()
-        return gitconfig.readUtf8Lines()
+        val gitconfig = USER_HOME.toPath() / ".gitconfig"
+        if (!fileSystem.exists(gitconfig)) return emptyMap()
+        return fileSystem.source(gitconfig)
+            .use { source -> source.buffer().use { it.readUtf8() } }
+            .lineSequence()
             .filter(gitconfigRegex::containsMatchIn)
             .mapNotNull { config ->
                 val result = checkNotNull(gitconfigRegex.find(config))

@@ -6,6 +6,9 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
+import ktpack.jdk.JdkDistribution
+import ktpack.jdk.JdkInstallProgress
+import ktpack.jdk.JdkInstallResult
 import ktpack.util.*
 import okio.Path.Companion.toPath
 
@@ -81,9 +84,9 @@ class InstallJdkCommand : CliktCommand(
             is JdkInstallResult.DownloadError -> {
                 context.term.println("${failed("Downloading")} Error while downloading JDK")
                 if (installResult.cause != null) {
-                    context.term.println("${failed("Downloading")} ${installResult.cause.stackTraceToString()}")
+                    context.term.println("${failed("Downloading")} ${installResult.cause!!.stackTraceToString()}")
                 } else if (installResult.response != null) {
-                    context.term.println("${failed("Downloading")} Server responded with ${installResult.response.status}")
+                    context.term.println("${failed("Downloading")} Server responded with ${installResult.response!!.status}")
                 }
             }
 

@@ -12,6 +12,7 @@ include(
     ":ktpack-internal:git",
     ":ktpack-internal:gradle",
     ":ktpack-internal:maven",
+    ":ktpack-internal:platform",
     ":ktpack-internal:test-utils",
     ":libs:mongoose",
     ":libs:zip",

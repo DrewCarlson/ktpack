@@ -9,12 +9,6 @@ plugins {
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 kotlin {
-
-    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
-        binaries.all {
-            //freeCompilerArgs += "-Xincremental"
-        }
-    }
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
@@ -33,7 +27,6 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                optIn("kotlin.time.ExperimentalTime")
                 optIn("kotlinx.coroutines.FlowPreview")
                 optIn("kotlinx.serialization.ExperimentalSerializationApi")
                 optIn("kotlinx.cinterop.ExperimentalForeignApi")
@@ -43,29 +36,19 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                implementation(project(":ktpack-internal:platform"))
-                implementation(libs.ksubprocess)
-                implementation(libs.coroutines.core)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.contentNegotiation)
-                implementation(libs.ktor.serialization)
-                implementation(libs.kotlinx.datetime)
+                implementation(project(":ktpack-models"))
+                implementation(libs.okio)
             }
         }
 
         val commonTest by getting {
             dependencies {
-                implementation(project(":ktpack-internal:test-utils"))
-                implementation(libs.coroutines.test)
             }
         }
 
         if (!hostOs.isLinux) {
             val windowsX64Main by getting {
                 dependencies {
-                    implementation(libs.ktor.client.winhttp)
                 }
             }
         }
@@ -78,14 +61,12 @@ kotlin {
             val linuxX64Main by getting {
                 dependsOn(posixMain)
                 dependencies {
-                    implementation(libs.ktor.client.curl)
                 }
             }
             if (!hostOs.isLinux/* i.e. isMacos */) {
                 val darwinMain by creating {
                     dependsOn(posixMain)
                     dependencies {
-                        implementation(libs.ktor.client.darwin)
                     }
                 }
                 val darwinTest by creating { dependsOn(commonTest) }

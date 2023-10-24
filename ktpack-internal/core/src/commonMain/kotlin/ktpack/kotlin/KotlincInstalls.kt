@@ -1,4 +1,4 @@
-package ktpack.commands.kotlin
+package ktpack.kotlin
 
 import kotlinx.cinterop.toKString
 import ktpack.CliContext

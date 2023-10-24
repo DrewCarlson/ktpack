@@ -1,4 +1,4 @@
-package ktpack.commands.jdk
+package ktpack.jdk
 
 import io.ktor.client.*
 import io.ktor.client.call.*
