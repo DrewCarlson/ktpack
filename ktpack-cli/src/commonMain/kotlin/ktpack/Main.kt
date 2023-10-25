@@ -6,8 +6,6 @@ import ktpack.commands.*
 import ktpack.commands.jdk.*
 import ktpack.commands.kotlin.*
 import ktpack.util.failed
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.*
 import kotlin.system.*
 
 fun main(args: Array<String>) {

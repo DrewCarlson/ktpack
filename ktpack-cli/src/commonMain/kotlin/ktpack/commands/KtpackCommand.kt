@@ -1,5 +1,6 @@
 package ktpack.commands
 
+import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
@@ -74,6 +75,8 @@ class KtpackCommand(
     }
 
     override fun run() {
+        Logger.mutableConfig.logWriterList = emptyList()
+        Logger.addLogWriter(MordantLogWriter(term = term, debug = debug))
         currentContext.obj = this
         if (debug) {
             term.println("${info("Ktpack")} ${verbose(Ktpack.VERSION)}")

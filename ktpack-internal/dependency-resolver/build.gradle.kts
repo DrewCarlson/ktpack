@@ -1,5 +1,6 @@
 plugins {
     id("internal-lib")
+    alias(libs.plugins.serialization)
 }
 
 kotlin {

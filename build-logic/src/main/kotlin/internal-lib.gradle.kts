@@ -35,7 +35,9 @@ kotlin {
         }
 
         commonMain {
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
+                api(libs.findLibrary("kermit").get())
             }
         }
 

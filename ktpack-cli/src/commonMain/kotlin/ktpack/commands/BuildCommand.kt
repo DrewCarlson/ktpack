@@ -1,9 +1,9 @@
 package ktpack.commands
 
+import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
-import com.github.ajalt.mordant.rendering.TextColors.cyan
 import kotlinx.coroutines.runBlocking
 import ktpack.*
 import ktpack.compilation.ArtifactResult
@@ -15,6 +15,7 @@ import kotlin.system.*
 class BuildCommand : CliktCommand(
     help = "Compile packages and dependencies.",
 ) {
+    private val logger = Logger.withTag(BuildCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
     private val releaseMode by option("--release")
@@ -45,14 +46,14 @@ class BuildCommand : CliktCommand(
         val module = packageConf.module
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
-        context.term.println(
-            buildString {
-                append(success("Compiling"))
-                append(" ${packageConf.module.name}")
-                append(" v${packageConf.module.version}")
-                append(" (${moduleBuilder.srcFolder.parent})")
-            },
-        )
+        logger.i {
+            "{} {} v{} ({})".format(
+                success("Compiling"),
+                packageConf.module.name,
+                packageConf.module.version,
+                moduleBuilder.srcFolder.parent,
+            )
+        }
 
         val targetBuildList = if (allTargets) {
             if (module.targets.isEmpty()) {
@@ -63,33 +64,54 @@ class BuildCommand : CliktCommand(
         } else {
             listOf(module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking)
         }
-        context.term.println("${info("Building")} for ${targetBuildList.joinToString { verbose(it.name.lowercase()) }}")
+        logger.i {
+            "{} Selected target(s): {}".format(
+                info("Building"),
+                targetBuildList.joinToString { verbose(it.name.lowercase()) },
+            )
+        }
         val results: List<ArtifactResult> =
             targetBuildList
                 .flatMap { target ->
-                    context.term.print("${info("Building")} Starting compilation for ")
+                    val targetFormat = "{} Selected build types: {} {}"
                     when {
                         !targetBin.isNullOrBlank() -> {
-                            context.term.println("bin ${verbose(targetBin!!)} ${verbose(target.name.lowercase())}")
+                            logger.i { targetFormat.format(info("Building"), "bin", verbose(targetBin!!)) }
                             listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
                         }
+
                         libOnly -> {
+                            logger.i { targetFormat.format(info("Building"), "lib", "") }
                             context.term.println("lib ${verbose(target.name.lowercase())}")
                             listOf(moduleBuilder.buildLib(releaseMode, target))
                         }
+
                         binsOnly -> {
-                            context.term.println("all bins ${verbose(target.name.lowercase())}")
+                            logger.i { targetFormat.format(info("Building"), "all bins", "") }
                             moduleBuilder.buildAllBins(releaseMode, target)
                         }
+
                         else -> {
-                            context.term.println("all bins and libs ${verbose(target.name.lowercase())}")
+                            logger.i { targetFormat.format(info("Building"), "all bins and libs", "") }
                             moduleBuilder.buildAll(releaseMode, target)
                         }
                     }.onEach { artifact ->
                         when (artifact) {
-                            is ArtifactResult.Success -> logArtifactSuccess(artifact)
+                            is ArtifactResult.Success -> {
+                                logger.i {
+                                    "{} Completed build for {} in {}s".format(
+                                        info("Building"),
+                                        verbose(artifact.target.name.lowercase()),
+                                        artifact.compilationDuration,
+                                    )
+                                }
+                            }
+
                             is ArtifactResult.ProcessError -> {
-                                logArtifactError(artifact)
+                                logger.i { "${failed("Failed")} failed to compile selected target(s)" }
+                                if (!artifact.message.isNullOrBlank()) {
+                                    logger.i { artifact.message }
+                                }
                                 exitProcess(1)
                             }
 
@@ -101,7 +123,7 @@ class BuildCommand : CliktCommand(
                 .toList()
 
         if (results.all { it == ArtifactResult.NoArtifactFound }) {
-            context.term.println("${failed("Failed")} Could not find artifact to build")
+            logger.i { "${failed("Failed")} Could not find artifact to build" }
             return@runBlocking
         }
 
@@ -109,38 +131,12 @@ class BuildCommand : CliktCommand(
             .filterIsInstance<ArtifactResult.Success>()
             .sumOf { it.compilationDuration }
 
-        context.term.println(
-            buildString {
-                append(success("Finished"))
-                if (releaseMode) {
-                    append(" release [optimized] target(s)")
-                } else {
-                    append(" dev [unoptimized + debuginfo] target(s)")
-                }
-                append(" in ${totalDuration}s")
-            },
-        )
-    }
-
-    private fun logArtifactError(artifact: ArtifactResult.ProcessError) {
-        context.term.println(
-            buildString {
-                append(failed("Failed"))
-                append(" failed to compile selected target(s)")
-                appendLine()
-                artifact.message?.lines()?.forEach(::appendLine)
-            },
-        )
-    }
-
-    private fun logArtifactSuccess(artifact: ArtifactResult.Success) {
-        context.term.println(
-            buildString {
-                append(cyan("Building"))
-                append(" Completed build for ")
-                append(verbose(artifact.target.name.lowercase()))
-                append(" in ${artifact.compilationDuration}s")
-            },
-        )
+        logger.i {
+            "{} {} target(s) in {}s".format(
+                success("Finished"),
+                if (releaseMode) "release [optimized]" else "dev [unoptimized + debuginfo]",
+                totalDuration
+            )
+        }
     }
 }

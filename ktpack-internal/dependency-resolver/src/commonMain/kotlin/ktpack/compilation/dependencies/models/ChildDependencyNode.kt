@@ -9,7 +9,7 @@ data class ChildDependencyNode(
     val localModule: ModuleConf?,
     val dependencyConf: DependencyConf,
     val children: List<ChildDependencyNode>,
-    val artifacts: List<String> = emptyList(),
+    val artifacts: List<String>,
 ) {
     override fun toString(): String = when (dependencyConf) {
         is DependencyConf.LocalPathDependency -> "local: module=${localModule?.name} path=${dependencyConf.path}"

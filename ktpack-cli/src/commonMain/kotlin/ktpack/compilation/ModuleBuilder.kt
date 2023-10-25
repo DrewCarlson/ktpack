@@ -1,5 +1,6 @@
 package ktpack.compilation
 
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.invoke
 import ksubprocess.*
@@ -37,6 +38,7 @@ class ModuleBuilder(
     private val context: CliContext,
     private val basePath: String,
 ) {
+    private val logger = Logger.withTag(ModuleBuilder::class.simpleName.orEmpty())
     private val moduleFolder = basePath.toPath()
     val outFolder = moduleFolder / "out"
     val srcFolder = moduleFolder / "src"
@@ -183,7 +185,9 @@ class ModuleBuilder(
         val targetLibDir = outFolder / target.name.lowercase() / modeString / "lib"
         if (!targetLibDir.exists()) targetLibDir.mkdirs()
 
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true).artifacts
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true)
+            .filterChildVersions()
+            .flatMap { it.artifacts }
         val outputPath = (targetLibDir / module.name).toString()
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
@@ -210,25 +214,27 @@ class ModuleBuilder(
     }
 
     suspend fun buildAllBins(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
-        val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target)).also {
-            if (context.debug) it.printDependencyTree()
-        }
+        val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
+
+        logger.d { dependencyTree.printDependencyTree() }
 
         if (!outFolder.exists() && !outFolder.mkdirs().exists()) {
             error("Could not create build folder: $outFolder")
         }
 
         val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
+            .filterChildVersions()
+            .flatMap { it.artifacts }
         val sourceFiles = collectSourceFiles(target, BuildType.BIN) // TODO: Scan only for main.kt and bin files
         val mainSource: Path? = sourceFiles.mainFile?.toPath()
         return listOfNotNull(
             if (mainSource?.exists() == true) {
-                buildBin(releaseMode, module.name, target, resolvedDeps.artifacts)
+                buildBin(releaseMode, module.name, target, resolvedDeps)
             } else {
                 null
             },
         ) + sourceFiles.binFiles.map { otherBin ->
-            buildBin(releaseMode, otherBin.toPath().nameWithoutExtension, target, resolvedDeps.artifacts)
+            buildBin(releaseMode, otherBin.toPath().nameWithoutExtension, target, resolvedDeps)
         }
     }
 
@@ -249,9 +255,7 @@ class ModuleBuilder(
                     .map { child -> fetchMavenDependency(child, releaseMode, target, downloadArtifacts) }
             }
 
-            if (context.debug) {
-                context.term.println("Assembled maven dependencies in ${mavenDuration}s")
-            }
+            logger.d { "Assembled maven dependencies in ${mavenDuration}s" }
 
             val (localDependencies, localDuration) = measureSeconds {
                 root.children
@@ -259,18 +263,11 @@ class ModuleBuilder(
                     .map { child -> buildChildDependency(child, releaseMode, target, downloadArtifacts) }
             }
 
-            if (context.debug) {
-                context.term.println("Assembled local dependencies in ${localDuration}s")
-            }
-            root.copy(
-                children = localDependencies + mavenDependencies,
-                artifacts = localDependencies.flatMap { it.artifacts } + mavenDependencies.flatMap { it.artifacts },
-            )
+            logger.d { "Assembled local dependencies in ${localDuration}s" }
+            root.copy(children = localDependencies + mavenDependencies)
         }
 
-        if (context.debug) {
-            context.term.println("Assembled dependencies in ${duration}s")
-        }
+        logger.d { "Assembled dependencies in ${duration}s" }
 
         return newRoot
     }
@@ -306,7 +303,7 @@ class ModuleBuilder(
 
         return child.copy(
             children = innerDepNodes,
-            artifacts = innerLibs + listOfNotNull(result),
+            artifacts = listOfNotNull(result),
         )
     }
 
@@ -330,7 +327,7 @@ class ModuleBuilder(
             .map { dependency ->
                 when (dependency) {
                     is DependencyConf.LocalPathDependency -> resolveLocalDependency(dependency, rootFolder, targets)
-                    is DependencyConf.MavenDependency -> resolveMavenDependency(dependency, rootFolder, targets)
+                    is DependencyConf.MavenDependency -> resolveMavenDependency(dependency, targets)
                     is DependencyConf.GitDependency -> TODO()
                     is DependencyConf.NpmDependency -> TODO()
                 }
@@ -340,7 +337,6 @@ class ModuleBuilder(
 
     suspend fun resolveMavenDependency(
         dependencyConf: DependencyConf.MavenDependency,
-        rootFolder: Path,
         targets: List<KotlinTarget>,
     ): ChildDependencyNode {
         return fetchMavenDependency(
@@ -348,6 +344,7 @@ class ModuleBuilder(
                 localModule = null,
                 dependencyConf = dependencyConf,
                 children = emptyList(),
+                artifacts = emptyList(),
             ),
             releaseMode = false,
             target = targets.firstOrNull() ?: KotlinTarget.JVM, // TODO:
@@ -368,6 +365,7 @@ class ModuleBuilder(
             localModule = localModule,
             dependencyConf = dependencyConf,
             children = children,
+            artifacts = emptyList(),
         )
     }
 
@@ -529,9 +527,7 @@ class ModuleBuilder(
         mainSource?.getAbsolutePath()?.run(::arg)
         sourceFiles.forEach { file -> arg(file) }
 
-        if (context.debug) {
-            println("Launching Kotlin compiler: ")
-            println(arguments.joinToString(" "))
-        }
+        logger.d { "Launching Kotlin compiler: " }
+        logger.d { arguments.joinToString(" ") }
     }
 }

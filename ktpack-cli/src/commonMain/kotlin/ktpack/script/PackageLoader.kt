@@ -12,12 +12,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.invoke
 import kotlinx.serialization.encodeToString
 import ksubprocess.Process
-import ktpack.CliContext
+import ktpack.*
 import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
-import ktpack.json
-import ktpack.ktpackScriptJarPath
-import ktpack.ktpackScriptJarUrl
 import ktpack.util.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -26,13 +23,26 @@ import kotlin.system.exitProcess
 
 private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
-suspend fun loadKtpackConf(context: CliContext, path: String, rebuild: Boolean): KtpackConf {
+suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boolean): KtpackConf {
+    // Resolve relative pathString values
+    val path = pathString.toPath()
+        .let { path ->
+            if (path.isRelative) {
+                workingDirectory.toPath().resolve(path, normalize = true)
+            } else {
+                path
+            }
+        }
+    check(path.exists()) {
+        "No $PACK_SCRIPT_FILENAME file found in '${path.parent}'"
+    }
+    //
     fun logDebug(message: String) {
         if (context.debug) println(message)
     }
 
     val digest = Algorithm.SHA_256.createDigest()
-        .apply { update(path.toPath().readByteArray()) }
+        .apply { update(path.readByteArray()) }
         .digest()
         .toHexString()
     val cacheKey = TEMP_PATH / ".ktpack-script-cache-$digest"
@@ -46,7 +56,7 @@ suspend fun loadKtpackConf(context: CliContext, path: String, rebuild: Boolean):
             json.decodeFromString(cacheKey.readUtf8())
         } else {
             logDebug("Processing manifest")
-            Dispatchers.Default { executeKtpackScript(context, path) }.also { packageConf ->
+            Dispatchers.Default { executeKtpackScript(context, path.toString()) }.also { packageConf ->
                 logDebug(cacheKey.toString())
                 if (cacheKey.createNewFile()) {
                     logDebug("Caching new manifest output")

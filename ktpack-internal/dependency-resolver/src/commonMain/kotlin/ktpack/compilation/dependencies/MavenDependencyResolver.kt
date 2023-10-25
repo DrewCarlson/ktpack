@@ -1,5 +1,6 @@
 package ktpack.compilation.dependencies
 
+import co.touchlab.kermit.Logger
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -24,10 +25,9 @@ class MavenDependencyResolver(
     private val http: HttpClient,
 ) : DependencyResolver() {
     private val mavenRepoUrl = "https://repo1.maven.org/maven2"
-
     private val mavenDepCache = mutableMapOf<String, ChildDependencyNode>()
-
     private val cacheRoot = File(KTPACK_ROOT, "maven-cache")
+    private val logger = Logger.withTag(MavenDependencyResolver::class.simpleName.orEmpty())
 
     override fun canResolve(node: ChildDependencyNode): Boolean {
         return node.dependencyConf is DependencyConf.MavenDependency
@@ -41,13 +41,12 @@ class MavenDependencyResolver(
         recurse: Boolean,
     ): ChildDependencyNode {
         val dependency = node.dependencyConf as DependencyConf.MavenDependency
+        mavenDepCache[dependency.toMavenString()]?.let { return it }
         val artifactRemotePath = dependency.toPathString("/")
 
-        // if (context.debug) {
-        //    println("Fetching maven dependency: ${dependency.toMavenString()}")
-        // }
+        logger.d { "Resolving maven dependency: ${dependency.toMavenString()}" }
 
-        val gradleModule = fetchGradleModule(dependency, artifactRemotePath)
+        val gradleModule = fetchGradleModule(dependency, artifactRemotePath, download = downloadArtifacts)
         if (gradleModule == null) {
             return fetchPomDependency(
                 dependency,
@@ -62,7 +61,12 @@ class MavenDependencyResolver(
             }
         }
 
-        val (targetVariant, files) = downloadVariantArtifacts(target, gradleModule.variants, downloadArtifacts, dependency)
+        val (targetVariant, files) = downloadVariantArtifacts(
+            target,
+            gradleModule.variants,
+            downloadArtifacts,
+            dependency,
+        )
 
         val newChildDeps = if (recurse) {
             targetVariant.dependencies
@@ -87,7 +91,7 @@ class MavenDependencyResolver(
 
         return node.copy(
             children = newChildDeps,
-            artifacts = (files + newChildDeps.flatMap { it.artifacts }).distinct(),
+            artifacts = files,
         ).also { mavenDepCache[dependency.toMavenString()] = it }
     }
 
@@ -102,7 +106,9 @@ class MavenDependencyResolver(
     ): ChildDependencyNode {
         val pom: MavenProject = fetchPom(artifactRemotePath, dependency)
 
-        val artifactFile = if (downloadArtifacts) fetchArtifactFromPom(dependency).getAbsolutePath() else null
+        val artifactFile = fetchArtifactFromPom(dependency, downloadArtifacts)
+            .takeIf { it.exists() }
+            ?.getAbsolutePath()
 
         val childDeps = if (recurse) {
             parseChildDependencies(pom, releaseMode, target, downloadArtifacts)
@@ -111,7 +117,7 @@ class MavenDependencyResolver(
         }
         return child.copy(
             children = childDeps,
-            artifacts = childDeps.flatMap { it.artifacts } + listOfNotNull(artifactFile),
+            artifacts = listOfNotNull(artifactFile),
         )
     }
 
@@ -173,15 +179,15 @@ class MavenDependencyResolver(
             }
     }
 
-    private suspend fun fetchArtifactFromPom(dependency: DependencyConf.MavenDependency): File {
+    private suspend fun fetchArtifactFromPom(dependency: DependencyConf.MavenDependency, download: Boolean): File {
         val artifactName = "${dependency.artifactId}-${dependency.version}.jar"
         val artifactPath = (dependency.toPathParts() + artifactName).joinToString("/")
-        return fetchMavenArtifact(artifactPath)
+        return fetchMavenArtifact(artifactPath, download)
     }
 
-    private suspend fun fetchMavenArtifact(artifactPath: String): File {
+    private suspend fun fetchMavenArtifact(artifactPath: String, download: Boolean): File {
         val cacheFile = cacheRoot.nestedFile(artifactPath.replace("/", Path.DIRECTORY_SEPARATOR))
-        if (cacheFile.exists()) {
+        if (!download || cacheFile.exists()) {
             return cacheFile
         }
         val moduleUrl = "${mavenRepoUrl.trimEnd('/')}/$artifactPath"
@@ -201,11 +207,15 @@ class MavenDependencyResolver(
         dependency: DependencyConf.MavenDependency,
         artifactRemotePath: String,
         artifactName: String = dependency.artifactId,
+        download: Boolean,
     ): GradleModule? {
         val artifactModuleName = "$artifactName-${dependency.version}.module"
         val artifactModuleCacheFile = cacheRoot
             .nestedFile(artifactRemotePath.replace("/", Path.DIRECTORY_SEPARATOR))
             .nestedFile(artifactModuleName)
+        if (!download && !artifactModuleCacheFile.exists()) {
+            return null
+        }
         if (artifactModuleCacheFile.exists()) {
             return json.decodeFromString(artifactModuleCacheFile.readText())
         }
@@ -228,6 +238,7 @@ class MavenDependencyResolver(
         dependency: DependencyConf.MavenDependency,
         moduleName: String,
         version: String,
+        download: Boolean,
     ): File {
         val actualArtifactName = targetFile.url
         val actualArtifactPath = dependency.groupId.split('.')
@@ -235,7 +246,7 @@ class MavenDependencyResolver(
             .plus(version)
             .plus(actualArtifactName)
             .joinToString("/")
-        return fetchMavenArtifact(actualArtifactPath)
+        return fetchMavenArtifact(actualArtifactPath, download)
     }
 
     private fun List<GradleModule.Variant>.findVariantFor(
@@ -272,13 +283,15 @@ class MavenDependencyResolver(
         }
         val availableAt = variant.availableAt
         return if (availableAt == null) {
-            variant to if (downloadArtifacts) {
-                variant.files.map { file ->
-                    fetchArtifactFromMetadata(file, dependency, dependency.artifactId, dependency.version)
-                        .getAbsolutePath()
-                }
-            } else {
-                emptyList()
+            variant to variant.files.mapNotNull { file ->
+                fetchArtifactFromMetadata(
+                    file,
+                    dependency,
+                    dependency.artifactId,
+                    dependency.version,
+                    downloadArtifacts,
+                ).takeIf { it.exists() }
+                    ?.getAbsolutePath()
             }
         } else {
             followVariantRedirect(availableAt, dependency, downloadArtifacts)
@@ -294,18 +307,17 @@ class MavenDependencyResolver(
             .plus(availableAt.module)
             .plus(availableAt.version)
             .joinToString("/")
-        val targetGradleModule = checkNotNull(fetchGradleModule(dependency, artifactRemotePath, availableAt.module)) {
-            "Expected to find artifact target module"
-        }
+        val targetGradleModule =
+            checkNotNull(fetchGradleModule(dependency, artifactRemotePath, availableAt.module, downloadArtifacts)) {
+                "Expected to find artifact target module"
+            }
         val targetVariant = targetGradleModule.variants.first()
         val moduleName = availableAt.module
         val version = availableAt.version
-        return targetVariant to if (downloadArtifacts) {
-            targetVariant.files.map { file ->
-                fetchArtifactFromMetadata(file, dependency, moduleName, version).getAbsolutePath()
-            }
-        } else {
-            emptyList()
+        return targetVariant to targetVariant.files.mapNotNull { file ->
+            fetchArtifactFromMetadata(file, dependency, moduleName, version, downloadArtifacts)
+                .takeIf { it.exists() }
+                ?.getAbsolutePath()
         }
     }
 }
