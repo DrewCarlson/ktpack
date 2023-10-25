@@ -34,12 +34,12 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
+        commonMain {
             dependencies {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
             }
         }
@@ -54,29 +54,29 @@ kotlin {
 
         if (!hostOs.isWindows) {
             val posixMain by creating {
-                dependsOn(commonMain)
+                dependsOn(getByName("commonMain"))
             }
+        }
 
-            if (hostOs.isLinux) {
-                val linuxX64Main by getting {
-                    dependsOn(posixMain)
-                    dependencies {
-                    }
+        if (hostOs.isLinux) {
+            val linuxX64Main by getting {
+                dependsOn(getByName("posixMain"))
+                dependencies {
                 }
             }
+        }
 
-            if (hostOs.isMacOsX) {
-                val darwinMain by creating {
-                    dependsOn(posixMain)
-                    dependencies {
-                    }
+        if (hostOs.isMacOsX) {
+            val darwinMain by creating {
+                dependsOn(getByName("posixMain"))
+                dependencies {
                 }
-                val darwinTest by creating { dependsOn(commonTest) }
-                val macosX64Main by getting { dependsOn(darwinMain) }
-                val macosX64Test by getting { dependsOn(darwinTest) }
-                val macosArm64Main by getting { dependsOn(darwinMain) }
-                val macosArm64Test by getting { dependsOn(darwinTest) }
             }
+            val darwinTest by creating { dependsOn(getByName("commonTest")) }
+            val macosX64Main by getting { dependsOn(darwinMain) }
+            val macosX64Test by getting { dependsOn(darwinTest) }
+            val macosArm64Main by getting { dependsOn(darwinMain) }
+            val macosArm64Test by getting { dependsOn(darwinTest) }
         }
     }
 }

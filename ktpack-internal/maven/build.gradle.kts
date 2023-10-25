@@ -1,15 +1,11 @@
-import org.gradle.nativeplatform.platform.internal.*
-
 plugins {
     id("internal-lib")
     alias(libs.plugins.serialization)
 }
 
-val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
-
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:core"))
                 implementation(libs.coroutines.core)
@@ -19,7 +15,7 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(project(":ktpack-internal:test-utils"))
                 implementation(libs.coroutines.test)

@@ -1,14 +1,10 @@
-import org.gradle.nativeplatform.platform.internal.*
-
 plugins {
     id("internal-lib")
 }
 
-val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
-
 kotlin {
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:platform"))
                 implementation(libs.ktfio)
@@ -23,34 +19,28 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(project(":ktpack-internal:test-utils"))
                 implementation(libs.coroutines.test)
             }
         }
 
-        if (hostOs.isWindows) {
-            val windowsX64Main by getting {
-                dependencies {
-                    implementation(libs.ktor.client.winhttp)
-                }
+        windowsMain {
+            dependencies {
+                implementation(libs.ktor.client.winhttp)
             }
         }
 
-        if (hostOs.isLinux) {
-            val linuxX64Main by getting {
-                dependencies {
-                    implementation(libs.ktor.client.curl)
-                }
+        linuxMain {
+            dependencies {
+                implementation(libs.ktor.client.curl)
             }
         }
 
-        if (hostOs.isMacOsX) {
-            val darwinMain by getting {
-                dependencies {
-                    implementation(libs.ktor.client.darwin)
-                }
+        darwinMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
     }

@@ -41,7 +41,7 @@ val buildRuntimeConstants by tasks.creating {
                |    const val COROUTINES_VERSION = "${libs.versions.coroutines.get()}"
                |    const val SERIALIZATION_VERSION = "${libs.versions.serialization.get()}"
                |}
-               |""".trimMargin()
+               |""".trimMargin(),
         )
     }
 }
@@ -66,7 +66,7 @@ val buildRuntimeBundle by tasks.creating {
                |
                |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-script.jar"
                |val ktpackScriptJarPath = pathFrom($pathValue)
-               |""".trimMargin()
+               |""".trimMargin(),
         )
     }
 }
@@ -86,7 +86,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
                 api(libs.xmlutil.serialization)
@@ -110,34 +110,28 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(project(":ktpack-internal:test-utils"))
                 implementation(libs.coroutines.test)
             }
         }
 
-        if (hostOs.isWindows) {
-            val windowsX64Main by getting {
-                dependencies {
-                    implementation(libs.ktor.client.winhttp)
-                }
+        windowsMain {
+            dependencies {
+                implementation(libs.ktor.client.winhttp)
             }
         }
 
-        if (hostOs.isLinux) {
-            val linuxX64Main by getting {
-                dependencies {
-                    implementation(libs.ktor.client.curl)
-                }
+        linuxMain {
+            dependencies {
+                implementation(libs.ktor.client.curl)
             }
         }
 
-        if (hostOs.isMacOsX) {
-            val darwinMain by getting {
-                dependencies {
-                    implementation(libs.ktor.client.darwin)
-                }
+        darwinMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
     }

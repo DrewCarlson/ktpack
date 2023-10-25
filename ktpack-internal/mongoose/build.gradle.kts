@@ -73,13 +73,13 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.coroutines.core)
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.coroutines.test)
             }

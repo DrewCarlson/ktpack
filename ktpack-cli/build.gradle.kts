@@ -2,12 +2,12 @@ import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.daemon.common.toHexString
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.security.MessageDigest
 
 plugins {
-    alias(libs.plugins.multiplatform)
+    id("internal-lib")
     alias(libs.plugins.serialization)
-    alias(libs.plugins.spotless)
 }
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
@@ -15,43 +15,25 @@ val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 evaluationDependsOn(":ktpack-script")
 
 kotlin {
-    val nativeTargets = listOfNotNull(
-        if (hostOs.isMacOsX) macosX64() else null,
-        if (hostOs.isMacOsX) macosArm64() else null,
-        if (hostOs.isLinux) linuxX64() else null,
-        if (hostOs.isWindows) mingwX64("windowsX64") else null,
-    )
-
-    configure(nativeTargets) {
+    configure(targets) {
         compilations.named("main") {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xallocator=mimalloc")
-            }
             compileTaskProvider.configure {
                 dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
             }
         }
 
-        binaries {
-            executable {
-                baseName = "ktpack"
-                entryPoint("ktpack.main")
+        if (this is KotlinNativeTarget) {
+            binaries {
+                executable {
+                    baseName = "ktpack"
+                    entryPoint("ktpack.main")
+                }
             }
         }
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlinx.coroutines.FlowPreview")
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-                optIn("kotlinx.cinterop.ExperimentalForeignApi")
-                optIn("kotlin.experimental.ExperimentalNativeApi")
-            }
-        }
-
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:compression"))
                 implementation(project(":ktpack-internal:core"))
@@ -79,46 +61,28 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(project(":ktpack-internal:test-utils"))
                 implementation(libs.coroutines.test)
             }
         }
 
-        if (hostOs.isWindows) {
-            val windowsX64Main by getting {
-                dependencies {
-                    implementation(libs.ktor.client.winhttp)
-                }
+        windowsMain {
+            dependencies {
+                implementation(libs.ktor.client.winhttp)
             }
         }
 
-        if (!hostOs.isWindows) {
-            val posixMain by creating {
-                dependsOn(commonMain)
+        linuxMain {
+            dependencies {
+                implementation(libs.ktor.client.curl)
             }
+        }
 
-            if (hostOs.isLinux) {
-                val linuxX64Main by getting {
-                    dependsOn(posixMain)
-                    dependencies {
-                        implementation(libs.ktor.client.curl)
-                    }
-                }
-            }
-            if (hostOs.isMacOsX) {
-                val darwinMain by creating {
-                    dependsOn(posixMain)
-                    dependencies {
-                        implementation(libs.ktor.client.darwin)
-                    }
-                }
-                val darwinTest by creating { dependsOn(commonTest) }
-                val macosX64Main by getting { dependsOn(darwinMain) }
-                val macosX64Test by getting { dependsOn(darwinTest) }
-                val macosArm64Main by getting { dependsOn(darwinMain) }
-                val macosArm64Test by getting { dependsOn(darwinTest) }
+        darwinMain {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
     }
@@ -144,7 +108,7 @@ fun createPackageReleaseTask(target: String) {
                         "-output",
                         executableUniversal.absolutePath,
                         executable.absolutePath,
-                        executableArm.absolutePath
+                        executableArm.absolutePath,
                     )
                 }.assertNormalExitValue()
                 executable = executableUniversal
@@ -171,11 +135,4 @@ when {
     hostOs.isLinux -> createPackageReleaseTask("linux")
     hostOs.isWindows -> createPackageReleaseTask("windows")
     hostOs.isMacOsX -> createPackageReleaseTask("macos")
-}
-
-spotless {
-    kotlin {
-        target("src/**/**.kt")
-        ktlint(libs.versions.ktlint.get())
-    }
 }

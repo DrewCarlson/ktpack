@@ -29,7 +29,7 @@ afterEvaluate {
         } else "" // Other hosts only support one arch, meaning it is omitted from the gradle task name
         val buildTasks = listOfNotNull(
             tasks.findByPath(":libs:${interopName}:assembleDebug$osName${arch}"),
-            tasks.findByPath(":libs:${interopName}:assembleRelease$osName${arch}")
+            tasks.findByPath(":libs:${interopName}:assembleRelease$osName${arch}"),
         )
         if (buildTasks.isEmpty()) {
             logger.warn("Native build tasks were not found for '$name' on $konanTarget.")
@@ -65,7 +65,7 @@ kotlin {
                     } else "" // Other hosts only support one arch, meaning it is omitted from the output path
                     listOf(
                         "-include-binary",
-                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/${archPath}$fileName").absolutePath
+                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/${archPath}$fileName").absolutePath,
                     )
                 }
 
@@ -75,23 +75,21 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.coroutines.core)
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.coroutines.test)
             }
         }
 
-        if (!hostOs.isWindows) {
-            val posixMain by getting {
-                dependencies {
-                    implementation(libs.ksubprocess)
-                }
+        posixMain {
+            dependencies {
+                implementation(libs.ksubprocess)
             }
         }
     }

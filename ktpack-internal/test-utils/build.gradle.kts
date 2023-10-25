@@ -1,10 +1,6 @@
-import org.gradle.nativeplatform.platform.internal.*
-
 plugins {
     id("internal-lib")
 }
-
-val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 val mainGenSrcPath = "build/ktgen-main"
 
@@ -29,9 +25,6 @@ evaluationDependsOn(":ktpack-script")
 kotlin {
     configure(targets) {
         compilations.named("main") {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xallocator=mimalloc")
-            }
             compileTaskProvider.configure {
                 dependsOn(buildTestConstants)
             }
@@ -39,7 +32,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
                 implementation(project(":ktpack-models"))
@@ -48,7 +41,7 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.coroutines.test)
             }
