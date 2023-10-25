@@ -2,9 +2,9 @@ package ktpack
 
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
-import ktpack.commands.jdk.JdkInstalls
 import ktpack.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
+import ktpack.jdk.JdkInstalls
 import ktpack.task.TaskRunner
 import ktpack.util.GitCli
 
