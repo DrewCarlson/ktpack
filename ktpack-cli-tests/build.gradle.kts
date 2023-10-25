@@ -1,13 +1,11 @@
 import org.gradle.nativeplatform.platform.internal.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Architecture
 import java.net.URL
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.multiplatform)
+    id("internal-lib")
     alias(libs.plugins.serialization)
-    alias(libs.plugins.spotless)
-    //alias(libs.plugins.completeKotlin)
 }
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
@@ -81,14 +79,7 @@ val installKotlincForTests by tasks.creating {
 }
 
 kotlin {
-    val nativeTargets = listOfNotNull(
-        if (hostOs.isMacOsX) macosX64() else null,
-        if (hostOs.isMacOsX) macosArm64() else null,
-        if (hostOs.isLinux) linuxX64() else null,
-        if (hostOs.isWindows) mingwX64("windowsX64") else null,
-    )
-
-    configure(nativeTargets) {
+    configure(targets.filterIsInstance<KotlinNativeTarget>()) {
         compilations.named("test") {
             val osName = when {
                 hostOs.isWindows -> "Windows"
@@ -110,15 +101,7 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlinx.coroutines.FlowPreview")
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            }
-        }
-
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":ktpack-cli"))
                 implementation(project(":ktpack-models"))
@@ -137,18 +120,11 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        commonTest {
             kotlin.srcDir(testGenSrcPath)
             dependencies {
                 implementation(libs.coroutines.test)
             }
         }
-    }
-}
-
-spotless {
-    kotlin {
-        target("src/**/**.kt")
-        ktlint(libs.versions.ktlint.get())
     }
 }

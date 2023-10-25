@@ -1,4 +1,3 @@
-import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
@@ -8,8 +7,6 @@ import org.jetbrains.kotlin.konan.target.Family
 plugins {
     id("internal-lib")
 }
-
-val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 evaluationDependsOn(":libs:zip")
 
@@ -21,12 +18,14 @@ afterEvaluate {
             Family.LINUX -> "Linux"
             else -> error("Unsupported build target $konanTarget for $name")
         }
-        val arch = if (hostOs.isMacOsX) {
-            when (konanTarget.architecture) {
+        // Other hosts only support one arch, meaning it is omitted from the gradle task name
+        val arch = when (konanTarget.family) {
+            Family.OSX -> when (konanTarget.architecture) {
                 Architecture.ARM64 -> "Arm64"
                 else -> "X64"
             }
-        } else "" // Other hosts only support one arch, meaning it is omitted from the gradle task name
+            else -> ""
+        }
         val buildTasks = listOfNotNull(
             tasks.findByPath(":libs:${interopName}:assembleDebug$osName${arch}"),
             tasks.findByPath(":libs:${interopName}:assembleRelease$osName${arch}"),
@@ -42,7 +41,7 @@ kotlin {
     configure(targets.filterIsInstance<KotlinNativeTarget>()) {
         compilations.named("main") {
             cinterops {
-                if (hostOs.isWindows) {
+                if (konanTarget.family == Family.MINGW) {
                     create("zip") {
                         includeDirs(rootProject.file("external/zip/src"))
                         defFile("src/commonMain/cinterop/zip.def")
@@ -55,13 +54,18 @@ kotlin {
                 val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
                 val libLinks = cinterops.flatMap { settings ->
                     val lib = settings.name
-                    val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                    val archPath = if (hostOs.isMacOsX) {
-                        when (konanTarget.architecture) {
+                    val fileName = when (konanTarget.family) {
+                        Family.MINGW -> "${lib}.lib"
+                        else -> "lib${lib}.a"
+                    }
+                    // Other hosts only support one arch, meaning it is omitted from the output path
+                    val archPath = when (konanTarget.family) {
+                        Family.OSX -> when (konanTarget.architecture) {
                             Architecture.ARM64 -> "Arm64/"
                             else -> "X64/"
                         }
-                    } else "" // Other hosts only support one arch, meaning it is omitted from the output path
+                        else -> ""
+                    }
                     listOf(
                         "-include-binary",
                         rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/${archPath}$fileName").absolutePath,
