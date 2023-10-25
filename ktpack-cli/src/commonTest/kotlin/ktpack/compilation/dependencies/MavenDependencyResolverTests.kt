@@ -49,10 +49,10 @@ class MavenDependencyResolverTests {
                 maven: co.touchlab:kermit-core:2.0.0-RC3
                 maven: io.ktor:ktor-client-core:2.2.4
                 maven: org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
-                maven: org.jetbrains.kotlinx:atomicfu:0.18.5
                 maven: io.ktor:ktor-http:2.2.4
                 maven: io.ktor:ktor-utils:2.2.4
                 maven: io.ktor:ktor-io:2.2.4
+                maven: org.jetbrains.kotlinx:atomicfu:0.18.5
                 maven: io.ktor:ktor-events:2.2.4
                 maven: io.ktor:ktor-websocket-serialization:2.2.4
                 maven: io.ktor:ktor-serialization:2.2.4
