@@ -18,3 +18,7 @@ include(
     ":libs:mongoose",
     ":libs:zip",
 )
+
+pluginManagement {
+    includeBuild("build-logic")
+}

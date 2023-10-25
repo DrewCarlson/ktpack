@@ -1,20 +1,12 @@
-import org.gradle.configurationcache.extensions.capitalized
-import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.nativeplatform.platform.internal.*
-import org.jetbrains.kotlin.daemon.common.toHexString
-import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
-import org.jetbrains.kotlin.konan.target.Architecture
-import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.Clock
 import java.time.OffsetDateTime
 import java.io.ByteArrayOutputStream
-import java.security.MessageDigest
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.multiplatform)
+    id("internal-lib")
     alias(libs.plugins.serialization)
-    alias(libs.plugins.spotless)
 }
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
@@ -82,24 +74,8 @@ val buildRuntimeBundle by tasks.creating {
 evaluationDependsOn(":ktpack-script")
 
 kotlin {
-
-    targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
-        binaries.all {
-            //freeCompilerArgs += "-Xincremental"
-        }
-    }
-    val nativeTargets = listOfNotNull(
-        if (hostOs.isMacOsX) macosX64() else null,
-        if (hostOs.isMacOsX) macosArm64() else null,
-        if (!hostOs.isWindows) linuxX64() else null,
-        if (!hostOs.isLinux) mingwX64("windowsX64") else null,
-    )
-
-    configure(nativeTargets) {
+    configure(targets.filterIsInstance<KotlinNativeTarget>()) {
         compilations.named("main") {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xallocator=mimalloc")
-            }
             compileTaskProvider.configure {
                 dependsOn(
                     buildRuntimeConstants,
@@ -110,16 +86,6 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlinx.coroutines.FlowPreview")
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-                optIn("kotlinx.cinterop.ExperimentalForeignApi")
-                optIn("kotlin.experimental.ExperimentalNativeApi")
-            }
-        }
-
         val commonMain by getting {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
@@ -160,36 +126,19 @@ kotlin {
         }
 
         if (!hostOs.isWindows) {
-            val posixMain by creating {
-                dependsOn(commonMain)
-            }
-
             val linuxX64Main by getting {
-                dependsOn(posixMain)
                 dependencies {
                     implementation(libs.ktor.client.curl)
                 }
             }
-            if (!hostOs.isLinux/* i.e. isMacos */) {
-                val darwinMain by creating {
-                    dependsOn(posixMain)
-                    dependencies {
-                        implementation(libs.ktor.client.darwin)
-                    }
+        }
+
+        if (hostOs.isMacOsX) {
+            val darwinMain by getting {
+                dependencies {
+                    implementation(libs.ktor.client.darwin)
                 }
-                val darwinTest by creating { dependsOn(commonTest) }
-                val macosX64Main by getting { dependsOn(darwinMain) }
-                val macosX64Test by getting { dependsOn(darwinTest) }
-                val macosArm64Main by getting { dependsOn(darwinMain) }
-                val macosArm64Test by getting { dependsOn(darwinTest) }
             }
         }
-    }
-}
-
-spotless {
-    kotlin {
-        target("src/**/**.kt")
-        ktlint(libs.versions.ktlint.get())
     }
 }

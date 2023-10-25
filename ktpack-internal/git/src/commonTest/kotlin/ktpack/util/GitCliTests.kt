@@ -1,7 +1,10 @@
 package ktpack.util
 
 import kotlinx.coroutines.test.runTest
+import ktfio.File
+import ktfio.deleteRecursively
 import ktpack.buildDir
+import okio.FileSystem
 import okio.IOException
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -16,13 +19,14 @@ class GitCliTests {
     @BeforeTest
     fun setup() {
         gitCli = GitCli()
-        testDir.mkdirs()
+        FileSystem.SYSTEM.createDirectories(testDir)
     }
 
     @AfterTest
     fun cleanup() {
         try {
-            testDir.deleteRecursively()
+            // TODO: okio delete doesn't work on windows
+            File(testDir.toString()).deleteRecursively()
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -38,6 +42,6 @@ class GitCliTests {
         assertTrue(gitCli.initRepository(testDir.toString()))
 
         val gitDir = testDir / ".git"
-        assertTrue(gitDir.exists(), "Git directory does not exist")
+        assertTrue(FileSystem.SYSTEM.exists(gitDir), "Git directory does not exist")
     }
 }
