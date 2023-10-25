@@ -2,9 +2,6 @@ import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.daemon.common.toHexString
-import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
-import org.jetbrains.kotlin.konan.target.Architecture
-import org.jetbrains.kotlin.konan.target.Family
 import java.security.MessageDigest
 
 plugins {
@@ -14,33 +11,6 @@ plugins {
 }
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
-
-evaluationDependsOn(":libs:mongoose")
-
-afterEvaluate {
-    tasks.withType<CInteropProcess> {
-        val osName = when (konanTarget.family) {
-            Family.OSX -> "Macos"
-            Family.MINGW -> "Windows"
-            Family.LINUX -> "Linux"
-            else -> error("Unsupported build target $konanTarget for $name")
-        }
-        val arch = if (hostOs.isMacOsX) {
-            when (konanTarget.architecture) {
-                Architecture.ARM64 -> "Arm64"
-                else -> "X64"
-            }
-        } else "" // Other hosts only support one arch, meaning it is omitted from the gradle task name
-        val buildTasks = listOfNotNull(
-            tasks.findByPath(":libs:${interopName}:assembleDebug$osName${arch}"),
-            tasks.findByPath(":libs:${interopName}:assembleRelease$osName${arch}")
-        )
-        if (buildTasks.isEmpty()) {
-            logger.warn("Native build tasks were not found for '$name' on $konanTarget.")
-        }
-        dependsOn(buildTasks)
-    }
-}
 
 evaluationDependsOn(":ktpack-script")
 
@@ -54,15 +24,11 @@ kotlin {
 
     configure(nativeTargets) {
         compilations.named("main") {
-            cinterops {
-                create("mongoose") {
-                    includeDirs(rootProject.file("external/mongoose"))
-                    defFile("src/commonMain/cinterop/mongoose.def")
-                }
-            }
-
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xallocator=mimalloc")
+            }
+            compileTaskProvider.configure {
+                dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
             }
         }
 
@@ -70,32 +36,6 @@ kotlin {
             executable {
                 baseName = "ktpack"
                 entryPoint("ktpack.main")
-            }
-            all {
-                val libType = buildType.name.lowercase()
-                val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
-                val libLinks = compilation.cinterops.flatMap { settings ->
-                    val lib = settings.name
-                    val fileName = if (hostOs.isWindows) "${lib}.lib" else "lib${lib}.a"
-                    val archPath = if (hostOs.isMacOsX) {
-                        when (konanTarget.architecture) {
-                            Architecture.ARM64 -> "Arm64/"
-                            else -> "X64/"
-                        }
-                    } else "" // Other hosts only support one arch, meaning it is omitted from the output path
-                    listOf(
-                        "-include-binary",
-                        rootProject.file("libs/$lib/build/lib/main/$libType/$libTarget/${archPath}$fileName").absolutePath
-                    )
-                }
-                compilation.apply {
-                    compileTaskProvider.configure {
-                        dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
-                    }
-                    kotlinOptions {
-                        freeCompilerArgs = freeCompilerArgs + libLinks
-                    }
-                }
             }
         }
     }
@@ -120,6 +60,7 @@ kotlin {
                 implementation(project(":ktpack-internal:git"))
                 implementation(project(":ktpack-internal:gradle"))
                 implementation(project(":ktpack-internal:maven"))
+                implementation(project(":ktpack-internal:mongoose"))
                 implementation(project(":ktpack-models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)

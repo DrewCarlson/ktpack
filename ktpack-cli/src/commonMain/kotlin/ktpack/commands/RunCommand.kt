@@ -87,9 +87,23 @@ class RunCommand : CliktCommand(
                         runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     if (exitCode == 0) {
-                        context.term.println("${success("Finished")} Program completed successfully in ${bold(white(duration.toString()))}s")
+                        context.term.println(
+                            "${success("Finished")} Program completed successfully in ${
+                                bold(
+                                    white(
+                                        duration.toString(),
+                                    ),
+                                )
+                            }s",
+                        )
                     } else {
-                        context.term.println("${failed("Failed")} Program terminated with code ($exitCode) in ${bold(white(duration.toString()))}s")
+                        context.term.println(
+                            "${failed("Failed")} Program terminated with code ($exitCode) in ${
+                                bold(
+                                    white(duration.toString()),
+                                )
+                            }s",
+                        )
                     }
                 } catch (e: IOException) {
                     context.term.println("${failed("Failed")} Program could not be started due to an IO error")
@@ -164,67 +178,18 @@ class RunCommand : CliktCommand(
 
     private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) = memScoped {
         val artifactName = artifactPath.substringAfterLast(DIRECTORY_SEPARATOR)
-        val manager = alloc<mg_mgr>()
-        val arg = StableRef.create(HttpAccessHandlerData(module, artifactPath, artifactName))
-        mg_mgr_init(manager.ptr)
-        mg_http_listen(manager.ptr, "http://0.0.0.0:$httpPort", httpFunc, arg.asCPointer())
-        context.term.println("${info("HTTP Server")} Available at http://localhost:$httpPort")
-
-        defer { mg_mgr_free(manager.ptr) }
-        while (currentCoroutineContext().isActive) {
-            mg_mgr_poll(manager.ptr, mg_millis().convert())
-            yield()
-        }
-    }
-}
-
-private data class HttpAccessHandlerData(
-    val module: ModuleConf,
-    val artifactPath: String,
-    val artifactName: String,
-)
-
-private val httpFunc: mg_event_handler_t = staticCFunction { con, ev, evData, fnData ->
-    if (ev.toUInt() == MG_EV_HTTP_MSG) {
-        memScoped {
-            val data = fnData?.asStableRef<HttpAccessHandlerData>()
-            defer { data?.dispose() }
-            val (module, artifactPath, artifactName) = checkNotNull(data).get()
-            val hm = checkNotNull(evData?.reinterpret<mg_http_message>()).pointed
-            if (mg_http_match_uri(hm.ptr, "/") || mg_http_match_uri(hm.ptr, "/index.html")) {
-                mg_http_reply(
-                    con,
-                    200,
-                    "Content-Type: text/html\r\n",
-                    DEFAULT_HTML,
-                    module.name,
-                    module.kotlinVersion,
-                    artifactName,
-                )
-            } else if (mg_http_match_uri(hm.ptr, "/$artifactName")) {
-                val opts = alloc<mg_http_serve_opts> {
-                    mime_types = "js=application/javascript".cstr.ptr
-                }
-                mg_http_serve_file(con, hm.ptr, artifactPath, opts.ptr)
-            } else {
-                val opts = alloc<mg_http_serve_opts> {
-                    root_dir = ".".cstr.ptr
-                }
-                mg_http_serve_dir(con, evData?.reinterpret(), opts.ptr)
+        runWebServer(
+            httpPort = httpPort,
+            data = HttpAccessHandlerData(
+                moduleName = module.name,
+                kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
+                artifactPath = artifactPath,
+                artifactName = artifactName
+            ),
+            onServerStarted = {
+                context.term.println("${info("HTTP Server")} Available at http://localhost:$httpPort")
             }
-        }
+        )
     }
 }
 
-private val DEFAULT_HTML =
-    """|<!DOCTYPE html>
-       |<html>
-       |<head>
-       |    <meta charset=UTF-8>
-       |    <title>%s</title>
-       |    <script defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/kotlin/%s/kotlin.min.js" type="application/javascript"></script>
-       |    <script defer="defer" src="%s" type="application/javascript"></script>
-       |</head>
-       |<body></body>
-       |</html>
-    """.trimMargin()
