@@ -49,7 +49,6 @@ kotlin {
             }
 
             kotlinOptions {
-                freeCompilerArgs = listOf("-Xallocator=mimalloc")
                 val libType = NativeBuildType.RELEASE.name.lowercase()
                 val libTarget = target.name.removeSuffix("X64").removeSuffix("Arm64")
                 val libLinks = cinterops.flatMap { settings ->
