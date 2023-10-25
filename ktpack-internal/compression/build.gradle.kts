@@ -86,5 +86,13 @@ kotlin {
                 implementation(libs.coroutines.test)
             }
         }
+
+        if (!hostOs.isWindows) {
+            val posixMain by getting {
+                dependencies {
+                    implementation(libs.ksubprocess)
+                }
+            }
+        }
     }
 }
