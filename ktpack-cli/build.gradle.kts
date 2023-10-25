@@ -18,8 +18,8 @@ kotlin {
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
-        if (!hostOs.isWindows) linuxX64() else null,
-        if (!hostOs.isLinux) mingwX64("windowsX64") else null,
+        if (hostOs.isLinux) linuxX64() else null,
+        if (hostOs.isWindows) mingwX64("windowsX64") else null,
     )
 
     configure(nativeTargets) {
@@ -86,7 +86,7 @@ kotlin {
             }
         }
 
-        if (!hostOs.isLinux) {
+        if (hostOs.isWindows) {
             val windowsX64Main by getting {
                 dependencies {
                     implementation(libs.ktor.client.winhttp)
@@ -99,13 +99,15 @@ kotlin {
                 dependsOn(commonMain)
             }
 
-            val linuxX64Main by getting {
-                dependsOn(posixMain)
-                dependencies {
-                    implementation(libs.ktor.client.curl)
+            if (hostOs.isLinux) {
+                val linuxX64Main by getting {
+                    dependsOn(posixMain)
+                    dependencies {
+                        implementation(libs.ktor.client.curl)
+                    }
                 }
             }
-            if (!hostOs.isLinux/* i.e. isMacos */) {
+            if (hostOs.isMacOsX) {
                 val darwinMain by creating {
                     dependsOn(posixMain)
                     dependencies {

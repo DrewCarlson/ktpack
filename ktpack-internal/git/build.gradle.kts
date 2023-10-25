@@ -30,7 +30,7 @@ kotlin {
             }
         }
 
-        if (!hostOs.isLinux) {
+        if (hostOs.isWindows) {
             val windowsX64Main by getting {
                 dependencies {
                     implementation(libs.ktor.client.winhttp)
@@ -38,7 +38,7 @@ kotlin {
             }
         }
 
-        if (!hostOs.isWindows) {
+        if (hostOs.isLinux) {
             val linuxX64Main by getting {
                 dependencies {
                     implementation(libs.ktor.client.curl)
