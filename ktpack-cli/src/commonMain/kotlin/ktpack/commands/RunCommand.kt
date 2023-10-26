@@ -8,7 +8,6 @@ import com.github.ajalt.mordant.rendering.TextColors.*
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.reset
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import ksubprocess.*
@@ -20,7 +19,6 @@ import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
 import okio.Path.Companion.DIRECTORY_SEPARATOR
-import kotlin.system.exitProcess
 
 class RunCommand : CliktCommand(
     help = "Compile and run binary packages.",
@@ -176,7 +174,7 @@ class RunCommand : CliktCommand(
         }
     }
 
-    private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) = memScoped {
+    private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) {
         val artifactName = artifactPath.substringAfterLast(DIRECTORY_SEPARATOR)
         runWebServer(
             httpPort = httpPort,

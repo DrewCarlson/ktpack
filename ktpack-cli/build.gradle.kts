@@ -68,6 +68,12 @@ kotlin {
             }
         }
 
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+
         windowsMain {
             dependencies {
                 implementation(libs.ktor.client.winhttp)

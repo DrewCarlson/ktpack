@@ -5,15 +5,6 @@ plugins {
 
 kotlin {
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlinx.coroutines.FlowPreview")
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-                optIn("kotlinx.cinterop.ExperimentalForeignApi")
-                optIn("kotlin.experimental.ExperimentalNativeApi")
-            }
-        }
-
         commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:core"))

@@ -7,6 +7,18 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 private val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
+fun NamedDomainObjectContainer<KotlinSourceSet>.jvmMain(
+    configure: KotlinSourceSet.() -> Unit,
+) {
+    named("jvmMain", configure)
+}
+
+fun NamedDomainObjectContainer<KotlinSourceSet>.jvmTest(
+    configure: KotlinSourceSet.() -> Unit,
+) {
+    named("jvmTest", configure)
+}
+
 fun NamedDomainObjectContainer<KotlinSourceSet>.posixMain(
     configure: KotlinSourceSet.() -> Unit,
 ) {

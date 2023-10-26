@@ -6,7 +6,6 @@ import nl.adaptivity.xmlutil.serialization.XML
 
 
 @OptIn(ExperimentalXmlUtilApi::class)
-@SharedImmutable
 val xml = XML {
     @Suppress("DEPRECATION")
     policy = DefaultXmlSerializationPolicy(

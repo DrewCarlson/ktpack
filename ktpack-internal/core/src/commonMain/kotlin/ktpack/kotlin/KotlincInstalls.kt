@@ -1,13 +1,9 @@
 package ktpack.kotlin
 
-import kotlinx.cinterop.toKString
 import ktpack.CliContext
-import ktpack.util.ARCH
-import ktpack.util.isDirectory
-import ktpack.util.list
+import ktpack.util.*
 import okio.Path
 import okio.Path.Companion.DIRECTORY_SEPARATOR
-import platform.posix.getenv
 
 data class KotlincInstalls(private val context: CliContext) {
 
@@ -23,7 +19,7 @@ data class KotlincInstalls(private val context: CliContext) {
     )
 
     fun discover(kotlincRoot: Path): List<InstallDetails> {
-        val pathEnv = getenv("PATH")?.toKString().orEmpty()
+        val pathEnv = getEnv("PATH").orEmpty()
         return kotlincRoot.list().mapNotNull { file ->
             val fileName = file.name
             when {

@@ -104,6 +104,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":ktpack-cli"))
+                implementation(project(":ktpack-internal:core"))
                 implementation(project(":ktpack-models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)

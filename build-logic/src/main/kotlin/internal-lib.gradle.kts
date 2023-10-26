@@ -8,6 +8,8 @@ plugins {
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 kotlin {
+    jvmToolchain(11)
+    jvm()
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
         if (hostOs.isMacOsX) macosArm64() else null,
@@ -34,7 +36,7 @@ kotlin {
             }
         }
 
-        commonMain {
+        val commonMain by getting {
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 api(libs.findLibrary("kermit").get())
@@ -43,25 +45,39 @@ kotlin {
 
         commonTest {
             dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
             }
         }
 
+        jvmTest {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit"))
+            }
+        }
+
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+
         if (hostOs.isWindows) {
-            val windowsX64Main by getting {
+            named("windowsX64Main") {
+                dependsOn(nativeMain)
                 dependencies {
                 }
             }
         }
 
-
         if (!hostOs.isWindows) {
-            val posixMain by creating {
+            create("posixMain") {
+                dependsOn(nativeMain)
                 dependsOn(getByName("commonMain"))
             }
         }
 
         if (hostOs.isLinux) {
-            val linuxX64Main by getting {
+            named("linuxX64Main") {
                 dependsOn(getByName("posixMain"))
                 dependencies {
                 }

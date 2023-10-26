@@ -14,7 +14,7 @@ import okio.use
 private val gitconfigRegex = """^\s*([A-Za-z]*)\s?=\s?(.*)$""".toRegex()
 
 class GitCli(
-    private val fileSystem: FileSystem = FileSystem.SYSTEM
+    private val fileSystem: FileSystem = SystemFs
 ) {
 
     private val gitPath: String = when (Platform.osFamily) {
@@ -53,8 +53,10 @@ class GitCli(
                 stdout = Redirect.Null
             }
         } catch (e: ProcessException) {
+            e.printStackTrace()
             return false
         } catch (e: IOException) {
+            e.printStackTrace()
             return false
         }
 

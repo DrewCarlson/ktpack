@@ -90,6 +90,12 @@ kotlin {
             }
         }
 
+        jvmMain {
+            dependencies {
+                implementation(libs.zip4j)
+            }
+        }
+
         posixMain {
             dependencies {
                 implementation(libs.ksubprocess)

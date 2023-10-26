@@ -74,7 +74,7 @@ val buildRuntimeBundle by tasks.creating {
 evaluationDependsOn(":ktpack-script")
 
 kotlin {
-    configure(targets.filterIsInstance<KotlinNativeTarget>()) {
+    configure(targets) {
         compilations.named("main") {
             compileTaskProvider.configure {
                 dependsOn(
@@ -90,7 +90,7 @@ kotlin {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
                 api(libs.xmlutil.serialization)
-                implementation(project(":ktpack-internal:platform"))
+                api(project(":ktpack-internal:platform"))
                 implementation(project(":ktpack-internal:compression"))
                 implementation(project(":ktpack-internal:git"))
                 implementation(project(":ktpack-models"))
@@ -114,6 +114,12 @@ kotlin {
             dependencies {
                 implementation(project(":ktpack-internal:test-utils"))
                 implementation(libs.coroutines.test)
+            }
+        }
+
+        jvmMain {
+            dependencies {
+                implementation(libs.ktor.client.cio)
             }
         }
 

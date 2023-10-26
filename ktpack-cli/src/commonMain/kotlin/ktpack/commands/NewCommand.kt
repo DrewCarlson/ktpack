@@ -14,7 +14,6 @@ import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import okio.*
-import kotlin.system.*
 
 private enum class Template { BIN, LIB }
 

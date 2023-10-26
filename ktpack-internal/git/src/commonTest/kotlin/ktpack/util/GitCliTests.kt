@@ -19,7 +19,7 @@ class GitCliTests {
     @BeforeTest
     fun setup() {
         gitCli = GitCli()
-        FileSystem.SYSTEM.createDirectories(testDir)
+        SystemFs.createDirectories(testDir)
     }
 
     @AfterTest
@@ -42,6 +42,6 @@ class GitCliTests {
         assertTrue(gitCli.initRepository(testDir.toString()))
 
         val gitDir = testDir / ".git"
-        assertTrue(FileSystem.SYSTEM.exists(gitDir), "Git directory does not exist")
+        assertTrue(SystemFs.exists(gitDir), "Git directory does not exist")
     }
 }

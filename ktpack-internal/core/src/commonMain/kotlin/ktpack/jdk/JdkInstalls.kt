@@ -8,17 +8,14 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.toKString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flowOn
 import ktpack.CliContext
 import ktpack.util.*
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
-import platform.posix.getenv
 
 data class InstallationDetails(
     val distribution: JdkDistribution,
@@ -80,7 +77,7 @@ class JdkInstalls(
             (jdksRoot / "${dist.name.lowercase()}-$version")
                 .takeIf(Path::exists)
                 ?.let { jdkFolder ->
-                    val pathEnv = getenv("PATH")?.toKString().orEmpty()
+                    val pathEnv = getEnv("PATH").orEmpty()
                     createInstallationDetails(jdkFolder, pathEnv)
                 }
         } ?: discover(jdksRoot, distribution).firstOrNull { install ->
@@ -92,7 +89,7 @@ class JdkInstalls(
      * Find all [InstallationDetails] for JDK installs in [jdksRoot].
      */
     fun discover(jdksRoot: Path, distribution: JdkDistribution? = null): List<InstallationDetails> {
-        val pathEnv = getenv("PATH")?.toKString().orEmpty()
+        val pathEnv =getEnv("PATH").orEmpty()
         val distName = distribution?.name?.lowercase()
         return jdksRoot.list().mapNotNull { file ->
             if (distName != null && !file.name.startsWith(distName)) {
@@ -112,7 +109,7 @@ class JdkInstalls(
         distribution: JdkDistribution,
         onProgress: (JdkInstallProgress) -> Unit,
     ): JdkInstallResult {
-        val pathEnv = getenv("PATH")?.toKString().orEmpty()
+        val pathEnv = getEnv("PATH").orEmpty()
         val (downloadUrl, archiveName, jdkVersionString) = when (distribution) {
             JdkDistribution.Zulu -> availableZuluVersions(http, version)
             JdkDistribution.Temurin -> availableTemurinVersions(http, version)
@@ -187,7 +184,7 @@ class JdkInstalls(
         }
     }.execute { response ->
         val body = response.bodyAsChannel()
-        val sink = FileSystem.SYSTEM.appendingSink(tempArchiveFile)
+        val sink = SystemFs.appendingSink(tempArchiveFile)
         val bufferedSink = sink.buffer()
         try {
             while (!body.isClosedForRead) {

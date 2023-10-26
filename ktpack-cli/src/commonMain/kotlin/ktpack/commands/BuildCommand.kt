@@ -10,7 +10,6 @@ import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
 import ktpack.util.*
-import kotlin.system.*
 
 class BuildCommand : CliktCommand(
     help = "Compile packages and dependencies.",

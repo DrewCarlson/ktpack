@@ -44,7 +44,7 @@ kotlin {
             cinterops {
                 create("mongoose") {
                     includeDirs(rootProject.file("external/mongoose"))
-                    defFile("src/commonMain/cinterop/mongoose.def")
+                    defFile("src/nativeMain/cinterop/mongoose.def")
                 }
             }
 

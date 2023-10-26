@@ -25,23 +25,5 @@ kotlin {
                 implementation(libs.coroutines.test)
             }
         }
-
-        windowsMain {
-            dependencies {
-                implementation(libs.ktor.client.winhttp)
-            }
-        }
-
-        linuxMain {
-            dependencies {
-                implementation(libs.ktor.client.curl)
-            }
-        }
-
-        darwinMain {
-            dependencies {
-                implementation(libs.ktor.client.darwin)
-            }
-        }
     }
 }

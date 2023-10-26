@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import ktpack.CliContext
 import ktpack.util.*
-import kotlin.system.*
 
 private enum class Channel {
     RELEASE, RC, EAP, ALL

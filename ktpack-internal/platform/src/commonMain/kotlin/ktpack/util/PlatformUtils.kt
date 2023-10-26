@@ -1,10 +1,9 @@
 package ktpack.util
 
-import kotlinx.cinterop.toKString
 import ktpack.configuration.KotlinTarget
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.DIRECTORY_SEPARATOR
-import platform.posix.getenv
 
 /**
  * Attempt to find the user's home directory first by the
@@ -17,20 +16,22 @@ expect val workingDirectory: String
 
 expect val TEMP_PATH: Path
 
-@SharedImmutable
+expect fun getEnv(key: String): String?
+
+expect fun exitProcess(code: Int): Nothing
+
+expect val SystemFs: FileSystem
+
 val EXE_EXTENSION by lazy {
     if (Platform.osFamily == OsFamily.WINDOWS) "exe" else "kexe"
 }
 
-@SharedImmutable
 val USER_HOME = checkNotNull(getHomePath()) {
     "Failed to find user home path."
 }
 
-@SharedImmutable
-val KTPACK_ROOT = "${getenv("KTPACK_PATH")?.toKString() ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack"
+val KTPACK_ROOT = "${getEnv("KTPACK_PATH") ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack"
 
-@SharedImmutable
 val ARCH by lazy {
     when (Platform.cpuArchitecture) {
         CpuArchitecture.ARM64 -> if (Platform.osFamily == OsFamily.MACOSX) {
@@ -47,7 +48,6 @@ val ARCH by lazy {
     }
 }
 
-@SharedImmutable
 val CPSEP = if (Platform.osFamily == OsFamily.WINDOWS) ";" else ":"
 
 object PlatformUtils {
