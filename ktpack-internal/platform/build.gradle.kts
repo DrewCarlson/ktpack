@@ -6,7 +6,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.okio)
             }
         }

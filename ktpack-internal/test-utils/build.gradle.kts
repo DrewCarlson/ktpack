@@ -35,7 +35,7 @@ kotlin {
         commonMain {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.coroutines.core)
                 implementation(libs.okio)
             }

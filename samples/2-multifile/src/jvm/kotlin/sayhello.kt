@@ -1,3 +1,3 @@
-fun main() {
+actual fun sayHello() {
     println("Hello, world!")
 }

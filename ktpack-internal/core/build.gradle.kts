@@ -93,7 +93,7 @@ kotlin {
                 api(project(":ktpack-internal:platform"))
                 implementation(project(":ktpack-internal:compression"))
                 implementation(project(":ktpack-internal:git"))
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)

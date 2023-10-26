@@ -10,7 +10,7 @@ kotlin {
                 implementation(project(":ktpack-internal:core"))
                 implementation(project(":ktpack-internal:maven"))
                 implementation(project(":ktpack-internal:gradle"))
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)

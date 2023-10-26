@@ -15,7 +15,7 @@ sourceSets {
     dependencies {
         compileOnly(kotlin("scripting-jvm"))
         compileOnly(kotlin("script-runtime"))
-        api(project(":ktpack-models"))
+        api(project(":ktpack-internal:models"))
         implementation(libs.serialization.json)
 
         testImplementation(kotlin("test"))

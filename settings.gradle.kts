@@ -3,7 +3,6 @@ rootProject.name = "ktpack"
 include(
     ":ktpack-cli",
     ":ktpack-cli-tests",
-    ":ktpack-models",
     ":ktpack-script",
     ":ktpack-internal:core",
     ":ktpack-internal:compression",
@@ -12,6 +11,7 @@ include(
     ":ktpack-internal:git",
     ":ktpack-internal:gradle",
     ":ktpack-internal:maven",
+    ":ktpack-internal:models",
     ":ktpack-internal:mongoose",
     ":ktpack-internal:platform",
     ":ktpack-internal:test-utils",

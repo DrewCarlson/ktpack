@@ -1,5 +1,6 @@
 import org.gradle.nativeplatform.platform.internal.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import org.jetbrains.kotlin.konan.target.Architecture
 import java.net.URL
 
@@ -79,6 +80,27 @@ val installKotlincForTests by tasks.creating {
 }
 
 kotlin {
+    configure(targets.filterIsInstance<KotlinJvmTarget>()) {
+        compilations.named("test") {
+            val osName = when {
+                hostOs.isWindows -> "Windows"
+                hostOs.isMacOsX -> "Macos"
+                else -> "Linux"
+            }
+            val jvmArch = System.getProperty("os.arch")
+            val arch = when  {
+                jvmArch.contains("aarch") -> "Arm64"
+                else -> "X64"
+            }
+            compileTaskProvider.configure {
+                dependsOn(
+                    project(":ktpack-cli").tasks.findByName("linkDebugExecutable$osName${arch}"),
+                    installTestConfig,
+                    installKotlincForTests,
+                )
+            }
+        }
+    }
     configure(targets.filterIsInstance<KotlinNativeTarget>()) {
         compilations.named("test") {
             val osName = when {
@@ -105,7 +127,7 @@ kotlin {
             dependencies {
                 implementation(project(":ktpack-cli"))
                 implementation(project(":ktpack-internal:core"))
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)

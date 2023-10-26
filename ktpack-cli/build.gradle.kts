@@ -43,7 +43,7 @@ kotlin {
                 implementation(project(":ktpack-internal:gradle"))
                 implementation(project(":ktpack-internal:maven"))
                 implementation(project(":ktpack-internal:mongoose"))
-                implementation(project(":ktpack-models"))
+                implementation(project(":ktpack-internal:models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)
