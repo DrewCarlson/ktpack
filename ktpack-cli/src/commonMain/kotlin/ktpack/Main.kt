@@ -5,8 +5,8 @@ import com.github.ajalt.mordant.terminal.*
 import ktpack.commands.*
 import ktpack.commands.jdk.*
 import ktpack.commands.kotlin.*
+import ktpack.util.exitProcess
 import ktpack.util.failed
-import kotlin.system.*
 
 fun main(args: Array<String>) {
     val term = Terminal()

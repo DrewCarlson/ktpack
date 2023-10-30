@@ -50,7 +50,7 @@ class BuildCommand : CliktCommand(
                 success("Compiling"),
                 packageConf.module.name,
                 packageConf.module.version,
-                moduleBuilder.srcFolder.parent,
+                moduleBuilder.modulePath,
             )
         }
 

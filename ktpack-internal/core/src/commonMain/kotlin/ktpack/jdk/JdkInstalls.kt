@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flowOn
 import ktpack.CliContext
 import ktpack.util.*
+import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -26,8 +27,6 @@ data class InstallationDetails(
 ) {
     val isIntellijInstall: Boolean = !intellijManifest.isNullOrBlank()
 }
-
-private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
 class JdkInstalls(
     private val context: CliContext,
@@ -89,7 +88,7 @@ class JdkInstalls(
      * Find all [InstallationDetails] for JDK installs in [jdksRoot].
      */
     fun discover(jdksRoot: Path, distribution: JdkDistribution? = null): List<InstallationDetails> {
-        val pathEnv =getEnv("PATH").orEmpty()
+        val pathEnv = getEnv("PATH").orEmpty()
         val distName = distribution?.name?.lowercase()
         return jdksRoot.list().mapNotNull { file ->
             if (distName != null && !file.name.startsWith(distName)) {
@@ -114,6 +113,7 @@ class JdkInstalls(
             JdkDistribution.Zulu -> availableZuluVersions(http, version)
             JdkDistribution.Temurin -> availableTemurinVersions(http, version)
             JdkDistribution.Corretto -> availableCorrettoVersions(http, version)
+            JdkDistribution.Jbr -> error("Jetbrains runtime is not supported.")
         }
         if (downloadUrl == null || archiveName == null || jdkVersionString == null) {
             return JdkInstallResult.NoMatchingVersion
@@ -182,23 +182,7 @@ class JdkInstalls(
                 onProgress(JdkInstallProgress.Download(completed))
             }
         }
-    }.execute { response ->
-        val body = response.bodyAsChannel()
-        val sink = SystemFs.appendingSink(tempArchiveFile)
-        val bufferedSink = sink.buffer()
-        try {
-            while (!body.isClosedForRead) {
-                val packet = body.readRemaining(DOWNLOAD_BUFFER_SIZE)
-                while (packet.isNotEmpty) {
-                    bufferedSink.write(packet.readBytes())
-                }
-            }
-        } finally {
-            bufferedSink.close()
-            sink.close()
-        }
-        response
-    }
+    }.downloadInto(tempArchiveFile)
 
     private fun createInstallationDetails(file: Path, pathEnv: String): InstallationDetails? {
         val fileName = file.name // JDK folders use the `zulu-18.0.1` format

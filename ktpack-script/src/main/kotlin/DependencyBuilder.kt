@@ -2,9 +2,15 @@ package ktpack.configuration
 
 public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
     private val dependencies = mutableListOf<DependencyConf>()
+    private val exclude = mutableListOf<ExcludeDependency>()
+    private val constraints = mutableListOf<VersionConstraint>()
 
     protected fun add(dep: DependencyConf) {
         dependencies.add(dep)
+    }
+
+    public fun exclude(path: String, version: String? = null) {
+        exclude.add(ExcludeDependency(path, version))
     }
 
     public fun local(path: String) {
@@ -170,11 +176,17 @@ public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    private fun String.extractMavenComponents(): List<String> {
-        return try {
-            split(':').apply { check(size == 3) }
-        } catch (e: Throwable) {
-            error("Maven coordinates must use the `org.jetbrains.kotlinx:kotlin-stdlib:1.7.10` format.\n$this")
+    private fun String.extractMavenComponents(excludeVersion: Boolean = false): List<String> {
+        return split(':').apply {
+            if (excludeVersion) {
+                check(size == 2) {
+                    "Maven coordinates must use the `org.jetbrains.kotlinx:kotlin-stdlib` format.\n$this"
+                }
+            } else {
+                check(size == 3) {
+                    "Maven coordinates must use the `org.jetbrains.kotlinx:kotlin-stdlib:1.7.10` format.\n$this"
+                }
+            }
         }
     }
 }

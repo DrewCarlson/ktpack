@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.mordant.terminal.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import ktpack.*
@@ -16,7 +17,6 @@ import ktpack.configuration.KtpackConf
 import ktpack.jdk.JdkInstalls
 import ktpack.task.TaskRunner
 import ktpack.util.*
-import okio.FileSystem
 import okio.Path.Companion.toPath
 
 class KtpackCommand(
@@ -26,18 +26,10 @@ class KtpackCommand(
 ),
     CliContext {
 
-    override val http: HttpClient by lazy {
-        HttpClient {
-            install(ContentNegotiation) {
-                json(json)
-            }
-        }
-    }
-
     override val config: KtpackUserConfig by lazy {
         pathFrom(KTPACK_ROOT, "config.json").run {
             if (!exists()) {
-                FileSystem.SYSTEM.createDirectory(KTPACK_ROOT.toPath(), mustCreate = false)
+                SystemFs.createDirectory(KTPACK_ROOT.toPath(), mustCreate = false)
                 // check(File(KTPACK_ROOT).mkdirs()) {
                 //    "Failed to create Ktpack folder $KTPACK_ROOT"
                 // }
@@ -61,10 +53,12 @@ class KtpackCommand(
         .help("Force the pack script to be rebuilt, even if it has not changed.")
         .flag()
 
-    override val stacktrace: Boolean by option()
+    override val stacktrace: Boolean by option("--stacktrace", "-s")
         .help("Print the stacktrace in the case of an unhandled exception.")
         .flag()
-    override val debug: Boolean by option().flag()
+    override val debug: Boolean by option("--debug", "-d")
+        .help("Print debug log statements to the console.")
+        .flag()
 
     override fun aliases(): Map<String, List<String>> = emptyMap()
 
@@ -72,6 +66,20 @@ class KtpackCommand(
 
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {
         return ktpack.script.loadKtpackConf(this, filePath, rebuild)
+    }
+
+    override val http: HttpClient by lazy {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(json)
+            }
+            if (debug) {
+                install(Logging) {
+                    logger = io.ktor.client.plugins.logging.Logger.SIMPLE
+                    level = LogLevel.ALL
+                }
+            }
+        }
     }
 
     override fun run() {

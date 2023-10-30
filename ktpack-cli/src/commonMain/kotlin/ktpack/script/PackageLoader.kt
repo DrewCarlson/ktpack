@@ -1,11 +1,9 @@
 package ktpack.script
 
+import co.touchlab.kermit.Logger
 import com.appmattus.crypto.Algorithm
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -16,29 +14,22 @@ import ktpack.*
 import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
-import okio.FileSystem
 import okio.Path.Companion.toPath
-import okio.buffer
-import kotlin.system.exitProcess
 
-private const val DOWNLOAD_BUFFER_SIZE = 12_294L
+private val logger by lazy { Logger.withTag("Package Loader") }
 
 suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boolean): KtpackConf {
     // Resolve relative pathString values
     val path = pathString.toPath()
         .let { path ->
             if (path.isRelative) {
-                workingDirectory.toPath().resolve(path, normalize = true)
+                workingDirectory.resolve(path, normalize = true)
             } else {
                 path
             }
         }
     check(path.exists()) {
         "No $PACK_SCRIPT_FILENAME file found in '${path.parent}'"
-    }
-    //
-    fun logDebug(message: String) {
-        if (context.debug) println(message)
     }
 
     val digest = Algorithm.SHA_256.createDigest()
@@ -48,22 +39,22 @@ suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boo
     val cacheKey = TEMP_PATH / ".ktpack-script-cache-$digest"
     val (module, duration) = measureSeconds {
         if (rebuild && cacheKey.exists()) {
-            logDebug("Rebuilding cached pack script: $cacheKey")
+            logger.d { "Rebuilding cached pack script: $cacheKey" }
             cacheKey.delete()
         }
         if (cacheKey.exists()) {
-            logDebug("Reading manifest from cache")
+            logger.d { "Reading manifest from cache" }
             json.decodeFromString(cacheKey.readUtf8())
         } else {
-            logDebug("Processing manifest")
+            logger.d { "Processing manifest" }
             Dispatchers.Default { executeKtpackScript(context, path.toString()) }.also { packageConf ->
-                logDebug(cacheKey.toString())
+                logger.d { cacheKey.toString() }
                 if (cacheKey.createNewFile()) {
-                    logDebug("Caching new manifest output")
+                    logger.d { "Caching new manifest output" }
                     cacheKey.writeUtf8(json.encodeToString(packageConf)) { error ->
-                        logDebug("Failed to write packageConf: ${error.message}")
+                        logger.d { "Failed to write packageConf: ${error.message}" }
                         if (context.stacktrace) {
-                            error.printStack()
+                            error.printStackTrace()
                             exitProcess(1)
                         }
                     }
@@ -71,7 +62,7 @@ suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boo
             }
         }
     }
-    logDebug("Ktpack Script loaded in ${duration}s: $path")
+    logger.d { "Ktpack Script loaded in ${duration}s: $path" }
     return module
 }
 
@@ -93,10 +84,8 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
         args("-script-templates", "ktpack.configuration.KtpackScriptScopeDefinition")
         arg("-script")
         arg(path)
-        if (context.debug) {
-            println("Processing ktpack script:")
-            println(arguments.joinToString(" "))
-        }
+
+        logger.d { "Processing ktpack script:\n${arguments.joinToString("\n")}" }
     }.run {
         if (context.debug) {
             stderrLines.onEach { println(it) }.launchIn(this@coroutineScope)
@@ -113,33 +102,19 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
 
 private suspend fun installScriptBuilderJar(context: CliContext) {
     if (ktpackScriptJarPath.exists()) return
-    println("Package Script jar does not exist, creating it at: $ktpackScriptJarPath")
+    logger.d { "Package Script jar does not exist, creating it at: $ktpackScriptJarPath" }
     ktpackScriptJarPath.parent?.mkdirs()
     val (_, duration) = measureSeconds {
         if (!ktpackScriptJarPath.exists() && ktpackScriptJarPath.createNewFile()) {
-            println("Downloading dependency: $ktpackScriptJarUrl")
-            val response = context.http.prepareGet(ktpackScriptJarUrl).execute { response ->
-                val body = response.bodyAsChannel()
-                val sink = FileSystem.SYSTEM.appendingSink(ktpackScriptJarPath)
-                val bufferedSink = sink.buffer()
-                try {
-                    while (!body.isClosedForRead) {
-                        val packet = body.readRemaining(DOWNLOAD_BUFFER_SIZE)
-                        while (packet.isNotEmpty) {
-                            bufferedSink.write(packet.readBytes())
-                        }
-                    }
-                } finally {
-                    bufferedSink.close()
-                    sink.close()
-                }
-                response
-            }
+            logger.d { "Downloading dependency: $ktpackScriptJarUrl" }
+            val response = context.http
+                .prepareGet(ktpackScriptJarUrl)
+                .downloadInto(ktpackScriptJarPath)
             if (!response.status.isSuccess()) {
                 ktpackScriptJarPath.delete()
                 error("Failed to download dependency: ${response.status} $ktpackScriptJarUrl")
             }
         }
     }
-    println("Ktpack Script jar written in ${duration}s")
+    logger.d { "Ktpack Script jar written in ${duration}s" }
 }

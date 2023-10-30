@@ -7,41 +7,35 @@ import ksubprocess.*
 import ktfio.*
 import ktpack.*
 import ktpack.compilation.dependencies.MavenDependencyResolver
-import ktpack.compilation.dependencies.models.ChildDependencyNode
-import ktpack.compilation.dependencies.models.RootDependencyNode
+import ktpack.compilation.dependencies.models.DependencyNode
+import ktpack.compilation.dependencies.models.printDependencyTree
+import ktpack.compilation.dependencies.models.shakeAndFlattenDependencies
 import ktpack.configuration.*
 import ktpack.util.*
 import okio.Path
 import okio.Path.Companion.toPath
-
-sealed class ArtifactResult {
-    data class Success(
-        val artifactPath: String,
-        val compilationDuration: Double,
-        val outputText: String,
-        val target: KotlinTarget,
-        val dependencyArtifacts: List<String>,
-    ) : ArtifactResult()
-
-    data class ProcessError(
-        val exitCode: Int,
-        val message: String?,
-    ) : ArtifactResult()
-
-    data object NoArtifactFound : ArtifactResult()
-    data object NoSourceFiles : ArtifactResult()
-}
+import kotlin.random.Random
 
 // https://kotlinlang.org/docs/compiler-reference.html
 class ModuleBuilder(
     private val module: ModuleConf,
     private val context: CliContext,
-    private val basePath: String,
+    val modulePath: Path,
 ) {
+    data class CollectedSource(
+        val sourceFiles: List<String>,
+        val mainFile: String?,
+        val binFiles: List<String>,
+    ) {
+        val hasLibFile = mainFile != null || binFiles.isNotEmpty()
+        val isEmpty = mainFile == null && sourceFiles.isEmpty() && binFiles.isEmpty()
+    }
+
+    enum class BuildType { BIN, LIB }
+
     private val logger = Logger.withTag(ModuleBuilder::class.simpleName.orEmpty())
-    private val moduleFolder = basePath.toPath()
-    val outFolder = moduleFolder / "out"
-    val srcFolder = moduleFolder / "src"
+    private val outFolder = modulePath / "out"
+    private val srcFolder = modulePath / "src"
 
     private val resolver = MavenDependencyResolver(module, context.http)
 
@@ -56,16 +50,11 @@ class ModuleBuilder(
         KotlinTarget.LINUX_X64 to listOf("native", "linux", "posix", "linuxx64"),
     )
 
-    data class CollectedSource(
-        val sourceFiles: List<String>,
-        val mainFile: String?,
-        val binFiles: List<String>,
-    ) {
-        val hasLibFile = mainFile != null || binFiles.isNotEmpty()
-        val isEmpty = mainFile == null && sourceFiles.isEmpty() && binFiles.isEmpty()
+    init {
+        require(modulePath.isAbsolute) {
+            "ModuleBuilder requires modulePath to be absolute: $modulePath"
+        }
     }
-
-    enum class BuildType { BIN, LIB }
 
     fun collectSourceFiles(target: KotlinTarget, buildType: BuildType): CollectedSource {
         check(srcFolder.isDirectory()) { "Expected directory at $srcFolder" }
@@ -122,7 +111,7 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.Default {
-        val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
+        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
 
         val collectedSourceFiles = collectSourceFiles(target, BuildType.BIN)
         if (collectedSourceFiles.isEmpty) {
@@ -139,10 +128,8 @@ class ModuleBuilder(
         val modeString = if (releaseMode) "release" else "debug"
         val targetBinDir = outFolder / target.name.lowercase() / modeString / "bin"
         if (!targetBinDir.exists()) targetBinDir.mkdirs()
-        val outputPath = (targetBinDir / binName).toString()
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, false)
-            .filterChildVersions()
-            .map { resolver.resolve(it, releaseMode, target, downloadArtifacts = true, recurse = false) }
+        val outputPath = targetBinDir / binName
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target)
             .flatMap { it.artifacts }
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
@@ -160,7 +147,7 @@ class ModuleBuilder(
                 target = target,
                 compilationDuration = duration,
                 dependencyArtifacts = resolvedLibs,
-                artifactPath = "${outputPath}${getExeExtension(target)}",
+                artifactPath = "${outputPath}${target.executableExt}",
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
             )
         } else {
@@ -179,16 +166,15 @@ class ModuleBuilder(
             return@Default ArtifactResult.NoArtifactFound
         }
         val libFile = File(checkNotNull(collectedSourceFiles.mainFile))
-        val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
+        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
 
         val modeString = if (releaseMode) "release" else "debug"
         val targetLibDir = outFolder / target.name.lowercase() / modeString / "lib"
         if (!targetLibDir.exists()) targetLibDir.mkdirs()
 
-        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target, true)
-            .filterChildVersions()
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target)
             .flatMap { it.artifacts }
-        val outputPath = (targetLibDir / module.name).toString()
+        val outputPath = targetLibDir / module.name
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
                 libFile,
@@ -203,7 +189,7 @@ class ModuleBuilder(
         return@Default if (result.exitCode == 0) {
             ArtifactResult.Success(
                 target = target,
-                artifactPath = "${outputPath}${getLibExtension(target)}",
+                artifactPath = "${outputPath}${target.libraryExt}",
                 compilationDuration = duration,
                 outputText = listOf(result.output, result.errors).joinToString("\n"),
                 dependencyArtifacts = resolvedLibs,
@@ -214,7 +200,7 @@ class ModuleBuilder(
     }
 
     suspend fun buildAllBins(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
-        val dependencyTree = resolveDependencyTree(module, moduleFolder, listOf(target))
+        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
 
         logger.d { dependencyTree.printDependencyTree() }
 
@@ -222,8 +208,7 @@ class ModuleBuilder(
             error("Could not create build folder: $outFolder")
         }
 
-        val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target, true)
-            .filterChildVersions()
+        val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target)
             .flatMap { it.artifacts }
         val sourceFiles = collectSourceFiles(target, BuildType.BIN) // TODO: Scan only for main.kt and bin files
         val mainSource: Path? = sourceFiles.mainFile?.toPath()
@@ -243,28 +228,26 @@ class ModuleBuilder(
     }
 
     private suspend fun assembleDependencies(
-        root: RootDependencyNode,
+        root: List<DependencyNode>,
         releaseMode: Boolean,
         target: KotlinTarget,
-        downloadArtifacts: Boolean,
-    ): RootDependencyNode {
+    ): List<DependencyNode> {
         val (newRoot, duration) = measureSeconds {
             val (mavenDependencies, mavenDuration) = measureSeconds {
-                root.children
-                    .filter { it.dependencyConf is DependencyConf.MavenDependency }
-                    .map { child -> fetchMavenDependency(child, releaseMode, target, downloadArtifacts) }
+                val deps = root.filter { it.dependencyConf is DependencyConf.MavenDependency }
+                    .shakeAndFlattenDependencies()
+                resolver.resolveArtifacts(deps, releaseMode, target)
             }
 
             logger.d { "Assembled maven dependencies in ${mavenDuration}s" }
 
             val (localDependencies, localDuration) = measureSeconds {
-                root.children
-                    .filter { it.dependencyConf is DependencyConf.LocalPathDependency }
-                    .map { child -> buildChildDependency(child, releaseMode, target, downloadArtifacts) }
+                root.filter { it.dependencyConf is DependencyConf.LocalPathDependency }
+                    .map { child -> buildChildDependency(child, releaseMode, target, downloadArtifacts = true) }
             }
 
             logger.d { "Assembled local dependencies in ${localDuration}s" }
-            root.copy(children = localDependencies + mavenDependencies)
+            localDependencies + mavenDependencies
         }
 
         logger.d { "Assembled dependencies in ${duration}s" }
@@ -273,15 +256,15 @@ class ModuleBuilder(
     }
 
     private suspend fun buildChildDependency(
-        child: ChildDependencyNode,
+        child: DependencyNode,
         releaseMode: Boolean,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
         libs: List<String>? = null,
-    ): ChildDependencyNode {
+    ): DependencyNode {
         val localModule = checkNotNull(child.localModule)
-        val childPath = pathFrom(basePath, localModule.name)
-        val childBuilder = ModuleBuilder(localModule, context, childPath.toString())
+        val childPath = modulePath / localModule.name
+        val childBuilder = ModuleBuilder(localModule, context, childPath)
 
         val innerDepNodes = child.children
             .filter { it.dependencyConf is DependencyConf.LocalPathDependency }
@@ -307,21 +290,12 @@ class ModuleBuilder(
         )
     }
 
-    private suspend fun fetchMavenDependency(
-        node: ChildDependencyNode,
-        releaseMode: Boolean,
-        target: KotlinTarget,
-        downloadArtifacts: Boolean,
-    ): ChildDependencyNode {
-        return resolver.resolve(node, releaseMode, target, downloadArtifacts, recurse = true)
-    }
-
     suspend fun resolveDependencyTree(
-        root: ModuleConf,
+        rootModule: ModuleConf,
         rootFolder: Path,
         targets: List<KotlinTarget>,
-    ): RootDependencyNode {
-        val dependencies = root.dependencies
+    ): List<DependencyNode> {
+        return rootModule.dependencies
             .filter { it.targets.isEmpty() || (targets.isNotEmpty() && it.targets.containsAll(targets)) }
             .flatMap { it.dependencies }
             .map { dependency ->
@@ -332,36 +306,31 @@ class ModuleBuilder(
                     is DependencyConf.NpmDependency -> TODO()
                 }
             }
-        return RootDependencyNode(targets, root, dependencies)
     }
 
-    suspend fun resolveMavenDependency(
+    private suspend fun resolveMavenDependency(
         dependencyConf: DependencyConf.MavenDependency,
         targets: List<KotlinTarget>,
-    ): ChildDependencyNode {
-        return fetchMavenDependency(
-            ChildDependencyNode(
-                localModule = null,
-                dependencyConf = dependencyConf,
-                children = emptyList(),
-                artifacts = emptyList(),
-            ),
-            releaseMode = false,
-            target = targets.firstOrNull() ?: KotlinTarget.JVM, // TODO:
-            downloadArtifacts = false,
+    ): DependencyNode {
+        val node = DependencyNode(
+            localModule = null,
+            dependencyConf = dependencyConf,
+            children = emptyList(),
+            artifacts = emptyList(),
         )
+        // TODO: address default target selection
+        return resolver.resolve(node, false, targets.firstOrNull() ?: KotlinTarget.JVM)
     }
 
     private suspend fun resolveLocalDependency(
         dependencyConf: DependencyConf.LocalPathDependency,
         rootFolder: Path,
         targets: List<KotlinTarget>,
-    ): ChildDependencyNode {
+    ): DependencyNode {
         val packFile = rootFolder / dependencyConf.path / PACK_SCRIPT_FILENAME
         val localModule = context.loadKtpackConf(packFile.toString()).module
-        val children =
-            resolveDependencyTree(localModule, rootFolder / dependencyConf.path, targets).children
-        return ChildDependencyNode(
+        val children = resolveDependencyTree(localModule, rootFolder / dependencyConf.path, targets)
+        return DependencyNode(
             localModule = localModule,
             dependencyConf = dependencyConf,
             children = children,
@@ -369,148 +338,64 @@ class ModuleBuilder(
         )
     }
 
-    private fun getExeExtension(target: KotlinTarget): String {
-        return when (target) {
-            KotlinTarget.JVM -> ".jar"
-            KotlinTarget.MINGW_X64 -> ".exe"
-
-            KotlinTarget.JS_NODE,
-            KotlinTarget.JS_BROWSER,
-            -> ".js"
-
-            KotlinTarget.MACOS_ARM64,
-            KotlinTarget.MACOS_X64,
-            KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64,
-            -> ".kexe"
-        }
-    }
-
-    private fun getLibExtension(target: KotlinTarget): String {
-        return when (target) {
-            KotlinTarget.JVM -> ".jar"
-            KotlinTarget.JS_NODE,
-            KotlinTarget.JS_BROWSER,
-            -> ""
-
-            KotlinTarget.MINGW_X64,
-            KotlinTarget.MACOS_ARM64,
-            KotlinTarget.MACOS_X64,
-            KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64,
-            -> ".klib"
-        }
-    }
-
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun startKotlinCompiler(
         mainSource: File?,
         sourceFiles: List<String>,
         releaseMode: Boolean,
-        outputPath: String,
+        output: Path,
         target: KotlinTarget,
         isBinary: Boolean,
-        libs: List<String>? = null,
-    ): CommunicateResult = exec {
-        val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
-        when (target) {
-            KotlinTarget.JVM -> {
-                val targetOutPath = "${outputPath}${getExeExtension(target)}"
-                arg(context.kotlinInstalls.findKotlincJvm(kotlinVersion))
-
-                // arg("-Xjdk-release=$version")
-                // args("-jvm-target", "1.8")
-                arg("-include-runtime")
-                // args("-jdk-home", "")
-
-                if (!libs.isNullOrEmpty()) {
-                    args("-classpath", libs.joinToString(CPSEP))
-                }
-
-                args("-d", targetOutPath) // output folder/ZIP/Jar path
-            }
-
-            KotlinTarget.JS_NODE, KotlinTarget.JS_BROWSER -> {
-                val targetOutPath = "${outputPath}${getExeExtension(target)}"
-                arg(context.kotlinInstalls.findKotlincJs(kotlinVersion))
-
-                args("-output", targetOutPath) // output js file
-                args("-main", if (isBinary) "call" else "noCall")
-
-                if (!isBinary) {
-                    arg("-meta-info")
-                }
-                // arg("-source-map")
-                // args("-source-map-base-dirs", <path>)
-                // args("-source-map-embed-sources", "never") // always|never|inlining
-                // arg("-no-stdlib")
-
-                args("-module-kind", "umd") // umd|commonjs|amd|plain
-
-                if (!libs.isNullOrEmpty()) {
-                    val jsLibFiles = libs
-                        .filter { !it.endsWith(".jar") && !it.endsWith(".klib") }
-                        .map { libPath -> File("$libPath.meta.js").getAbsolutePath() }
-                    val archiveLibFiles = libs
-                        .filter { it.endsWith(".jar") || it.endsWith(".klib") }
-                    args("-libraries", (jsLibFiles + archiveLibFiles).joinToString(CPSEP))
-                }
-            }
-
-            KotlinTarget.MACOS_ARM64,
-            KotlinTarget.MACOS_X64,
-            KotlinTarget.MINGW_X64,
-            KotlinTarget.LINUX_ARM64,
-            KotlinTarget.LINUX_X64,
-            -> {
-                val targetOutPath = if (isBinary) {
-                    "${outputPath}${getExeExtension(target)}"
-                } else {
-                    outputPath // library suffix will be added be the compiler
-                }
-                arg(context.kotlinInstalls.findKotlincNative(kotlinVersion))
-                File(targetOutPath.substringBeforeLast(filePathSeparator)).mkdirs()
-
-                args("-output", targetOutPath) // output kexe or exe file
-                // args("-entry", "") // TODO: Handle non-root package main funcs
-
-                if (isBinary) {
-                    args("-produce", "program")
-                } else {
-                    args("-produce", "library") // static, dynamic, framework, library, bitcode
-                }
-
-                if (releaseMode) {
-                    arg("-opt") // kotlinc-native only: enable compilation optimizations
-                } else {
-                    arg("-g") // kotlinc-native only: emit debug info
-                }
-
-                libs?.forEach { lib ->
-                    args("-library", lib)
-                }
-
-                // args("-manifest", "")
-                // args("-module-name", "")
-                // args("-nomain", "")
-                // args("-nopack", "")
-                // args("-no-default-libs", "") // TODO: Disable for COMMON_ONLY modules
-                // args("-nostd", "")
-
-                // args("-repo", "")
-                // args("-library", "")
-                // args("-linker-option", "")
-                // args("-linker-options", "")
-                // args("-native-library", "")
-                // args("-include-binary", "")
-
-                // args("-generate-test-runner", "")
-                // args("-generate-worker-test-runner", "")
-                // args("-generate-no-exit-test-runner", "")
-
-                args("-target", target.name.lowercase())
-            }
+        libs: List<String>,
+    ): CommunicateResult {
+        check(output.isAbsolute) {
+            "ModuleBuilder.startKotlinCompiler(...) requires `output` to be an absolute path: $output"
         }
+        val outputDir = checkNotNull(output.parent).mkdirs()
+        val compileOpts = outputDir / "${Random.Default.nextBytes(6).toHexString()}.opts"
+        val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
+        return try {
+            exec {
+                workingDirectory = outputDir.toString()
+                when (target) {
+                    KotlinTarget.JVM -> {
+                        configureJvmCompilerArgs(output, target, kotlinVersion, libs, compileOpts)
+                    }
 
+                    KotlinTarget.JS_NODE, KotlinTarget.JS_BROWSER -> {
+                        configureJsCompilerArgs(kotlinVersion, releaseMode, output, isBinary, libs, compileOpts)
+                    }
+
+                    KotlinTarget.MACOS_ARM64,
+                    KotlinTarget.MACOS_X64,
+                    KotlinTarget.MINGW_X64,
+                    KotlinTarget.LINUX_ARM64,
+                    KotlinTarget.LINUX_X64,
+                    -> {
+                        configureNativeCompilerArgs(
+                            isBinary,
+                            output,
+                            target,
+                            kotlinVersion,
+                            releaseMode,
+                            libs,
+                            compileOpts,
+                        )
+                    }
+                }
+
+                configureCommonCompilerArgs(mainSource, sourceFiles, compileOpts)
+            }
+        } finally {
+            compileOpts.delete()
+        }
+    }
+
+    private fun ExecArgumentsBuilder.configureCommonCompilerArgs(
+        mainSource: File?,
+        sourceFiles: List<String>,
+        compileOpts: Path,
+    ) {
         arg("-verbose")
         // arg("-nowarn")
         // arg("-Werror")
@@ -527,7 +412,150 @@ class ModuleBuilder(
         mainSource?.getAbsolutePath()?.run(::arg)
         sourceFiles.forEach { file -> arg(file) }
 
-        logger.d { "Launching Kotlin compiler: " }
-        logger.d { arguments.joinToString(" ") }
+        logger.d { "Launching Kotlin Compiler:\n${arguments.joinToString("\n")}" }
+        if (compileOpts.exists()) {
+            logger.d { "${compileOpts.name}:\n${compileOpts.readUtf8()}" }
+        }
+    }
+
+    private fun ExecArgumentsBuilder.configureJvmCompilerArgs(
+        outputPath: Path,
+        target: KotlinTarget,
+        kotlinVersion: String,
+        libs: List<String>,
+        compileOpts: Path,
+    ) {
+        val targetOutPath = "${outputPath}${target.executableExt}"
+        arg(context.kotlinInstalls.findKotlincJvm(kotlinVersion))
+
+        // arg("-Xjdk-release=$version")
+        // args("-jvm-target", "1.8")
+        arg("-include-runtime")
+        // args("-jdk-home", "")
+
+        if (libs.isNotEmpty()) {
+            val opts = libs.joinToString(CPSEP, prefix = "-classpath ")
+            compileOpts.writeUtf8(opts) { error ->
+                throw error
+            }
+            arg("@${compileOpts.name}")
+        }
+
+        args("-d", targetOutPath) // output folder/ZIP/Jar path
+    }
+
+    private fun ExecArgumentsBuilder.configureJsCompilerArgs(
+        kotlinVersion: String,
+        releaseMode: Boolean,
+        output: Path,
+        isBinary: Boolean,
+        libs: List<String>,
+        compileOpts: Path,
+    ) {
+        val kotlincPath = context.kotlinInstalls.findKotlincJs(kotlinVersion).toPath()
+        arg(kotlincPath.toString())
+
+        args("-main", if (isBinary) "call" else "noCall")
+        args("-module-kind", "umd") // umd|commonjs|amd|plain
+
+        //arg("-Xir-only")
+        if (releaseMode) {
+            arg("-Xir-dce")
+            arg("-Xoptimize-generated-js")
+        }
+
+        //arg("-Xir-build-cache")
+        //arg("")
+        //compileOpts.appendUtf8("-Xcache-directory=${output.parent}", onError = { throw it })
+
+        //arg("-Xgenerate-dts")
+
+        arg("-Xir-produce-js")
+        args("-ir-output-dir", output.parent!!.toString())
+        args("-ir-output-name", output.name)
+        //args("-output", targetOutPath.toString()) // output js file
+
+        if (!isBinary) {
+            arg("-meta-info")
+        }
+        //arg("-source-map")
+        // args("-source-map-base-dirs", <path>)
+        // args("-source-map-embed-sources", "never") // always|never|inlining
+
+
+        // arg("-no-stdlib")
+        // Later version of kotlinc-js fail to provide the sdk by default
+        val jsLibs = libs + (kotlincPath.parent?.parent!! / "lib" / "kotlin-stdlib-js.jar").toString()
+        if (jsLibs.isNotEmpty()) {
+            val archiveLibFiles = jsLibs.filter {
+                it.endsWith(".klib") || it.endsWith(".jar")
+            }
+
+            val optString = archiveLibFiles.joinToString(CPSEP, prefix = "-libraries ")
+            compileOpts.appendUtf8(optString, onError = { throw it })
+        }
+        arg("@${compileOpts.name}")
+    }
+
+    private fun ExecArgumentsBuilder.configureNativeCompilerArgs(
+        isBinary: Boolean,
+        outputPath: Path,
+        target: KotlinTarget,
+        kotlinVersion: String,
+        releaseMode: Boolean,
+        libs: List<String>,
+        compileOpts: Path,
+    ) {
+        val targetOutPath = if (isBinary) {
+            outputPath / target.executableExt
+        } else {
+            outputPath // library suffix will be added be the compiler
+        }
+        arg(context.kotlinInstalls.findKotlincNative(kotlinVersion))
+        targetOutPath.parent?.mkdirs()
+
+        args("-output", targetOutPath.toString()) // output kexe or exe file
+        // args("-entry", "") // TODO: Handle non-root package main funcs
+
+        if (isBinary) {
+            args("-produce", "program")
+        } else {
+            args("-produce", "library") // static, dynamic, framework, library, bitcode
+        }
+
+        if (releaseMode) {
+            arg("-opt") // kotlinc-native only: enable compilation optimizations
+        } else {
+            arg("-g") // kotlinc-native only: emit debug info
+        }
+
+        if (libs.isNotEmpty()) {
+            val libFlag = "-library "
+            val libList = libs.joinToString("\n") {
+                libFlag + it
+            }
+            compileOpts.writeUtf8(libList) { throw it }
+            args("@${compileOpts.name}")
+        }
+
+        // args("-manifest", "")
+        // args("-module-name", "")
+        // args("-nomain", "")
+        // args("-nopack", "")
+        // args("-no-default-libs", "") // TODO: Disable for COMMON_ONLY modules
+        // args("-nostd", "")
+
+        // args("-repo", "")
+        // args("-library", "")
+        // args("-linker-option", "")
+        // args("-linker-options", "")
+        // args("-native-library", "")
+        // args("-include-binary", "")
+
+        // args("-generate-test-runner", "")
+        // args("-generate-worker-test-runner", "")
+        // args("-generate-no-exit-test-runner", "")
+
+        args("-target", target.name.lowercase())
     }
 }

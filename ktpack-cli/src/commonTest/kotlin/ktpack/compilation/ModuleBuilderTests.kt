@@ -67,7 +67,7 @@ class ModuleBuilderTests {
         builder = ModuleBuilder(
             ModuleConf("test", "0.0.0"),
             TestCliContext(),
-            (sampleDir / sample).toString(),
+            modulePath = sampleDir / sample,
         )
 
         if (target == null) {

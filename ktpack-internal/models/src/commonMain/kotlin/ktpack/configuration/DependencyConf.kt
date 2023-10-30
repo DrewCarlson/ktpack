@@ -41,10 +41,7 @@ sealed class DependencyConf {
     ) : DependencyConf() {
         fun toMavenString(): String = "$groupId:$artifactId:$version"
         fun toPathString(separator: String): String =
-            groupId.split('.')
-                .plus(artifactId)
-                .plus(version)
-                .joinToString(separator)
+            toPathParts().joinToString(separator)
 
         fun toPathParts(): List<String> =
             groupId.split('.') + artifactId + version

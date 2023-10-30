@@ -29,8 +29,8 @@ class CleanCommand : CliktCommand(
         val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
 
         val dependencyTree =
-            moduleBuilder.resolveDependencyTree(module, workingDirectory.toPath(), listOfNotNull(userTarget))
-        dependencyTree.children
+            moduleBuilder.resolveDependencyTree(module, workingDirectory, listOfNotNull(userTarget))
+        dependencyTree
             .mapNotNull { child -> child.localModule?.name }
             .map { name ->
                 // TODO: Handle cleaning local child dependency build folder

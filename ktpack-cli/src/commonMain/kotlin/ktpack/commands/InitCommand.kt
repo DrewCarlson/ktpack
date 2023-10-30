@@ -14,7 +14,7 @@ class InitCommand : CliktCommand(
     private val context by requireObject<CliContext>()
 
     override fun run() {
-        val packFile = pathFrom(workingDirectory, PACK_SCRIPT_FILENAME)
+        val packFile = workingDirectory / PACK_SCRIPT_FILENAME
         if (packFile.exists()) {
             context.term.println("${failed("Failed")} A pack file already exists in this directory.")
             return

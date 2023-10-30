@@ -1,5 +1,6 @@
 package ktpack.commands
 
+import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
@@ -19,11 +20,13 @@ import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
 import okio.Path.Companion.DIRECTORY_SEPARATOR
+import okio.Path.Companion.toPath
 
 class RunCommand : CliktCommand(
     help = "Compile and run binary packages.",
 ) {
 
+    private val logger = Logger.withTag(RunCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
     private val releaseMode by option("--release")
@@ -47,84 +50,72 @@ class RunCommand : CliktCommand(
         val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
         val targetBin = targetBin ?: packageConf.module.name
 
-        context.term.println(
-            buildString {
-                append(success("Compiling"))
-                append(" ${packageConf.module.name}")
-                append(" v${packageConf.module.version}")
-                append(" (${moduleBuilder.srcFolder.parent})")
-            },
-        )
+        logger.i {
+            val name = packageConf.module.name
+            val version = packageConf.module.version
+            val modulePath = moduleBuilder.modulePath
+            "${success("Compiling")} $name v$version ($modulePath)"
+        }
         val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
-        val result = terminal.loadingIndeterminate(
+        /*val result = terminal.loadingIndeterminate(
             animate = { text, duration ->
                 bold(brightWhite(text)) + reset(white(" ${duration.inWholeSeconds}s"))
             },
         ) {
             moduleBuilder.buildBin(releaseMode, targetBin, target)
-        }
+        }*/
+        val result = moduleBuilder.buildBin(releaseMode, targetBin, target)
         when (result) {
             is ArtifactResult.Success -> {
-                if (context.debug) {
-                    context.term.println(result.outputText)
+                logger.d { result.outputText }
+                logger.i {
+                    val duration = result.compilationDuration.toString()
+                    val modeDetails = if (releaseMode) {
+                        "release [optimized] target(s)"
+                    } else {
+                        "dev [unoptimized + debuginfo] target(s)"
+                    }
+                    "${success("Finished")} $modeDetails in ${bold(white(duration))}s"
                 }
-                context.term.println(
-                    buildString {
-                        append(success("Finished"))
-                        if (releaseMode) {
-                            append(" release [optimized] target(s)")
-                        } else {
-                            append(" dev [unoptimized + debuginfo] target(s)")
-                        }
-                        append(" in ${bold(white(result.compilationDuration.toString()))}s")
-                    },
-                )
                 context.term.println("${success("Running")} '${result.artifactPath}'")
                 try {
                     val (exitCode, duration) = measureSeconds {
                         runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
+                    val durationString = bold(white(duration.toString()))
                     if (exitCode == 0) {
-                        context.term.println(
-                            "${success("Finished")} Program completed successfully in ${
-                                bold(
-                                    white(
-                                        duration.toString(),
-                                    ),
-                                )
-                            }s",
-                        )
+                        logger.i {
+                            "${success("Finished")} Program completed successfully in ${durationString}s"
+                        }
                     } else {
-                        context.term.println(
-                            "${failed("Failed")} Program terminated with code ($exitCode) in ${
-                                bold(
-                                    white(duration.toString()),
-                                )
-                            }s",
-                        )
+                        logger.i {
+                            "${failed("Failed")} Program terminated with code ($exitCode) in ${durationString}s"
+                        }
                     }
                 } catch (e: IOException) {
-                    context.term.println("${failed("Failed")} Program could not be started due to an IO error")
-                    context.logError(e)
+                    logger.i {
+                        "${failed("Failed")} Program could not be started due to an IO error"
+                    }
+                    logger.e(e) { e.message.orEmpty() }
                 }
             }
 
             is ArtifactResult.ProcessError -> {
-                context.term.println("${failed("Failed")} Compilation process failed with exit code (${result.exitCode})")
-                context.term.println(result.message.orEmpty())
+                logger.i { "${failed("Failed")} Compilation process failed with exit code (${result.exitCode})" }
+                logger.e { result.message.orEmpty() }
             }
 
             is ArtifactResult.NoArtifactFound -> {
-                context.term.println("${failed("Failed")} no binary to run")
+                logger.i { "${failed("Failed")} no binary to run" }
             }
 
             is ArtifactResult.NoSourceFiles -> {
-                context.term.println("${failed("Failed")} no source files")
+                logger.i { "${failed("Failed")} no source files" }
             }
         }
     }
 
-    private suspend fun CoroutineScope.runBuildArtifact(
+    private suspend fun runBuildArtifact(
         module: ModuleConf,
         target: KotlinTarget,
         artifactPath: String,
@@ -175,18 +166,17 @@ class RunCommand : CliktCommand(
     }
 
     private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) {
-        val artifactName = artifactPath.substringAfterLast(DIRECTORY_SEPARATOR)
         runWebServer(
             httpPort = httpPort,
             data = HttpAccessHandlerData(
                 moduleName = module.name,
                 kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
                 artifactPath = artifactPath,
-                artifactName = artifactName
+                artifactName = artifactPath.toPath().name
             ),
             onServerStarted = {
                 context.term.println("${info("HTTP Server")} Available at http://localhost:$httpPort")
-            }
+            },
         )
     }
 }

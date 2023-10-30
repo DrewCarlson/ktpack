@@ -43,14 +43,14 @@ data class GradleModule(
         val dependencies: List<Dependency> = listOf(),
         //val dependencyConstraints: DependencyConstraints
         val files: List<File> = listOf(),
-        val capabilities: Capabilities? = null,
+        val capabilities: List<Capability> = emptyList(),
     ) {
 
         @Serializable
-        data class Capabilities(
+        data class Capability(
             val group: String,
             val name: String,
-            val version: String,
+            val version: String? = null,
         )
 
         @Serializable
@@ -69,7 +69,7 @@ data class GradleModule(
             val excludes: List<Excludes>? = null,
             val reason: String? = null,
             val attributes: Attributes? = null,
-            val requestedCapabilities: List<Capabilities>? = null,
+            val requestedCapabilities: List<Capability>? = null,
             val endorseStrictVersions: Boolean = false,
             // val thirdPartyCompatibility
         ) {

@@ -12,7 +12,7 @@ import okio.Path.Companion.DIRECTORY_SEPARATOR
  */
 expect fun getHomePath(): String?
 
-expect val workingDirectory: String
+expect val workingDirectory: Path
 
 expect val TEMP_PATH: Path
 

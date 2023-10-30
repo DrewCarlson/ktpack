@@ -2,6 +2,7 @@ package ktpack.util
 
 import okio.FileSystem
 import okio.Path
+import okio.Path.Companion.toOkioPath
 import okio.Path.Companion.toPath
 import java.nio.file.FileSystems
 
@@ -10,11 +11,11 @@ actual fun getHomePath(): String? {
     return System.getProperty("user.home")
 }
 
-actual val workingDirectory: String =
+actual val workingDirectory: Path =
     FileSystems.getDefault()
         .getPath("")
         .toAbsolutePath()
-        .toString()
+        .toOkioPath()
 
 actual val TEMP_PATH: Path =
     System.getProperty("java.io.tmpdir").toPath()

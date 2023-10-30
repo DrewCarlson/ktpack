@@ -14,6 +14,7 @@ import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import okio.*
+import okio.Path.Companion.toPath
 
 private enum class Template { BIN, LIB }
 
@@ -29,7 +30,14 @@ class NewCommand : CliktCommand(
 
     private val folder by argument("module_name")
         .help("The folder name to use for the new project.")
-        .convert { pathFrom(workingDirectory, it) }
+        .convert { folder ->
+            val folderPath = folder.toPath()
+            if (folderPath.isAbsolute) {
+                folderPath
+            } else {
+                workingDirectory / folderPath
+            }
+        }
         .validate { require(moduleNameRegex.matches(it.name)) }
 
     private val moduleName by option("--name", "-n")
