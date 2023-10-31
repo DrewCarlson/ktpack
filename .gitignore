@@ -5,4 +5,5 @@ build/
 **/out/
 **/.DS_Store
 docs/book
+!docs/commands/build
 local.properties

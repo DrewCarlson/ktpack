@@ -21,9 +21,6 @@ theme:
         icon: material/brightness-7
         name: Switch to dark mode
 
-extra_css:
-  - stylesheets/extra.css
-
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -33,8 +30,8 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins:
   - search
@@ -56,6 +53,7 @@ nav:
   - index.md
   - Installation: installation.md
   - Getting Started: getting-started.md
+  - Limitations: limitations.md
   - Development:
       - Environment Setup: development/environment-setup.md
       - CLI Architecture: development/cli-architecture.md

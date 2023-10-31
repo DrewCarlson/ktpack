@@ -36,7 +36,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -59,10 +59,7 @@ jobs:
 
       - name: Deploy with mike
         run: |
-          VERSION_WITH_V=${{ github.ref_name }}
-          VERSION=${VERSION#v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          mike deploy --push $VERSION_WITH_V latest
+          VERSION=${GITHUB_REF_NAME#v} mike deploy --push ${{ github.ref_name }} latest
 
   publish-ktpack-script:
     runs-on: ubuntu-latest
@@ -79,7 +76,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -132,7 +129,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -177,7 +174,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3
@@ -217,7 +214,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Build files
         uses: actions/cache@v3

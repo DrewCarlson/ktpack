@@ -32,7 +32,7 @@ providing a comprehensive set of features with one configuration file:
 - Write tests and benchmarks inside or next to main source files
 - Automatic Kotlin, JDK, and Nodejs toolchain management
 - Consume Maven dependencies or [npm](https://www.npmjs.com/) dependencies
-- Publishing to libraries to Maven and applications to Github
+- Publishing libraries to Maven and applications to Github
 
 ### License
 

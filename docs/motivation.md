@@ -1,8 +1,7 @@
 # Motivation
 
-Kotlin projects using gradle that support publishing, binary/library outputs,
-multiplatform support, tests, etc. require 7+ files with various scripts,
-configuration, and a specific folder structure.
+A basic Kotlin library/application with Gradle requires an excessive number of
+files and configuration script.
 
 This is a poor experience for regular Kotlin users and especially first time users.
 Additionally, users who frequently author small or medium-sized libraries must repeat
