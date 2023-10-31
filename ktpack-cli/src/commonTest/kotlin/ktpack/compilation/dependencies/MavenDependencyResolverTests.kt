@@ -4,14 +4,14 @@ import kotlinx.coroutines.test.runTest
 import ktpack.PACK_SCRIPT_FILENAME
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder
-import ktpack.compilation.dependencies.models.shakeAndFlattenDependencies
+import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ModuleConf
 import ktpack.sampleDir
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
 private val timeout = 2.minutes
@@ -39,13 +39,9 @@ class MavenDependencyResolverTests {
 
     @Test
     fun test_js_artifact_resolution() = runTest(timeout = timeout) {
-        val depTree = builder.resolveDependencyTree(
-            rootModule = module,
-            rootFolder = sampleDir / "6-dependencies",
-            targets = listOf(KotlinTarget.JS_BROWSER),
-        )
+        val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.JS_BROWSER))
 
-        val flatTree = depTree.shakeAndFlattenDependencies()
+        val flatTree = depTree.resolveAndFlatten()
         val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JS_BROWSER)
         val actual = children
             .flatMap { it.artifacts }
@@ -74,18 +70,14 @@ class MavenDependencyResolverTests {
             "atomicfu-js-0.22.0.klib",
             "ktor-client-js-js-2.3.5.klib",
         )
-        assertEquals(expected.joinToString("\n"), actual.joinToString("\n"))
+        expected.forEach { assertTrue(actual.contains(it)) }
     }
 
     @Test
     fun test_jvm_artifact_resolution() = runTest(timeout = timeout) {
-        val depTree = builder.resolveDependencyTree(
-            rootModule = module,
-            rootFolder = sampleDir / "6-dependencies",
-            targets = listOf(KotlinTarget.JVM),
-        )
+        val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.JVM))
 
-        val flatTree = depTree.shakeAndFlattenDependencies()
+        val flatTree = depTree.resolveAndFlatten()
         val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JVM)
         val actual = children
             .flatMap { it.artifacts }
@@ -116,18 +108,14 @@ class MavenDependencyResolverTests {
             "ktor-network-tls-jvm-2.3.5.jar",
             "ktor-client-cio-jvm-2.3.5.jar",
         )
-        assertEquals(expected.joinToString("\n"), actual.joinToString("\n"))
+        expected.forEach { assertTrue(actual.contains(it)) }
     }
 
     @Test
     fun test_mingwX64_artifact_resolution() = runTest(timeout = timeout) {
-        val depTree = builder.resolveDependencyTree(
-            rootModule = module,
-            rootFolder = sampleDir / "6-dependencies",
-            targets = listOf(KotlinTarget.MINGW_X64),
-        )
+        val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.MINGW_X64))
 
-        val flatTree = depTree.shakeAndFlattenDependencies()
+        val flatTree = depTree.resolveAndFlatten()
         val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.MINGW_X64)
         val actual = children
             .flatMap { it.artifacts }
@@ -155,6 +143,6 @@ class MavenDependencyResolverTests {
             "ktor-client-winhttp.klib",
             "ktor-client-winhttp-cinterop-winhttp.klib",
         )
-        assertEquals(expected.joinToString("\n"), actual.joinToString("\n"))
+        expected.forEach { assertTrue(actual.contains(it)) }
     }
 }

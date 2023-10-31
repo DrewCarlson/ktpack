@@ -96,13 +96,14 @@ class RunCommand : CliktCommand(
                     logger.i {
                         "${failed("Failed")} Program could not be started due to an IO error"
                     }
-                    logger.e(e) { e.message.orEmpty() }
+                    logger.i { e.message.orEmpty() }
+                    logger.e { e.stackTraceToString() }
                 }
             }
 
             is ArtifactResult.ProcessError -> {
                 logger.i { "${failed("Failed")} Compilation process failed with exit code (${result.exitCode})" }
-                logger.e { result.message.orEmpty() }
+                logger.i { result.message.orEmpty() }
             }
 
             is ArtifactResult.NoArtifactFound -> {

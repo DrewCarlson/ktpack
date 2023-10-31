@@ -23,46 +23,60 @@ data class DependencyNode(
     }
 }
 
-fun List<DependencyNode>.printDependencyTree(): String {
+fun List<DependencyNode>.dependencyTreeString(): String {
     return buildString {
-        this@printDependencyTree.forEach { node ->
-            append(generateTree(node, isTail = false))
+        this@dependencyTreeString.forEach { node ->
+            generateTreeString(node, isTail = false)
         }
     }
 }
 
-private fun generateTree(node: DependencyNode, prefix: String = "", isTail: Boolean = true): String {
-    return buildString {
-        append(prefix)
-        append(if (isTail) "└── " else "├── ")
-        append("${node}\n")
-
-        node.children.forEachIndexed { i, child ->
-            val isLast = i == node.children.lastIndex
-            val childPrefix = prefix + if (isTail) "    " else "│   "
-            append(generateTree(child, childPrefix, isLast))
-        }
+private fun StringBuilder.generateTreeString(node: DependencyNode, prefix: String = "", isTail: Boolean = true) {
+    append(prefix)
+    append(if (isTail) "└── " else "├── ")
+    append("${node}\n")
+    node.children.forEachIndexed { i, child ->
+        val childPrefix = prefix + if (isTail) "    " else "│   "
+        val isLast = i == node.children.lastIndex
+        generateTreeString(child, childPrefix, isLast)
     }
 }
 
 /**
- * Turn an exhaustive tree of dependencies into a flat list of required
- * dependencies based on the version constraints.
+ * Resolve all [DependencyNode]s and their children according to
+ * the dependency resolution rules, returning a flat list of
+ * all required [DependencyNode]s.
  */
 // TODO: Optimize this...
-fun List<DependencyNode>.shakeAndFlattenDependencies(): List<DependencyNode> {
-    val dependencyMap = mutableMapOf<String, DependencyNode>()
-    forEach { collectDependencies(it, dependencyMap) }
+fun List<DependencyNode>.resolveAndFlatten(): List<DependencyNode> {
+    val resolved = resolveVersions()
 
-    return flatMap { node ->
-        node.flatten { childNode ->
-            dependencyMap.getValue(childNode.dependencyConf.key)
-        }
-    }.distinctBy { it.dependencyConf.key }
+    return resolved
+        .flatten()
+        .map { it.copy(children = emptyList()) }
+        .distinctBy { it.dependencyConf.key }
 }
 
-internal fun DependencyNode.flatten(override: (node: DependencyNode) -> DependencyNode): List<DependencyNode> {
-    return children.flatMap { child -> override(child).flatten(override) } + override(this)
+fun List<DependencyNode>.resolveVersions(): List<DependencyNode> {
+    val dependencyMap = mutableMapOf<String, DependencyNode>()
+    forEach { collectDependencies(it, dependencyMap) }
+    return map { node ->
+        node.applyRules { childNode ->
+            dependencyMap.getValue(childNode.dependencyConf.key)
+        }
+    }
+}
+
+fun List<DependencyNode>.flatten(): List<DependencyNode> {
+    return flatMap { node ->
+        listOf(node) + node.children.flatten()
+    }
+}
+
+private fun DependencyNode.applyRules(override: (node: DependencyNode) -> DependencyNode): DependencyNode {
+    return override(this).copy(
+        children = children.map { it.applyRules(override) },
+    )
 }
 
 private fun List<ExcludeDependency>.check(dependencyConf: DependencyConf): Boolean {

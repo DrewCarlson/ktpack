@@ -17,7 +17,7 @@ class BuildCommand : CliktCommand(
     private val logger = Logger.withTag(BuildCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
-    private val releaseMode by option("--release")
+    private val releaseMode by option("--release", "-r")
         .help("Build artifacts in release mode, with optimizations")
         .flag(default = false)
 

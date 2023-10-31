@@ -8,8 +8,8 @@ import ktfio.*
 import ktpack.*
 import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.dependencies.models.DependencyNode
-import ktpack.compilation.dependencies.models.printDependencyTree
-import ktpack.compilation.dependencies.models.shakeAndFlattenDependencies
+import ktpack.compilation.dependencies.models.dependencyTreeString
+import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.*
 import ktpack.util.*
 import okio.Path
@@ -111,7 +111,7 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.Default {
-        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
+        val dependencyTree = resolveRootDependencyTree(listOf(target))
 
         val collectedSourceFiles = collectSourceFiles(target, BuildType.BIN)
         if (collectedSourceFiles.isEmpty) {
@@ -166,7 +166,7 @@ class ModuleBuilder(
             return@Default ArtifactResult.NoArtifactFound
         }
         val libFile = File(checkNotNull(collectedSourceFiles.mainFile))
-        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
+        val dependencyTree = resolveRootDependencyTree(listOf(target))
 
         val modeString = if (releaseMode) "release" else "debug"
         val targetLibDir = outFolder / target.name.lowercase() / modeString / "lib"
@@ -200,9 +200,9 @@ class ModuleBuilder(
     }
 
     suspend fun buildAllBins(releaseMode: Boolean, target: KotlinTarget): List<ArtifactResult> {
-        val dependencyTree = resolveDependencyTree(module, modulePath, listOf(target))
+        val dependencyTree = resolveRootDependencyTree(listOf(target))
 
-        logger.d { dependencyTree.printDependencyTree() }
+        logger.d { dependencyTree.dependencyTreeString() }
 
         if (!outFolder.exists() && !outFolder.mkdirs().exists()) {
             error("Could not create build folder: $outFolder")
@@ -235,7 +235,7 @@ class ModuleBuilder(
         val (newRoot, duration) = measureSeconds {
             val (mavenDependencies, mavenDuration) = measureSeconds {
                 val deps = root.filter { it.dependencyConf is DependencyConf.MavenDependency }
-                    .shakeAndFlattenDependencies()
+                    .resolveAndFlatten()
                 resolver.resolveArtifacts(deps, releaseMode, target)
             }
 
@@ -290,7 +290,11 @@ class ModuleBuilder(
         )
     }
 
-    suspend fun resolveDependencyTree(
+    suspend fun resolveRootDependencyTree(targets: List<KotlinTarget>): List<DependencyNode> {
+        return resolveDependencyTree(module, workingDirectory, targets)
+    }
+
+    private suspend fun resolveDependencyTree(
         rootModule: ModuleConf,
         rootFolder: Path,
         targets: List<KotlinTarget>,
@@ -306,6 +310,15 @@ class ModuleBuilder(
                     is DependencyConf.NpmDependency -> TODO()
                 }
             }
+    }
+
+    suspend fun fetchArtifacts(
+        root: List<DependencyNode>,
+        releaseMode: Boolean,
+        target: KotlinTarget,
+    ): List<DependencyNode> {
+        // TODO: Don't build child dependencies, just download remote artifacts/sources
+        return assembleDependencies(root, releaseMode, target)
     }
 
     private suspend fun resolveMavenDependency(
@@ -396,7 +409,9 @@ class ModuleBuilder(
         sourceFiles: List<String>,
         compileOpts: Path,
     ) {
-        arg("-verbose")
+        if (context.debug) {
+            arg("-verbose")
+        }
         // arg("-nowarn")
         // arg("-Werror")
 
