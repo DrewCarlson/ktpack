@@ -277,7 +277,7 @@ class JdkInstalls(
         val release = releases.asSequence()
             .filter { release -> release.tagName.startsWith(tagFilter) }
             .firstOrNull() ?: return Triple(null, null, null)
-        val packageSuffix = if (Platform.osFamily == OsFamily.MACOSX) "" else "-jdk"
+        val packageSuffix = if (Platform.osFamily == OsFamily.MACOSX) "" else "jdk"
         val packageName = "amazon-corretto-${release.tagName}-$osName-$arch-${packageSuffix}$packageExtension"
         val downloadUrl = "https://corretto.aws/downloads/resources/${release.tagName}/$packageName"
         val actualJdkVersion = if (majorVersion == 8) {
