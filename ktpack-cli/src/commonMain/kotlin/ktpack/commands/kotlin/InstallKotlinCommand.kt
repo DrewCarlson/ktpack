@@ -9,7 +9,8 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
-import ktpack.kotlin.KotlincInstalls
+import ktpack.toolchain.kotlin.KotlinInstallDetails
+import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchains.ToolchainInstallProgress
 import ktpack.toolchains.ToolchainInstallResult
 import ktpack.util.*
@@ -51,7 +52,7 @@ class InstallKotlinCommand : CliktCommand(
             return@runBlocking
         }
 
-        val newInstalls = mutableListOf<Pair<KotlincInstalls.KotlinInstallDetails, Double>>()
+        val newInstalls = mutableListOf<Pair<KotlinInstallDetails, Double>>()
         val compilerType = compilerType
         if (compilerType == null) {
             if (matchedInstalls.none { it.type == KotlincInstalls.CompilerType.JVM }) {
@@ -70,7 +71,7 @@ class InstallKotlinCommand : CliktCommand(
 
     private suspend fun downloadAndSetupKotlin(
         compilerType: KotlincInstalls.CompilerType
-    ): Pair<KotlincInstalls.KotlinInstallDetails, Double>? {
+    ): Pair<KotlinInstallDetails, Double>? {
         logger.i("${info("Kotlin")} Downloading compiler for $compilerType")
         val (installResult, duration) = measureSeconds {
             context.kotlinInstalls.findAndInstallKotlin(path, version, compilerType) { state ->
@@ -91,7 +92,7 @@ class InstallKotlinCommand : CliktCommand(
             }
 
             is ToolchainInstallResult.DownloadError -> {
-                logger.i("${failed("Downloading")} Error while downloading JDK")
+                logger.i("${failed("Downloading")} Error while downloading Kotlin")
                 if (installResult.cause != null) {
                     logger.i("${failed("Downloading")} ${installResult.cause!!.stackTraceToString()}")
                 } else if (installResult.response != null) {

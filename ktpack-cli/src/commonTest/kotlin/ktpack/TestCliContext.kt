@@ -3,10 +3,11 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
 import io.ktor.client.plugins.logging.*
-import ktpack.kotlin.KotlincInstalls
+import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
-import ktpack.jdk.JdkInstalls
+import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.task.TaskRunner
+import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.GitCli
 
 class TestCliContext : CliContext {
@@ -25,6 +26,7 @@ class TestCliContext : CliContext {
     override val config: KtpackUserConfig = KtpackUserConfig()
     override val jdkInstalls: JdkInstalls = JdkInstalls(this)
     override val kotlinInstalls: KotlincInstalls = KotlincInstalls(this)
+    override val nodejsInstalls: NodejsInstalls = NodejsInstalls(this)
     override val gitCli: GitCli = GitCli()
 
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {

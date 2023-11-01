@@ -1,25 +1,33 @@
 package ktpack
 
 import kotlinx.serialization.Serializable
-import ktpack.jdk.JdkDistribution
+import ktpack.toolchain.jdk.JdkDistribution
+import ktpack.util.KTPACK_ROOT
 import ktpack.util.USER_HOME
-import okio.Path.Companion.DIRECTORY_SEPARATOR
+import ktpack.util.pathFrom
 
 @Serializable
 data class KtpackUserConfig(
     val kotlin: KotlinConfig = KotlinConfig(),
     val jdk: JdkConfig = JdkConfig(),
+    val nodejs: NodejsConfig = NodejsConfig(),
 ) {
     @Serializable
     data class KotlinConfig(
         val version: String = Ktpack.KOTLIN_VERSION,
-        val rootPath: String = "${USER_HOME}${DIRECTORY_SEPARATOR}.konan",
+        val rootPath: String = pathFrom(USER_HOME, ".konan").toString(),
     )
 
     @Serializable
     data class JdkConfig(
         val distribution: JdkDistribution = JdkDistribution.Zulu,
         val version: String = "17",
-        val rootPath: String = "${USER_HOME}${DIRECTORY_SEPARATOR}.jdks",
+        val rootPath: String = pathFrom(USER_HOME, ".jdks").toString(),
+    )
+
+    @Serializable
+    data class NodejsConfig(
+        val version: String = "20.9.0",
+        val rootPath: String = pathFrom(KTPACK_ROOT, "nodejs").toString(),
     )
 }

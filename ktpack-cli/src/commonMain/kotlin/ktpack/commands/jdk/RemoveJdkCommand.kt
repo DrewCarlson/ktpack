@@ -9,8 +9,8 @@ import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
 import ktpack.CliContext
-import ktpack.jdk.JdkInstallDetails
-import ktpack.jdk.JdkDistribution
+import ktpack.toolchain.jdk.JdkInstallDetails
+import ktpack.toolchain.jdk.JdkDistribution
 import ktpack.util.*
 import okio.Path.Companion.toPath
 

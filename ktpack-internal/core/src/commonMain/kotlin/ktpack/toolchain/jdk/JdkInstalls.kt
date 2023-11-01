@@ -1,45 +1,22 @@
-package ktpack.jdk
+package ktpack.toolchain.jdk
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.flow.flowOn
 import ktpack.CliContext
-import ktpack.toolchains.InstallDetails
+import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchains.ToolchainInstallProgress
 import ktpack.toolchains.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path
 import okio.Path.Companion.toPath
 
-data class JdkInstallDetails(
-    val distribution: JdkDistribution,
-    val intellijManifest: String?,
-    override val version: String,
-    override val path: String,
-    override val isActive: Boolean,
-) : InstallDetails {
-    val isIntellijInstall: Boolean = !intellijManifest.isNullOrBlank()
-}
-
 class JdkInstalls(
     private val context: CliContext,
-) {
+) : ToolchainInstaller<JdkInstallDetails>(context.http) {
 
     private val config = context.config.jdk
-
-    private val packageExtension by lazy {
-        when (Platform.osFamily) {
-            OsFamily.WINDOWS -> ".zip"
-            OsFamily.LINUX, OsFamily.MACOSX -> ".tar.gz"
-            else -> error("Unsupported host platform: ${Platform.osFamily} ${Platform.cpuArchitecture}")
-        }
-    }
 
     fun getDefaultJdk(): JdkInstallDetails? {
         return findJdk(
@@ -74,10 +51,7 @@ class JdkInstalls(
         return distribution?.let { dist ->
             (jdksRoot / "${dist.name.lowercase()}-$version")
                 .takeIf(Path::exists)
-                ?.let { jdkFolder ->
-                    val pathEnv = getEnv("PATH").orEmpty()
-                    createInstallDetails(jdkFolder, pathEnv)
-                }
+                ?.let(::createInstallDetails)
         } ?: discover(jdksRoot, distribution).firstOrNull { install ->
             install.version.startsWith(version) && (distribution == null || install.distribution == distribution)
         }
@@ -86,32 +60,33 @@ class JdkInstalls(
     /**
      * Find all [JdkInstallDetails] for JDK installs in [jdksRoot].
      */
-    fun discover(jdksRoot: Path, distribution: JdkDistribution? = null): List<JdkInstallDetails> {
-        val pathEnv = getEnv("PATH").orEmpty()
+    fun discover(rootPath: Path, distribution: JdkDistribution? = null): List<JdkInstallDetails> {
         val distName = distribution?.name?.lowercase()
-        return jdksRoot.list().mapNotNull { file ->
+        return rootPath.list().mapNotNull { file ->
             if (distName != null && !file.name.startsWith(distName)) {
                 null
             } else if (file.isDirectory() && file.list().isNotEmpty()) {
-                createInstallDetails(file, pathEnv)
+                createInstallDetails(file)
             } else {
                 null
             }
         }
     }
 
+    override fun discover(rootPath: Path): List<JdkInstallDetails> {
+        return discover(rootPath, distribution = null)
+    }
+
     suspend fun findAndInstallJdk(
-        http: HttpClient,
         jdksRoot: Path,
         version: String,
         distribution: JdkDistribution,
         onProgress: (ToolchainInstallProgress) -> Unit,
     ): ToolchainInstallResult<JdkInstallDetails> {
-        val pathEnv = getEnv("PATH").orEmpty()
         val (downloadUrl, archiveName, jdkVersionString) = when (distribution) {
-            JdkDistribution.Zulu -> availableZuluVersions(http, version)
-            JdkDistribution.Temurin -> availableTemurinVersions(http, version)
-            JdkDistribution.Corretto -> availableCorrettoVersions(http, version)
+            JdkDistribution.Zulu -> availableZuluVersions(version)
+            JdkDistribution.Temurin -> availableTemurinVersions(version)
+            JdkDistribution.Corretto -> availableCorrettoVersions(version)
             JdkDistribution.Jbr -> error("Jetbrains runtime is not supported.")
         }
         if (downloadUrl == null || archiveName == null || jdkVersionString == null) {
@@ -122,68 +97,21 @@ class JdkInstalls(
             return ToolchainInstallResult.AlreadyInstalled(existingInstallation)
         }
 
-        val tempArchiveFile = TEMP_PATH / archiveName
-        val tempExtractedFolder = TEMP_PATH / archiveName.substringBeforeLast(packageExtension)
-        if (!tempArchiveFile.createNewFile()) {
-            return ToolchainInstallResult.FileIOError(tempArchiveFile, "Failed to create temp file")
+        val (result, tempExtractPath) = downloadAndExtract(downloadUrl, onProgress)
+        if (result != null) {
+            return result
         }
 
-        val response = try {
-            http.downloadPackage(downloadUrl, onProgress, tempArchiveFile)
-        } catch (e: Throwable) {
-            return ToolchainInstallResult.DownloadError(downloadUrl, null, e)
-        }
-        if (!response.status.isSuccess()) {
-            return ToolchainInstallResult.DownloadError(downloadUrl, response, null)
-        }
-
-        val compressor = if (Platform.osFamily == OsFamily.WINDOWS) Zip else Tar
-        val archivePath = tempArchiveFile.toString()
-        val fileCount = compressor.countFiles(archivePath)
-        val lastFileIndex = (fileCount - 1).toDouble()
-        var lastReportedProgress = 0
-        check(tempArchiveFile.exists()) { "Downloaded temp archive does not exist." }
-        tempExtractedFolder.mkdirs()
-        compressor.extract(archivePath, tempExtractedFolder.toString())
-            .flowOn(Dispatchers.Default)
-            .collectIndexed { index, _ ->
-                val completed = ((index / lastFileIndex) * 100).toInt()
-                if (completed != lastReportedProgress && completed % 10 == 0) {
-                    lastReportedProgress = completed
-                    onProgress(ToolchainInstallProgress.Extract(completed))
-                }
-            }
-        tempArchiveFile.delete()
         val newJdkName = "${distribution.name.lowercase()}-$jdkVersionString"
         val newJdkFolder = jdksRoot / newJdkName
-        // If extracted archive contains a single child folder, move that instead
-        val moveTarget = tempExtractedFolder.list().singleOrNull() ?: tempExtractedFolder
-        return if (newJdkFolder.exists() && newJdkFolder.list().isNotEmpty()) {
-            ToolchainInstallResult.FileIOError(newJdkFolder, "JDK folder already exists and is not empty.")
-        } else if (moveTarget.renameTo(newJdkFolder)) {
-            ToolchainInstallResult.Success(checkNotNull(createInstallDetails(newJdkFolder, pathEnv)))
-        } else {
-            ToolchainInstallResult.FileIOError(moveTarget, "Unable to move folder.")
-        }
+        return moveExtractedFiles(
+            installDetails = checkNotNull(createInstallDetails(newJdkFolder)),
+            extractPath = tempExtractPath,
+            newFolderPath = newJdkFolder,
+        )
     }
 
-    private suspend fun HttpClient.downloadPackage(
-        downloadUrl: String,
-        onProgress: (ToolchainInstallProgress) -> Unit,
-        tempArchiveFile: Path,
-    ): HttpResponse = prepareGet(downloadUrl) {
-        onProgress(ToolchainInstallProgress.Started(downloadUrl))
-        var lastReportedProgress = 0
-        onDownload { bytesSentTotal, contentLength ->
-            val completed = ((bytesSentTotal.toDouble() / contentLength) * 100).toInt()
-            if (completed != lastReportedProgress && completed % 10 == 0) {
-                lastReportedProgress = completed
-                onProgress(ToolchainInstallProgress.Download(completed))
-            }
-        }
-    }.downloadInto(tempArchiveFile)
-
-    private fun createInstallDetails(file: Path, pathEnv: String): JdkInstallDetails? {
+    private fun createInstallDetails(file: Path): JdkInstallDetails? {
         val fileName = file.name // JDK folders use the `zulu-18.0.1` format
         val distribution = try {
             JdkDistribution.valueOf(fileName.substringBefore('-').replaceFirstChar(Char::uppercase))
@@ -203,7 +131,6 @@ class JdkInstalls(
     }
 
     private suspend fun availableTemurinVersions(
-        http: HttpClient,
         jdkVersion: String,
     ): Triple<String?, String?, String?> {
         val osName = when (Platform.osFamily) {
@@ -248,7 +175,6 @@ class JdkInstalls(
     }
 
     private suspend fun availableCorrettoVersions(
-        http: HttpClient,
         jdkVersion: String,
     ): Triple<String?, String?, String?> {
         val osName = when (Platform.osFamily) {
@@ -288,7 +214,7 @@ class JdkInstalls(
         return Triple(downloadUrl, packageName, actualJdkVersion)
     }
 
-    private suspend fun availableZuluVersions(http: HttpClient, jdkVersion: String): Triple<String?, String?, String?> {
+    private suspend fun availableZuluVersions(jdkVersion: String): Triple<String?, String?, String?> {
         val osName = when (Platform.osFamily) {
             OsFamily.MACOSX -> "macosx"
             OsFamily.LINUX -> "linux"

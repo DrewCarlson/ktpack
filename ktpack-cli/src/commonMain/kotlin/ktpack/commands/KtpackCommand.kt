@@ -12,10 +12,11 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import ktpack.*
-import ktpack.kotlin.KotlincInstalls
+import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
-import ktpack.jdk.JdkInstalls
+import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.task.TaskRunner
+import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
 import okio.Path.Companion.toPath
 
@@ -46,6 +47,8 @@ class KtpackCommand(
     override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
 
     override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
+
+    override val nodejsInstalls: NodejsInstalls by lazy { NodejsInstalls(this) }
 
     override val gitCli: GitCli = GitCli()
 

@@ -3,9 +3,10 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.HttpClient
 import ktpack.configuration.KtpackConf
-import ktpack.jdk.JdkInstalls
-import ktpack.kotlin.KotlincInstalls
+import ktpack.toolchain.jdk.JdkInstalls
+import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.task.TaskRunner
+import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.GitCli
 
 const val PACK_SCRIPT_FILENAME = "pack.kts"
@@ -20,6 +21,7 @@ interface CliContext {
     val config: KtpackUserConfig
     val jdkInstalls: JdkInstalls
     val kotlinInstalls: KotlincInstalls
+    val nodejsInstalls: NodejsInstalls
     val gitCli: GitCli
 
     suspend fun loadKtpackConf(filePath: String = PACK_SCRIPT_FILENAME): KtpackConf

@@ -141,7 +141,12 @@ class RunCommand : CliktCommand(
                 }
 
                 KotlinTarget.JS_NODE -> {
-                    arg("C:\\Users\\drewc\\.gradle\\nodejs\\node-v16.13.0-win-x64\\node.exe")
+                    val nodeJs = context.nodejsInstalls.findNodejsExe(context.config.nodejs.version)
+                    if (nodeJs == null) {
+                        context.term.println("${failed("Failed")} Could not find Nodejs installation.")
+                        exitProcess(1)
+                    }
+                    arg(nodeJs.toString())
                     arg(artifactPath)
                 }
 

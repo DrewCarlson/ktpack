@@ -1,16 +1,10 @@
-package ktpack.kotlin
+package ktpack.toolchain.kotlin
 
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.flow.flowOn
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
+import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchains.ToolchainInstallProgress
 import ktpack.toolchains.ToolchainInstallResult
 import ktpack.util.*
@@ -20,25 +14,12 @@ import okio.Path.Companion.toPath
 
 private val FILE_VERSION_REGEX = """\d+\.\d+\.\d+(?:-\w+)?""".toRegex()
 
-data class KotlincInstalls(private val context: CliContext) {
+data class KotlincInstalls(
+    private val context: CliContext
+): ToolchainInstaller<KotlinInstallDetails>(context.http) {
 
     enum class CompilerType {
         JVM, NATIVE
-    }
-
-    data class KotlinInstallDetails(
-        val type: CompilerType,
-        override val version: String,
-        override val path: String,
-        override val isActive: Boolean,
-    ) : ktpack.toolchains.InstallDetails
-
-    private val packageExtension by lazy {
-        when (Platform.osFamily) {
-            OsFamily.WINDOWS -> ".zip"
-            OsFamily.LINUX, OsFamily.MACOSX -> ".tar.gz"
-            else -> error("Unsupported host platform: ${Platform.osFamily} ${Platform.cpuArchitecture}")
-        }
     }
 
     suspend fun getCompilerReleases(page: Int): List<GhTag> {
@@ -47,20 +28,19 @@ data class KotlincInstalls(private val context: CliContext) {
         }.body()
     }
 
-    fun discover(kotlincRoot: Path): List<KotlinInstallDetails> {
-        val pathEnv = getEnv("PATH").orEmpty()
-        return kotlincRoot.list().mapNotNull { file ->
+    override fun discover(rootPath: Path): List<KotlinInstallDetails> {
+        return rootPath.list().mapNotNull { file ->
             val fileName = file.name
             when {
                 !file.isDirectory() || file.list().isEmpty() -> null
                 fileName.startsWith("kotlin-compiler-prebuilt-") -> {
                     val (version) = checkNotNull(FILE_VERSION_REGEX.find(fileName)).groupValues
-                    createInstallDetails(file, CompilerType.JVM, pathEnv, version)
+                    createInstallDetails(file, CompilerType.JVM, version)
                 }
 
                 fileName.startsWith("kotlin-native-prebuilt-") -> {
                     val (version) = checkNotNull(FILE_VERSION_REGEX.find(fileName)).groupValues
-                    createInstallDetails(file, CompilerType.NATIVE, pathEnv, version)
+                    createInstallDetails(file, CompilerType.NATIVE, version)
                 }
 
                 else -> null
@@ -71,7 +51,6 @@ data class KotlincInstalls(private val context: CliContext) {
     private fun createInstallDetails(
         file: Path,
         type: CompilerType,
-        pathEnv: String,
         version: String,
     ): KotlinInstallDetails {
         return KotlinInstallDetails(
@@ -155,79 +134,27 @@ data class KotlincInstalls(private val context: CliContext) {
         compilerType: CompilerType,
         onProgress: (ToolchainInstallProgress) -> Unit,
     ): ToolchainInstallResult<KotlinInstallDetails> {
-        val path = getEnv("PATH").orEmpty()
         val downloadUrl = getReleaseUrl(compilerType, version)
         val existingInstallation = findKotlin(kotlincRoot, version, compilerType)
         if (existingInstallation != null) {
             return ToolchainInstallResult.AlreadyInstalled(existingInstallation)
         }
 
-        val archiveName = downloadUrl.substringAfterLast('/')
-        val tempArchivePath = TEMP_PATH / archiveName
-        val tempExtractPath = TEMP_PATH / archiveName.substringBeforeLast(packageExtension)
-        if (!tempArchivePath.createNewFile()) {
-            return ToolchainInstallResult.FileIOError(tempArchivePath, "Failed to create temp file")
+        val (result, tempExtractPath) = downloadAndExtract(downloadUrl, onProgress)
+        if (result != null) {
+            return result
         }
-
-        val response = try {
-            context.http.downloadPackage(downloadUrl, onProgress, tempArchivePath)
-        } catch (e: Throwable) {
-            return ToolchainInstallResult.DownloadError(downloadUrl, null, e)
-        }
-
-        if (!response.status.isSuccess()) {
-            return ToolchainInstallResult.DownloadError(downloadUrl, response, null)
-        }
-
-        val compressor = if (Platform.osFamily == OsFamily.WINDOWS) Zip else Tar
-        val archivePathString = tempArchivePath.toString()
-        val fileCount = compressor.countFiles(archivePathString)
-        val lastFileIndex = (fileCount - 1).toDouble()
-        var lastReportedProgress = 0
-        check(tempArchivePath.exists()) { "Downloaded temp archive does not exist." }
-        tempExtractPath.mkdirs()
-        compressor.extract(archivePathString, tempExtractPath.toString())
-            .flowOn(Dispatchers.Default)
-            .collectIndexed { index, _ ->
-                val completed = ((index / lastFileIndex) * 100).toInt()
-                if (completed != lastReportedProgress && completed % 10 == 0) {
-                    lastReportedProgress = completed
-                    onProgress(ToolchainInstallProgress.Extract(completed))
-                }
-            }
-        tempArchivePath.delete()
         val newKotlinName = tempExtractPath.name
             .replace("kotlin-compiler", "kotlin-compiler-prebuilt")
             .replace("kotlin-native", "kotlin-native-prebuilt")
         val newKotlinFolder = kotlincRoot / newKotlinName
-        // If extracted archive contains a single child folder, move that instead
-        val moveTarget = tempExtractPath.list().singleOrNull() ?: tempExtractPath
-        return if (newKotlinFolder.exists() && newKotlinFolder.list().isNotEmpty()) {
-            ToolchainInstallResult.FileIOError(newKotlinFolder, "Kotlin folder already exists")
-        } else if (moveTarget.renameTo(newKotlinFolder)) {
-            val installDetails = createInstallDetails(newKotlinFolder, compilerType, path, version)
-            ToolchainInstallResult.Success(installDetails)
-        } else {
-            ToolchainInstallResult.FileIOError(moveTarget, "Unable to move folder.")
-        }
+        val installDetails = createInstallDetails(newKotlinFolder, compilerType, version)
+        return moveExtractedFiles(
+            installDetails = installDetails,
+            newFolderPath = newKotlinFolder,
+            extractPath = tempExtractPath
+        )
     }
-
-
-    private suspend fun HttpClient.downloadPackage(
-        downloadUrl: String,
-        onProgress: (ToolchainInstallProgress) -> Unit,
-        tempArchivePath: Path,
-    ): HttpResponse = prepareGet(downloadUrl) {
-        onProgress(ToolchainInstallProgress.Started(downloadUrl))
-        var lastReportedProgress = 0
-        onDownload { bytesSentTotal, contentLength ->
-            val completed = ((bytesSentTotal.toDouble() / contentLength) * 100).toInt()
-            if (completed != lastReportedProgress && completed % 10 == 0) {
-                lastReportedProgress = completed
-                onProgress(ToolchainInstallProgress.Download(completed))
-            }
-        }
-    }.downloadInto(tempArchivePath)
 
     private fun getReleaseUrl(compilerType: CompilerType, version: String): String {
         return buildString {
@@ -286,7 +213,6 @@ data class KotlincInstalls(private val context: CliContext) {
         version: String,
         compilerType: CompilerType,
     ): KotlinInstallDetails? {
-        val pathEnv = getEnv("PATH").orEmpty()
         val folderName = when (compilerType) {
             CompilerType.JVM -> findNonNativeBin(version).toPath().parent!!.name
             CompilerType.NATIVE -> findKotlincNative(version).toPath().parent!!.parent!!.name
@@ -297,7 +223,6 @@ data class KotlincInstalls(private val context: CliContext) {
                 createInstallDetails(
                     file = kotlinFolder,
                     type = compilerType,
-                    pathEnv = pathEnv,
                     version = version,
                 )
             }

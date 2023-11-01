@@ -5,6 +5,10 @@ import com.github.ajalt.mordant.terminal.*
 import ktpack.commands.*
 import ktpack.commands.jdk.*
 import ktpack.commands.kotlin.*
+import ktpack.commands.nodejs.InstallNodejsCommand
+import ktpack.commands.nodejs.ListNodejsCommand
+import ktpack.commands.nodejs.NodejsCommand
+import ktpack.commands.nodejs.RemoveNodejsCommand
 import ktpack.util.exitProcess
 import ktpack.util.failed
 
@@ -33,6 +37,10 @@ fun main(args: Array<String>) {
                 .subcommands(RemoveJdkCommand())
                 .subcommands(FindJdkCommand())
                 .subcommands(ListJdkCommand()),
+            NodejsCommand()
+                .subcommands(InstallNodejsCommand())
+                .subcommands(RemoveNodejsCommand())
+                .subcommands(ListNodejsCommand()),
         )
     }
 

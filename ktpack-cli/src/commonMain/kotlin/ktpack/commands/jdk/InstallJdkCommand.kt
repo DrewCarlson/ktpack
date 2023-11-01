@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
-import ktpack.jdk.JdkDistribution
+import ktpack.toolchain.jdk.JdkDistribution
 import ktpack.toolchains.ToolchainInstallProgress
 import ktpack.toolchains.ToolchainInstallResult
 import ktpack.util.*
@@ -49,7 +49,7 @@ class InstallJdkCommand : CliktCommand(
         context.term.println("${info("JDKs")} Fetching available $distribution JDK versions")
 
         val (installResult, duration) = measureSeconds {
-            context.jdkInstalls.findAndInstallJdk(context.http, path, version, distribution) { state ->
+            context.jdkInstalls.findAndInstallJdk(path, version, distribution) { state ->
                 when (state) {
                     is ToolchainInstallProgress.Started -> context.term.println("${info("Downloading")} ${state.downloadUrl}")
                     is ToolchainInstallProgress.Download -> context.term.println("${info("Downloading")} ${state.completed}%")
