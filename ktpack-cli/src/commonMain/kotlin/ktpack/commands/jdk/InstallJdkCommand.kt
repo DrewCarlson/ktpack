@@ -7,8 +7,8 @@ import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
 import ktpack.jdk.JdkDistribution
-import ktpack.jdk.JdkInstallProgress
-import ktpack.jdk.JdkInstallResult
+import ktpack.toolchains.ToolchainInstallProgress
+import ktpack.toolchains.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path.Companion.toPath
 
@@ -51,15 +51,15 @@ class InstallJdkCommand : CliktCommand(
         val (installResult, duration) = measureSeconds {
             context.jdkInstalls.findAndInstallJdk(context.http, path, version, distribution) { state ->
                 when (state) {
-                    is JdkInstallProgress.Started -> context.term.println("${info("Downloading")} ${state.downloadUrl}")
-                    is JdkInstallProgress.Download -> context.term.println("${info("Downloading")} ${state.completed}%")
-                    is JdkInstallProgress.Extract -> context.term.println("${info("Extracting")} ${state.completed}%")
+                    is ToolchainInstallProgress.Started -> context.term.println("${info("Downloading")} ${state.downloadUrl}")
+                    is ToolchainInstallProgress.Download -> context.term.println("${info("Downloading")} ${state.completed}%")
+                    is ToolchainInstallProgress.Extract -> context.term.println("${info("Extracting")} ${state.completed}%")
                 }
             }
         }
 
         when (installResult) {
-            is JdkInstallResult.Success -> {
+            is ToolchainInstallResult.Success -> {
                 val installation = installResult.installation
                 context.term.println(
                     buildString {
@@ -68,7 +68,7 @@ class InstallJdkCommand : CliktCommand(
                         append(info(distribution.name))
                         append(' ')
                         append(info(installation.version))
-                        append(" is now installed to '")
+                        append(" was installed to '")
                         append(installation.path)
                         append("' in ")
                         append(duration)
@@ -77,11 +77,11 @@ class InstallJdkCommand : CliktCommand(
                 )
             }
 
-            is JdkInstallResult.AlreadyInstalled -> {
+            is ToolchainInstallResult.AlreadyInstalled -> {
                 context.term.println("${failed("Downloading")} The selected JDK version is already installed.")
             }
 
-            is JdkInstallResult.DownloadError -> {
+            is ToolchainInstallResult.DownloadError -> {
                 context.term.println("${failed("Downloading")} Error while downloading JDK")
                 if (installResult.cause != null) {
                     context.term.println("${failed("Downloading")} ${installResult.cause!!.stackTraceToString()}")
@@ -90,11 +90,11 @@ class InstallJdkCommand : CliktCommand(
                 }
             }
 
-            is JdkInstallResult.FileIOError -> {
+            is ToolchainInstallResult.FileIOError -> {
                 context.term.println("${failed("Extracting")} ${installResult.message} ${installResult.file}")
             }
 
-            JdkInstallResult.NoMatchingVersion -> {
+            ToolchainInstallResult.NoMatchingVersion -> {
                 context.term.println("${failed("Failed")} No packages found matching ${distribution.name}@$version")
             }
         }

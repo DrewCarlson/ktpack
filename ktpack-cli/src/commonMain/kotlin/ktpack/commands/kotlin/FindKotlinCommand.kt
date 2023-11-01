@@ -5,15 +5,12 @@ import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.*
 import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import ktpack.CliContext
 import ktpack.util.*
 
 private enum class Channel {
-    RELEASE, RC, EAP, ALL
+    RELEASE, RC, BETA, EAP, ALL
 }
 
 class FindKotlinCommand : CliktCommand(
@@ -21,16 +18,21 @@ class FindKotlinCommand : CliktCommand(
     help = "Find available Kotlin compiler versions.",
 ) {
 
-    private val channel by option()
+    private val context by requireObject<CliContext>()
+
+    private val channel by option("--chanel", "-c")
         .help("Filter results by the release channel.")
         .enum<Channel> { it.name.lowercase() }
         .default(Channel.RELEASE)
 
-    private val context by requireObject<CliContext>()
+    private val page by option("--page", "-p")
+        .help("The page of versions to load from github, default is 1 and results start with the latest version.")
+        .int()
+        .default(1)
 
     override fun run(): Unit = runBlocking {
         val releases = try {
-            context.http.getCompilerReleases()
+            context.kotlinInstalls.getCompilerReleases(page)
         } catch (e: Throwable) {
             context.term.println("${failed("Error")} ${e.message}")
             exitProcess(1)
@@ -46,7 +48,7 @@ class FindKotlinCommand : CliktCommand(
                     selectedReleases.forEach { release ->
                         row {
                             cell(" ")
-                            cell(release.tagName)
+                            cell(release.name)
                         }
                     }
                 }
@@ -55,17 +57,14 @@ class FindKotlinCommand : CliktCommand(
     }
 }
 
-private fun List<GhRelease>.filterBy(channel: Channel) = filter { release ->
+private fun List<GhTag>.filterBy(channel: Channel) = filter { release ->
     when (channel) {
         Channel.ALL -> true
-        Channel.RELEASE -> !release.tagName.contains("-")
-        Channel.RC -> release.tagName.contains("-RC")
-        Channel.EAP -> release.tagName.run {
+        Channel.RELEASE -> !release.name.contains("-")
+        Channel.RC -> release.name.contains("-RC")
+        Channel.BETA -> release.name.contains("-Beta")
+        Channel.EAP -> release.name.run {
             contains("-eap") || contains("-M")
         }
     }
-}
-
-private suspend fun HttpClient.getCompilerReleases(): List<GhRelease> {
-    return get("https://api.github.com/repos/Jetbrains/kotlin/releases").body()
 }

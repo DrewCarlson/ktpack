@@ -19,3 +19,8 @@ data class GhAsset(
     @SerialName("browser_download_url")
     val downloadUrl: String,
 )
+
+@Serializable
+data class GhTag(
+    val name: String,
+)

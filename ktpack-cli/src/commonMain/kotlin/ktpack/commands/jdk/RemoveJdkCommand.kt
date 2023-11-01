@@ -9,7 +9,7 @@ import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
 import ktpack.CliContext
-import ktpack.jdk.InstallationDetails
+import ktpack.jdk.JdkInstallDetails
 import ktpack.jdk.JdkDistribution
 import ktpack.util.*
 import okio.Path.Companion.toPath
@@ -90,7 +90,7 @@ class RemoveJdkCommand : CliktCommand(
         }
     }
 
-    private fun userSelectInstall(matches: List<InstallationDetails>): InstallationDetails? {
+    private fun userSelectInstall(matches: List<JdkInstallDetails>): JdkInstallDetails? {
         context.term.println("Found ${info(matches.size.toString())} similar JDK installs:")
         context.term.printJdkSelectionTable(matches)
         context.term.println()
@@ -106,7 +106,7 @@ class RemoveJdkCommand : CliktCommand(
         }
     }
 
-    private fun Terminal.printJdkSelectionTable(installs: List<InstallationDetails>) = println(
+    private fun Terminal.printJdkSelectionTable(installs: List<JdkInstallDetails>) = println(
         table {
             cellBorders = Borders.NONE
             padding {

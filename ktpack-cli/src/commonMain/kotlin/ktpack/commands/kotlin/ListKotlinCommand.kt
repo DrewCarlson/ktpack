@@ -30,7 +30,7 @@ class ListKotlinCommand : CliktCommand(
 
     override fun run() = runBlocking {
         val installs = context.kotlinInstalls.discover(path)
-        context.term.println("Found ${info(installs.size.toString())} Kotlin installation(s)")
+        context.term.println("Found ${info(installs.size.toString())} Kotlin installation(s) in '${context.config.kotlin.rootPath}'")
         context.term.println()
         context.term.println(
             grid {
