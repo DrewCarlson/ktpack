@@ -83,7 +83,7 @@ kotlin {
         }
 
         if (hostOs.isMacOsX) {
-            val appleMain by creating {
+            val appleMain by getting {
                 dependsOn(getByName("posixMain"))
                 dependencies {
                 }
