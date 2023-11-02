@@ -51,28 +51,31 @@ abstract class ToolchainInstaller<I : InstallDetails>(
         onProgress: (ToolchainInstallProgress) -> Unit,
     ): Pair<ToolchainInstallResult<I>?, Path> {
         val archiveName = downloadUrl.substringAfterLast('/')
-        val tempArchivePath = TEMP_PATH / archiveName
         val tempExtractPath = TEMP_PATH / archiveName.substringBeforeLast(packageExtension)
+        val tempArchivePath = TEMP_PATH / archiveName
         if (!tempArchivePath.createNewFile()) {
+            logger.e { "Failed to create temp file: $tempArchivePath" }
             return Pair(
                 ToolchainInstallResult.FileIOError(tempArchivePath, "Failed to create temp file"),
-                tempArchivePath,
+                tempExtractPath,
             )
         }
 
         val response = try {
             downloadPackage(downloadUrl, onProgress, tempArchivePath)
         } catch (e: Throwable) {
+            logger.e(e) { "Failed to download package from $downloadUrl into $tempArchivePath" }
             return Pair(
                 ToolchainInstallResult.DownloadError(downloadUrl, null, e),
-                tempArchivePath,
+                tempExtractPath,
             )
         }
 
         if (!response.status.isSuccess()) {
+            logger.e { "Download request failed with response status ${response.status}" }
             return Pair(
                 ToolchainInstallResult.DownloadError(downloadUrl, response, null),
-                tempArchivePath,
+                tempExtractPath,
             )
         }
 
@@ -81,8 +84,13 @@ abstract class ToolchainInstaller<I : InstallDetails>(
         val fileCount = compressor.countFiles(archivePathString)
         val lastFileIndex = (fileCount - 1).toDouble()
         var lastReportedProgress = 0
-        check(tempArchivePath.exists()) { "Downloaded temp archive does not exist." }
-        tempExtractPath.mkdirs()
+        if (!tempExtractPath.mkdirs().exists()) {
+            logger.e("Failed to create temp archive extract directory: $tempExtractPath")
+            return Pair(
+                ToolchainInstallResult.FileIOError(tempExtractPath, "Failed to temp directory."),
+                tempArchivePath,
+            )
+        }
         compressor.extract(archivePathString, tempExtractPath.toString())
             .flowOn(Dispatchers.Default)
             .collectIndexed { index, _ ->
