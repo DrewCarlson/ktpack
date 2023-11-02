@@ -20,10 +20,12 @@ kotlin {
     configure(nativeTargets) {
         compilations.named("main") {
             kotlinOptions {
-                freeCompilerArgs = listOf("-Xallocator=mimalloc")
+                //freeCompilerArgs = listOf("-Xallocator=mimalloc")
             }
         }
     }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         all {
@@ -57,13 +59,9 @@ kotlin {
             }
         }
 
-        val nativeMain by creating {
-            dependsOn(commonMain)
-        }
 
         if (hostOs.isWindows) {
             named("windowsX64Main") {
-                dependsOn(nativeMain)
                 dependencies {
                 }
             }
@@ -71,7 +69,7 @@ kotlin {
 
         if (!hostOs.isWindows) {
             create("posixMain") {
-                dependsOn(nativeMain)
+                dependsOn(getByName("nativeMain"))
                 dependsOn(getByName("commonMain"))
             }
         }
@@ -85,16 +83,11 @@ kotlin {
         }
 
         if (hostOs.isMacOsX) {
-            val darwinMain by creating {
+            val appleMain by creating {
                 dependsOn(getByName("posixMain"))
                 dependencies {
                 }
             }
-            val darwinTest by creating { dependsOn(getByName("commonTest")) }
-            val macosX64Main by getting { dependsOn(darwinMain) }
-            val macosX64Test by getting { dependsOn(darwinTest) }
-            val macosArm64Main by getting { dependsOn(darwinMain) }
-            val macosArm64Test by getting { dependsOn(darwinTest) }
         }
     }
 }
