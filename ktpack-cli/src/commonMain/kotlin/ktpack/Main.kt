@@ -27,6 +27,7 @@ fun main(args: Array<String>) {
             VersionCommand(),
             DependenciesCommand(),
             PublishCommand(),
+            SetupCommand(),
             KotlinCommand()
                 .subcommands(InstallKotlinCommand())
                 .subcommands(RemoveKotlinCommand())

@@ -9,6 +9,6 @@ actual fun getEnv(key: String): String? {
     return getenv(key)?.toKStringFromUtf8()
 }
 
-actual fun exitProcess(code: Int): Nothing = kotlin.system.exitProcess(-1)
+actual fun exitProcess(code: Int): Nothing = kotlin.system.exitProcess(code)
 
 actual val SystemFs = FileSystem.SYSTEM

@@ -28,6 +28,14 @@ data class KotlincInstalls(
         }.body()
     }
 
+    fun getDefaultKotlin(type: CompilerType): KotlinInstallDetails? {
+        return findKotlin(
+            context.config.kotlin.rootPath.toPath(),
+            context.config.kotlin.version,
+            type
+        )
+    }
+
     override fun discover(rootPath: Path): List<KotlinInstallDetails> {
         return rootPath.list().mapNotNull { file ->
             val fileName = file.name

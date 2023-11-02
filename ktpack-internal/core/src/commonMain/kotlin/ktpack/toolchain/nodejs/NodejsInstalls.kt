@@ -16,6 +16,12 @@ class NodejsInstalls(
     private val context: CliContext
 ) : ToolchainInstaller<NodejsInstallDetails>(context.http) {
 
+    fun getDefaultNodejs(): NodejsInstallDetails? {
+        return findNodejs(
+            context.config.nodejs.rootPath.toPath(),
+            context.config.nodejs.version
+        )
+    }
 
     override fun discover(rootPath: Path): List<NodejsInstallDetails> {
         return rootPath.list().mapNotNull { file ->

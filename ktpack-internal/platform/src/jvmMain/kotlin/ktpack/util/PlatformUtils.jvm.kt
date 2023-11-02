@@ -25,6 +25,6 @@ actual fun getEnv(key: String): String? {
     return System.getenv(key)
 }
 
-actual fun exitProcess(code: Int): Nothing = kotlin.system.exitProcess(-1)
+actual fun exitProcess(code: Int): Nothing = kotlin.system.exitProcess(code)
 
 actual val SystemFs = FileSystem.SYSTEM
