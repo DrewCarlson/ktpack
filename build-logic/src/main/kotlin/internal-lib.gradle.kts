@@ -21,6 +21,7 @@ kotlin {
         compilations.named("main") {
             kotlinOptions {
                 //freeCompilerArgs = listOf("-Xallocator=mimalloc")
+                freeCompilerArgs = listOf("-Xexpect-actual-classes")
             }
         }
     }
@@ -38,7 +39,7 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
+        named("commonMain") {
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 api(libs.findLibrary("kermit").get())
@@ -83,7 +84,7 @@ kotlin {
         }
 
         if (hostOs.isMacOsX) {
-            val appleMain by getting {
+            named("appleMain") {
                 dependsOn(getByName("posixMain"))
                 dependencies {
                 }
