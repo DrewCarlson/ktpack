@@ -196,8 +196,14 @@ class NewCommand : CliktCommand(
             targets = targets.takeUnless { interactive == true } ?: run {
                 val targetStrings = KotlinTarget.entries.joinToString { info(it.name.lowercase()) }
                 context.term.println("${verbose("Available targets")}: $targetStrings")
-                val response = context.term.prompt("Comma separated list of targets")
-                checkNotNull(response).split(", ", ",").map { KotlinTarget.valueOf(it.uppercase()) }
+                val response = context.term.prompt("Comma separated list of targets (leave blank for all)")
+                if (response.isNullOrBlank()) {
+                    emptyList()
+                } else {
+                    response.replace(" ", "")
+                        .split(",")
+                        .map { KotlinTarget.valueOf(it.uppercase()) }
+                }
             },
         ),
     )
