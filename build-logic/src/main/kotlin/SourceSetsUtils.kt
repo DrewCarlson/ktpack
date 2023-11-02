@@ -64,13 +64,13 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.linuxTest(
     named("linuxX64Test", configure)
 }
 
-fun NamedDomainObjectContainer<KotlinSourceSet>.darwinMain(
+fun NamedDomainObjectContainer<KotlinSourceSet>.appleMain(
     configure: KotlinSourceSet.() -> Unit,
 ) {
     if (!hostOs.isMacOsX) {
         return
     }
-    named("darwinMain", configure)
+    named("appleMain", configure)
 }
 
 fun NamedDomainObjectContainer<KotlinSourceSet>.darwinTest(
@@ -79,6 +79,6 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.darwinTest(
     if (!hostOs.isMacOsX) {
         return
     }
-    named("darwinTest", configure)
+    named("appleTest", configure)
 }
 

@@ -1,5 +1,4 @@
 import org.gradle.nativeplatform.platform.internal.*
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.time.Clock
 import java.time.OffsetDateTime
 import java.io.ByteArrayOutputStream
@@ -135,7 +134,7 @@ kotlin {
             }
         }
 
-        darwinMain {
+        appleMain {
             dependencies {
                 implementation(libs.ktor.client.darwin)
             }

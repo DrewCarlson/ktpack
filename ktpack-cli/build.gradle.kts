@@ -87,7 +87,7 @@ kotlin {
             }
         }
 
-        darwinMain {
+        appleMain {
             dependencies {
                 implementation(libs.ktor.client.darwin)
             }
