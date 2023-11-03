@@ -4,6 +4,7 @@ import ktpack.configuration.KotlinTarget
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.DIRECTORY_SEPARATOR
+import okio.Path.Companion.toPath
 
 /**
  * Attempt to find the user's home directory first by the
@@ -30,7 +31,7 @@ val USER_HOME = checkNotNull(getHomePath()) {
     "Failed to find user home path."
 }
 
-val KTPACK_ROOT = "${getEnv("KTPACK_PATH") ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack"
+val KTPACK_ROOT = "${getEnv("KTPACK_PATH") ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack".toPath()
 
 val ARCH by lazy {
     when (Platform.cpuArchitecture) {

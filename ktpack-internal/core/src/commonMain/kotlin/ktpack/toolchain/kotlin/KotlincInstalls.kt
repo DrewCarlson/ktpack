@@ -5,8 +5,8 @@ import io.ktor.client.request.*
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
 import ktpack.toolchain.ToolchainInstaller
-import ktpack.toolchains.ToolchainInstallProgress
-import ktpack.toolchains.ToolchainInstallResult
+import ktpack.toolchain.ToolchainInstallProgress
+import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path
 import okio.Path.Companion.DIRECTORY_SEPARATOR

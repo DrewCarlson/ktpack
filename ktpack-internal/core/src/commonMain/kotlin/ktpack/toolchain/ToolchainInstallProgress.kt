@@ -1,4 +1,4 @@
-package ktpack.toolchains
+package ktpack.toolchain
 
 
 sealed class ToolchainInstallProgress {

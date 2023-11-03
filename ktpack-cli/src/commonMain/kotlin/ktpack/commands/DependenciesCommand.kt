@@ -13,6 +13,7 @@ import ktpack.compilation.ModuleBuilder
 import ktpack.compilation.dependencies.models.dependencyTreeString
 import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.KotlinTarget
+import ktpack.util.PlatformUtils
 import ktpack.util.workingDirectory
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 
@@ -41,8 +42,7 @@ class DependenciesCommand : CliktCommand(
             val processedTree = moduleBuilder.fetchArtifacts(
                 tree.resolveAndFlatten(),
                 releaseMode = false,
-                // TODO: Fix default target selection
-                target = target ?: KotlinTarget.JVM
+                target = target ?: PlatformUtils.getHostTarget()
             )
             logger.i(processedTree.dependencyTreeString())
             logger.i("The following artifacts were collected:")

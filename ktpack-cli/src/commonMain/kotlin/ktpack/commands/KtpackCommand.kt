@@ -12,10 +12,10 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
 import ktpack.*
+import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
 import ktpack.toolchain.jdk.JdkInstalls
-import ktpack.task.TaskRunner
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
 import okio.Path.Companion.toPath
@@ -28,13 +28,12 @@ class KtpackCommand(
     CliContext {
 
     override val config: KtpackUserConfig by lazy {
-        pathFrom(KTPACK_ROOT, "config.json").run {
+        (KTPACK_ROOT / "config.json").run {
             if (!exists()) {
-                SystemFs.createDirectory(KTPACK_ROOT.toPath(), mustCreate = false)
+                SystemFs.createDirectory(KTPACK_ROOT, mustCreate = false)
                 // check(File(KTPACK_ROOT).mkdirs()) {
                 //    "Failed to create Ktpack folder $KTPACK_ROOT"
                 // }
-                println(toString())
                 writeUtf8(json.encodeToString(KtpackUserConfig())) { error ->
                     logError(error)
                 }
@@ -49,6 +48,14 @@ class KtpackCommand(
     override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
 
     override val nodejsInstalls: NodejsInstalls by lazy { NodejsInstalls(this) }
+
+    override val dokka: DokkaCli by lazy {
+        DokkaCli(
+            dokkaCliFolder = KTPACK_ROOT / "dokka",
+            fs = SystemFs,
+            http = http
+        )
+    }
 
     override val gitCli: GitCli = GitCli()
 
@@ -65,8 +72,6 @@ class KtpackCommand(
 
     override fun aliases(): Map<String, List<String>> = emptyMap()
 
-    override val taskRunner: TaskRunner = TaskRunner()
-
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {
         return ktpack.script.loadKtpackConf(this, filePath, rebuild)
     }
@@ -79,7 +84,7 @@ class KtpackCommand(
             if (debug) {
                 install(Logging) {
                     logger = io.ktor.client.plugins.logging.Logger.SIMPLE
-                    level = LogLevel.ALL
+                    level = LogLevel.INFO
                 }
             }
         }

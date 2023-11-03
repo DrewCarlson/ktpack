@@ -1,6 +1,6 @@
 package ktpack.toolchain.kotlin
 
-import ktpack.toolchains.InstallDetails
+import ktpack.toolchain.InstallDetails
 
 
 data class KotlinInstallDetails(

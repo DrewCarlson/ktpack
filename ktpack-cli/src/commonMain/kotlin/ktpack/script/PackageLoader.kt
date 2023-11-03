@@ -47,27 +47,22 @@ suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boo
             json.decodeFromString(cacheKey.readUtf8())
         } else {
             logger.d { "Processing manifest" }
-            Dispatchers.Default { executeKtpackScript(context, path.toString()) }.also { packageConf ->
-                logger.d { cacheKey.toString() }
-                if (cacheKey.createNewFile()) {
-                    logger.d { "Caching new manifest output" }
-                    cacheKey.writeUtf8(json.encodeToString(packageConf)) { error ->
-                        logger.d { "Failed to write packageConf: ${error.message}" }
-                        if (context.stacktrace) {
-                            error.printStackTrace()
-                            exitProcess(1)
-                        }
+            val packageConf = Dispatchers.Default { executeKtpackScript(context, path.toString()) }
+            if (cacheKey.createNewFile()) {
+                logger.d { "Caching new manifest output $cacheKey" }
+                cacheKey.writeUtf8(json.encodeToString(packageConf)) { error ->
+                    logger.d { "Failed to write packageConf: ${error.message}" }
+                    if (context.stacktrace) {
+                        error.printStackTrace()
+                        exitProcess(1)
                     }
                 }
             }
+            packageConf
         }
     }
     logger.d { "Ktpack Script loaded in ${duration}s: $path" }
     return module
-}
-
-private fun ByteArray.toHexString(): String {
-    return joinToString("") { (0xFF and it.toInt()).toString(16).padStart(2, '0') }
 }
 
 private suspend fun executeKtpackScript(context: CliContext, path: String): KtpackConf = coroutineScope {

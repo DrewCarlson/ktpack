@@ -3,18 +3,19 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
 import io.ktor.client.plugins.logging.*
+import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.configuration.KtpackConf
 import ktpack.toolchain.jdk.JdkInstalls
-import ktpack.task.TaskRunner
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.GitCli
+import ktpack.util.KTPACK_ROOT
+import ktpack.util.SystemFs
 
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
     override val debug: Boolean = true
     override val rebuild: Boolean = true
-    override val taskRunner: TaskRunner = TaskRunner()
     override val http: HttpClient = HttpClient {
         install(Logging) {
             logger = Logger.SIMPLE
@@ -27,6 +28,12 @@ class TestCliContext : CliContext {
     override val jdkInstalls: JdkInstalls = JdkInstalls(this)
     override val kotlinInstalls: KotlincInstalls = KotlincInstalls(this)
     override val nodejsInstalls: NodejsInstalls = NodejsInstalls(this)
+    override val dokka: DokkaCli by lazy {
+        DokkaCli(
+            dokkaCliFolder = KTPACK_ROOT / "dokka",
+            fs = SystemFs,
+        )
+    }
     override val gitCli: GitCli = GitCli()
 
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {

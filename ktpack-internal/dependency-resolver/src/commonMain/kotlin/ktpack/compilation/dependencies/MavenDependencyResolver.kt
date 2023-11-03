@@ -23,7 +23,7 @@ class MavenDependencyResolver(
 ) : DependencyResolver() {
     // TODO: Support list of maven urls and local repo folders
     private val mavenRepoUrl = "https://repo1.maven.org/maven2"
-    private val cacheRoot = pathFrom(KTPACK_ROOT, "maven-cache")
+    private val cacheRoot = (KTPACK_ROOT / "maven-cache")
     private val logger = Logger.withTag(MavenDependencyResolver::class.simpleName.orEmpty())
 
     private val nodeCache = mutableMapOf<String, DependencyNode>()

@@ -1,4 +1,4 @@
-package ktpack.toolchains
+package ktpack.toolchain
 
 import io.ktor.client.statement.*
 import okio.Path

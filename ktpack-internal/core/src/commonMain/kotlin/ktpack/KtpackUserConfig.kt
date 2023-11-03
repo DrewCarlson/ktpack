@@ -28,6 +28,6 @@ data class KtpackUserConfig(
     @Serializable
     data class NodejsConfig(
         val version: String = "20.9.0",
-        val rootPath: String = pathFrom(KTPACK_ROOT, "nodejs").toString(),
+        val rootPath: String = (KTPACK_ROOT / "nodejs").toString(),
     )
 }

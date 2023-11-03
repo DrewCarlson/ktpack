@@ -1,6 +1,6 @@
 package ktpack.toolchain.nodejs
 
-import ktpack.toolchains.InstallDetails
+import ktpack.toolchain.InstallDetails
 
 data class NodejsInstallDetails(
     override val version: String,

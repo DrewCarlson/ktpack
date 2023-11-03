@@ -6,8 +6,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import ktpack.CliContext
 import ktpack.toolchain.ToolchainInstaller
-import ktpack.toolchains.ToolchainInstallProgress
-import ktpack.toolchains.ToolchainInstallResult
+import ktpack.toolchain.ToolchainInstallProgress
+import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path
 import okio.Path.Companion.toPath

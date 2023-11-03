@@ -16,7 +16,6 @@ suspend inline fun <R : Any> Terminal.loadingIndeterminate(
     crossinline animate: Terminal.(frame: String, duration: Duration) -> String,
     crossinline execute: suspend () -> R,
 ) = coroutineScope {
-    this@loadingIndeterminate.println("")
     val startTime = Clock.System.now()
     var currentDuration = Duration.ZERO
     val animation = textAnimation<Int> { frame ->

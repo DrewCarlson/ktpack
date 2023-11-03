@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
             RunCommand(),
             TestCommand(),
             NewCommand(),
-            InitCommand(),
+            //InitCommand(),
             CleanCommand(),
             DocCommand(),
             VersionCommand(),

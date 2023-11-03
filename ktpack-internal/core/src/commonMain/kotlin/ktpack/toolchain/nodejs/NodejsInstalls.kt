@@ -3,8 +3,8 @@ package ktpack.toolchain.nodejs
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
 import ktpack.toolchain.ToolchainInstaller
-import ktpack.toolchains.ToolchainInstallProgress
-import ktpack.toolchains.ToolchainInstallResult
+import ktpack.toolchain.ToolchainInstallProgress
+import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.PlatformUtils
 import ktpack.util.exists
 import ktpack.util.isDirectory

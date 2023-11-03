@@ -7,8 +7,8 @@ import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
 import ktpack.toolchain.jdk.JdkDistribution
-import ktpack.toolchains.ToolchainInstallProgress
-import ktpack.toolchains.ToolchainInstallResult
+import ktpack.toolchain.ToolchainInstallProgress
+import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path.Companion.toPath
 

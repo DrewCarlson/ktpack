@@ -11,8 +11,8 @@ import kotlinx.coroutines.runBlocking
 import ktpack.CliContext
 import ktpack.toolchain.kotlin.KotlinInstallDetails
 import ktpack.toolchain.kotlin.KotlincInstalls
-import ktpack.toolchains.ToolchainInstallProgress
-import ktpack.toolchains.ToolchainInstallResult
+import ktpack.toolchain.ToolchainInstallProgress
+import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
 import okio.Path.Companion.toPath
 

@@ -92,6 +92,7 @@ kotlin {
                 api(project(":ktpack-internal:platform"))
                 implementation(project(":ktpack-internal:compression"))
                 implementation(project(":ktpack-internal:git"))
+                implementation(project(":ktpack-internal:dokka"))
                 implementation(project(":ktpack-internal:models"))
                 implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
