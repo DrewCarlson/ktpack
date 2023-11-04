@@ -32,6 +32,7 @@ class TestCliContext : CliContext {
         DokkaCli(
             dokkaCliFolder = KTPACK_ROOT / "dokka",
             fs = SystemFs,
+            http = http
         )
     }
     override val gitCli: GitCli = GitCli()

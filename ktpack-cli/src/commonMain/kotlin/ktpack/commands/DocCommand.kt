@@ -3,6 +3,11 @@ package ktpack.commands
 import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.mordant.rendering.TextColors.brightWhite
 import com.github.ajalt.mordant.rendering.TextColors.white
 import com.github.ajalt.mordant.rendering.TextStyles.bold
@@ -14,6 +19,7 @@ import ktpack.compilation.tools.models.SourceSet
 import ktpack.compilation.tools.models.SourceSetID
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
+import mongoose.runWebServer
 import okio.Path.Companion.toPath
 
 class DocCommand : CliktCommand(
@@ -22,6 +28,15 @@ class DocCommand : CliktCommand(
 ) {
     private val context by requireObject<CliContext>()
     private val logger = Logger.withTag(DocCommand::class.simpleName.orEmpty())
+
+    private val serve by option("--serve", "-s")
+        .help("After building docs, start a web server to view them.")
+        .flag()
+
+    private val httpPort by option("--port", "-p")
+        .help("The port for the web server with the --serve flag.")
+        .int()
+        .default(9543)
 
     override fun run(): Unit = runBlocking {
         val moduleConf = context.loadKtpackConf().module
@@ -38,7 +53,7 @@ class DocCommand : CliktCommand(
             moduleName = moduleConf.name,
             moduleVersion = moduleConf.version,
             outputDir = docOutputDir,
-            sourceSets = createSourceSets(moduleConf)
+            sourceSets = createSourceSets(moduleConf),
         )
         logger.i("${info("Doc")} Building docs into $docOutputDir")
         val (_, duration) = measureSeconds {
@@ -55,6 +70,17 @@ class DocCommand : CliktCommand(
             }
         }
         logger.i("${success("Doc")} Completed build successfully in ${duration}s")
+
+        if (serve) {
+            runWebServer(
+                httpPort,
+                onServerStarted = {
+                    logger.i("${info("HTTP Server")} Available at http://localhost:$httpPort")
+                },
+            ) {
+                route { respondDirectory(docOutputDir) }
+            }
+        }
     }
 
     private fun createSourceSets(moduleConf: ModuleConf): List<SourceSet> {
@@ -66,7 +92,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "common",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "common" / "kotlin").toString())
+                sourceRoots = listOf((workingDirectory / "src" / "common" / "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "native",

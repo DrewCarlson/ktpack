@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.mordant.rendering.TextColors.*
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.reset
+import io.ktor.http.*
 import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -19,7 +20,6 @@ import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
-import okio.Path.Companion.DIRECTORY_SEPARATOR
 import okio.Path.Companion.toPath
 
 class RunCommand : CliktCommand(
@@ -173,17 +173,39 @@ class RunCommand : CliktCommand(
 
     private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) {
         runWebServer(
-            httpPort = httpPort,
-            data = HttpAccessHandlerData(
-                moduleName = module.name,
-                kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
-                artifactPath = artifactPath,
-                artifactName = artifactPath.toPath().name
-            ),
+            httpPort,
             onServerStarted = {
                 context.term.println("${info("HTTP Server")} Available at http://localhost:$httpPort")
             },
-        )
+        ) {
+            val indexHandler: MongooseRouteHandler = {
+                contentType(ContentType.Text.Html)
+                respondBody(
+                    DEFAULT_HTML.format(
+                        module.name,
+                        module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
+                        artifactPath,
+                    ),
+                )
+            }
+            route("/", indexHandler)
+            route("/index.html", indexHandler)
+            route("/${artifactPath.toPath().name}") { respondFile(artifactPath) }
+            route("/*") { respondDirectory(".") }
+        }
     }
 }
 
+// TODO: Link kotlin.js from the stdlib-js jar
+private val DEFAULT_HTML =
+    """|<!DOCTYPE html>
+       |<html>
+       |<head>
+       |    <meta charset=UTF-8>
+       |    <title>{}</title>
+       |    <script defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/kotlin/{}/kotlin.min.js" type="application/javascript"></script>
+       |    <script defer="defer" src="{}" type="application/javascript"></script>
+       |</head>
+       |<body></body>
+       |</html>
+    """.trimMargin()

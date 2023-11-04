@@ -125,6 +125,7 @@ class DokkaCli(
         missing.forEach { downloadUrl ->
             val tempPath = TEMP_PATH / downloadUrl.substringAfterLast('/')
             logger.d { "Downloading $downloadUrl into $tempPath" }
+            logger.i("Downloading Dokka dependency: ${tempPath.name}")
             val response = http.prepareGet(downloadUrl).downloadInto(tempPath)
             if (response.status.isSuccess()) {
                 val outPath = dokkaCliFolder / tempPath.name

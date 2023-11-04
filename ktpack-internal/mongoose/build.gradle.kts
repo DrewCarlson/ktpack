@@ -75,6 +75,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.coroutines.core)
+                implementation(libs.ktor.client.core)
             }
         }
 

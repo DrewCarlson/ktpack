@@ -3,8 +3,8 @@ package mongoose
 
 actual suspend fun runWebServer(
     httpPort: Int,
-    data: HttpAccessHandlerData,
-    onServerStarted: () -> Unit
+    onServerStarted: () -> Unit,
+    body: MongooseRouting.() -> Unit
 ) {
     error("JVM web server not implemented yet")
 }
