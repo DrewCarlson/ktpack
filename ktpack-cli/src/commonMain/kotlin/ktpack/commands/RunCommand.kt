@@ -20,6 +20,7 @@ import ktpack.configuration.KotlinTarget
 import ktpack.configuration.ModuleConf
 import ktpack.util.*
 import mongoose.*
+import okio.Path.Companion.DIRECTORY_SEPARATOR
 import okio.Path.Companion.toPath
 
 class RunCommand : CliktCommand(
@@ -57,17 +58,12 @@ class RunCommand : CliktCommand(
             "${success("Compiling")} $name v$version ($modulePath)"
         }
         val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
-        /*val result = terminal.loadingIndeterminate(
-            animate = { text, duration ->
-                bold(brightWhite(text)) + reset(white(" ${duration.inWholeSeconds}s"))
-            },
-        ) {
+        val result = terminal.loadingIndeterminate {
             moduleBuilder.buildBin(releaseMode, targetBin, target)
-        }*/
-        val result = moduleBuilder.buildBin(releaseMode, targetBin, target)
+        }
         when (result) {
             is ArtifactResult.Success -> {
-                logger.d { result.outputText }
+                logger.d { "Compiler output:\n ${result.outputText}" }
                 logger.i {
                     val duration = result.compilationDuration.toString()
                     val modeDetails = if (releaseMode) {
@@ -77,41 +73,34 @@ class RunCommand : CliktCommand(
                     }
                     "${success("Finished")} $modeDetails in ${bold(white(duration))}s"
                 }
-                context.term.println("${success("Running")} '${result.artifactPath}'")
+                logger.i("${success("Running")} '${result.artifactPath}'")
                 try {
                     val (exitCode, duration) = measureSeconds {
                         runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     val durationString = bold(white(duration.toString()))
                     if (exitCode == 0) {
-                        logger.i {
-                            "${success("Finished")} Program completed successfully in ${durationString}s"
-                        }
+                        logger.i("${success("Finished")} Program completed successfully in ${durationString}s")
                     } else {
-                        logger.i {
-                            "${failed("Failed")} Program terminated with code ($exitCode) in ${durationString}s"
-                        }
+                        logger.i("${failed("Failed")} Program terminated with code ($exitCode) in ${durationString}s")
                     }
                 } catch (e: IOException) {
-                    logger.i {
-                        "${failed("Failed")} Program could not be started due to an IO error"
-                    }
-                    logger.i { e.message.orEmpty() }
-                    logger.e { e.stackTraceToString() }
+                    logger.i("${failed("Failed")} Program could not be started due to an IO error")
+                    throw e
                 }
             }
 
             is ArtifactResult.ProcessError -> {
-                logger.i { "${failed("Failed")} Compilation process failed with exit code (${result.exitCode})" }
-                logger.i { result.message.orEmpty() }
+                logger.i("${failed("Failed")} Compilation process failed with exit code (${result.exitCode})")
+                logger.i(result.message.orEmpty())
             }
 
             is ArtifactResult.NoArtifactFound -> {
-                logger.i { "${failed("Failed")} no binary to run" }
+                logger.i("${failed("Failed")} no binary to run")
             }
 
             is ArtifactResult.NoSourceFiles -> {
-                logger.i { "${failed("Failed")} no source files" }
+                logger.i("${failed("Failed")} no source files")
             }
         }
     }
@@ -132,7 +121,7 @@ class RunCommand : CliktCommand(
                 KotlinTarget.JVM -> {
                     val jdkInstallation = context.jdkInstalls.getDefaultJdk()
                     if (jdkInstallation == null) {
-                        context.term.println("${failed("Failed")} Could not find JDK installation.")
+                        logger.i("${failed("Failed")} Could not find JDK installation.")
                         exitProcess(1)
                     }
                     arg(pathFrom(jdkInstallation.path, "bin", "java").name)
@@ -143,7 +132,7 @@ class RunCommand : CliktCommand(
                 KotlinTarget.JS_NODE -> {
                     val nodeJs = context.nodejsInstalls.findNodejsExe(context.config.nodejs.version)
                     if (nodeJs == null) {
-                        context.term.println("${failed("Failed")} Could not find Nodejs installation.")
+                        logger.i("${failed("Failed")} Could not find Nodejs installation.")
                         exitProcess(1)
                     }
                     arg(nodeJs.toString())
@@ -175,28 +164,26 @@ class RunCommand : CliktCommand(
         runWebServer(
             httpPort,
             onServerStarted = {
-                context.term.println("${info("HTTP Server")} Available at http://localhost:$httpPort")
+                logger.i("${info("HTTP Server")} Available at http://localhost:$httpPort")
             },
         ) {
-            val indexHandler: MongooseRouteHandler = {
+            indexRoute {
                 contentType(ContentType.Text.Html)
                 respondBody(
                     DEFAULT_HTML.format(
                         module.name,
                         module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
-                        artifactPath,
+                        artifactPath.substringAfterLast(DIRECTORY_SEPARATOR),
                     ),
                 )
             }
-            route("/", indexHandler)
-            route("/index.html", indexHandler)
             route("/${artifactPath.toPath().name}") { respondFile(artifactPath) }
             route("/*") { respondDirectory(".") }
         }
     }
 }
 
-// TODO: Link kotlin.js from the stdlib-js jar
+// TODO: Extract and link kotlin.js from the classpath stdlib-js jar
 private val DEFAULT_HTML =
     """|<!DOCTYPE html>
        |<html>

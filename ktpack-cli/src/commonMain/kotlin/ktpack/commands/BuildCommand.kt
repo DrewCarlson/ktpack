@@ -72,51 +72,8 @@ class BuildCommand : CliktCommand(
         val results: List<ArtifactResult> =
             targetBuildList
                 .flatMap { target ->
-                    val targetFormat = "{} Selected build types: {} {}"
-                    when {
-                        !targetBin.isNullOrBlank() -> {
-                            logger.i { targetFormat.format(info("Building"), "bin", verbose(targetBin!!)) }
-                            listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
-                        }
-
-                        libOnly -> {
-                            logger.i { targetFormat.format(info("Building"), "lib", "") }
-                            context.term.println("lib ${verbose(target.name.lowercase())}")
-                            listOf(moduleBuilder.buildLib(releaseMode, target))
-                        }
-
-                        binsOnly -> {
-                            logger.i { targetFormat.format(info("Building"), "all bins", "") }
-                            moduleBuilder.buildAllBins(releaseMode, target)
-                        }
-
-                        else -> {
-                            logger.i { targetFormat.format(info("Building"), "all bins and libs", "") }
-                            moduleBuilder.buildAll(releaseMode, target)
-                        }
-                    }.onEach { artifact ->
-                        when (artifact) {
-                            is ArtifactResult.Success -> {
-                                logger.i {
-                                    "{} Completed build for {} in {}s".format(
-                                        info("Building"),
-                                        verbose(artifact.target.name.lowercase()),
-                                        artifact.compilationDuration,
-                                    )
-                                }
-                            }
-
-                            is ArtifactResult.ProcessError -> {
-                                logger.i { "${failed("Failed")} failed to compile selected target(s)" }
-                                if (!artifact.message.isNullOrBlank()) {
-                                    logger.i { artifact.message }
-                                }
-                                exitProcess(1)
-                            }
-
-                            ArtifactResult.NoArtifactFound -> Unit // Ignore, handle when all artifacts a resolved
-                            ArtifactResult.NoSourceFiles -> Unit
-                        }
+                    terminal.loadingIndeterminate {
+                        buildAllForTarget(moduleBuilder, target)
                     }
                 }
                 .toList()
@@ -136,6 +93,62 @@ class BuildCommand : CliktCommand(
                 if (releaseMode) "release [optimized]" else "dev [unoptimized + debuginfo]",
                 totalDuration
             )
+        }
+    }
+
+    private suspend fun buildAllForTarget(
+        moduleBuilder: ModuleBuilder,
+        target: KotlinTarget,
+    ): List<ArtifactResult> {
+        val targetFormat = "{} Selected build types: {} {}"
+        return when {
+            !targetBin.isNullOrBlank() -> {
+                logger.i { targetFormat.format(info("Building"), "bin", verbose(targetBin!!)) }
+                listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
+            }
+
+            libOnly -> {
+                logger.i { targetFormat.format(info("Building"), "lib", "") }
+                context.term.println("lib ${verbose(target.name.lowercase())}")
+                listOf(moduleBuilder.buildLib(releaseMode, target))
+            }
+
+            binsOnly -> {
+                logger.i { targetFormat.format(info("Building"), "all bins", "") }
+                moduleBuilder.buildAllBins(releaseMode, target)
+            }
+
+            else -> {
+                logger.i { targetFormat.format(info("Building"), "all bins and libs", "") }
+                moduleBuilder.buildAll(releaseMode, target)
+            }
+        }.onEach { artifact ->
+            processArtifact(artifact)
+        }
+    }
+
+    private fun processArtifact(artifact: ArtifactResult) {
+        when (artifact) {
+            is ArtifactResult.Success -> {
+                logger.i {
+                    "{} Completed build for {} in {}s".format(
+                        info("Building"),
+                        verbose(artifact.target.name.lowercase()),
+                        artifact.compilationDuration,
+                    )
+                }
+            }
+
+            is ArtifactResult.ProcessError -> {
+                logger.i { "${failed("Failed")} failed to compile selected target(s)" }
+                if (!artifact.message.isNullOrBlank()) {
+                    logger.i(artifact.message)
+                }
+                exitProcess(1)
+            }
+
+            ArtifactResult.NoArtifactFound -> Unit // Ignore, handle when all artifacts a resolved
+            ArtifactResult.NoSourceFiles -> Unit
         }
     }
 }

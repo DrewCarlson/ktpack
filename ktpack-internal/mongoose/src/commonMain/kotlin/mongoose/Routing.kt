@@ -23,6 +23,14 @@ class MongooseRouting {
         require(!routes.contains(path)) { "A route is already defined for path '$path'" }
         routes[path] = handler
     }
+
+    fun indexRoute(handler: MongooseRouteHandler) {
+        require(!routes.contains("/") && !routes.contains("/")) {
+            "A route is already defined for path `/` or `/index.html`"
+        }
+        routes["/"] = handler
+        routes["/index.html"] = handler
+    }
 }
 
 class MongooseRoute {

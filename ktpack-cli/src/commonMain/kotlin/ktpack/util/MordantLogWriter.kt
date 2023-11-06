@@ -14,11 +14,9 @@ private val ASSERT = failed("Assert")
 
 class MordantLogWriter(
     private val term: Terminal,
-    private val debug: Boolean,
 ) : LogWriter() {
 
     override fun log(severity: Severity, message: String, tag: String, throwable: Throwable?) {
-        if (!debug && severity != Severity.Info) return
         val line = when (severity) {
             Severity.Info -> message
             Severity.Verbose -> LOG.format(VERBOSE, bold(tag), message)

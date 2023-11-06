@@ -1,6 +1,10 @@
 package ktpack.util
 
 import com.github.ajalt.mordant.animation.textAnimation
+import com.github.ajalt.mordant.rendering.TextColors.brightWhite
+import com.github.ajalt.mordant.rendering.TextColors.white
+import com.github.ajalt.mordant.rendering.TextStyles.bold
+import com.github.ajalt.mordant.rendering.TextStyles.reset
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
@@ -13,7 +17,9 @@ import kotlin.time.Duration.Companion.milliseconds
 
 suspend inline fun <R : Any> Terminal.loadingIndeterminate(
     frames: List<String> = loadingFrames,
-    crossinline animate: Terminal.(frame: String, duration: Duration) -> String,
+    crossinline animate: Terminal.(frame: String, duration: Duration) -> String = { text, duration ->
+        bold(brightWhite(text)) + reset(white(" ${duration.inWholeSeconds}s"))
+    },
     crossinline execute: suspend () -> R,
 ) = coroutineScope {
     val startTime = Clock.System.now()

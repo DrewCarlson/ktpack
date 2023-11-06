@@ -91,45 +91,6 @@ public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
-    public fun localCompile(path: String) {
-        add(DependencyConf.LocalPathDependency(path, DependencyScope.COMPILE))
-    }
-
-    public fun gitCompile(url: String, tag: String? = null, branch: String? = null, version: String? = null) {
-        add(
-            DependencyConf.GitDependency(
-                gitUrl = url,
-                tag = tag,
-                branch = branch,
-                version = version,
-                scope = DependencyScope.COMPILE,
-            ),
-        )
-    }
-
-    public fun mavenCompile(coordinates: String) {
-        val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
-        add(
-            DependencyConf.MavenDependency(
-                groupId = groupId,
-                artifactId = artifactId,
-                version = version,
-                scope = DependencyScope.COMPILE,
-            ),
-        )
-    }
-
-    public fun mavenCompile(groupId: String, artifactId: String, version: String) {
-        add(
-            DependencyConf.MavenDependency(
-                groupId = groupId,
-                artifactId = artifactId,
-                version = version,
-                scope = DependencyScope.COMPILE,
-            ),
-        )
-    }
-
     public fun localTest(path: String) {
         add(DependencyConf.LocalPathDependency(path, DependencyScope.TEST))
     }

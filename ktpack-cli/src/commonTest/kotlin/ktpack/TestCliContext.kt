@@ -24,7 +24,8 @@ class TestCliContext : CliContext {
     }
     override val term: Terminal
         get() = TODO("Not yet implemented")
-    override val config: KtpackUserConfig = KtpackUserConfig()
+    override var config: KtpackUserConfig = KtpackUserConfig()
+        private set
     override val jdkInstalls: JdkInstalls = JdkInstalls(this)
     override val kotlinInstalls: KotlincInstalls = KotlincInstalls(this)
     override val nodejsInstalls: NodejsInstalls = NodejsInstalls(this)
@@ -36,6 +37,10 @@ class TestCliContext : CliContext {
         )
     }
     override val gitCli: GitCli = GitCli()
+
+    override fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig) {
+        config = config.run(body)
+    }
 
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {
         return ktpack.script.loadKtpackConf(this, filePath, rebuild)

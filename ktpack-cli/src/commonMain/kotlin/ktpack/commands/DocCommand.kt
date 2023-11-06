@@ -57,11 +57,7 @@ class DocCommand : CliktCommand(
         )
         logger.i("${info("Doc")} Building docs into $docOutputDir")
         val (_, duration) = measureSeconds {
-            context.term.loadingIndeterminate(
-                animate = { text, duration ->
-                    bold(brightWhite(text)) + reset(white(" ${duration.inWholeSeconds}s"))
-                },
-            ) {
+            context.term.loadingIndeterminate {
                 context.dokka.runDokka(
                     javaPath = jdk.path.toPath() / "bin" / "java",
                     outPath = workingDirectory / "out",

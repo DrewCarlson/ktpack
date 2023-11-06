@@ -37,6 +37,8 @@ interface CliContext {
     val dokka: DokkaCli
     val gitCli: GitCli
 
+    fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig)
+
     /**
      * Load the [KtpackConf] for the pack.kts file at [filePath].
      * If [filePath] is a relative, it will be resolved to the current

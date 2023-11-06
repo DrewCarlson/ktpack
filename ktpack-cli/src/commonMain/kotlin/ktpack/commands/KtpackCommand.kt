@@ -1,6 +1,7 @@
 package ktpack.commands
 
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Severity
 import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
@@ -18,7 +19,6 @@ import ktpack.configuration.KtpackConf
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
 class KtpackCommand(
     override val term: Terminal,
@@ -27,21 +27,29 @@ class KtpackCommand(
 ),
     CliContext {
 
-    override val config: KtpackUserConfig by lazy {
-        (KTPACK_ROOT / "config.json").run {
-            if (!exists()) {
-                SystemFs.createDirectory(KTPACK_ROOT, mustCreate = false)
-                // check(File(KTPACK_ROOT).mkdirs()) {
-                //    "Failed to create Ktpack folder $KTPACK_ROOT"
-                // }
-                writeUtf8(json.encodeToString(KtpackUserConfig())) { error ->
-                    logError(error)
-                }
-            }
+    private val logger = Logger.withTag(KtpackCommand::class.simpleName.orEmpty())
 
-            json.decodeFromString(readUtf8())
+    private val configPath = KTPACK_ROOT / "config.json"
+    private var _config: KtpackUserConfig
+
+    init {
+        _config = if (configPath.exists()) {
+            logger.d("Loading existing KtpackUserConfig at $configPath")
+            json.decodeFromString(configPath.readUtf8())
+        } else {
+            logger.d("Creating default KtpackUserConfig at $configPath")
+            check(KTPACK_ROOT.mkdirs().exists()) {
+                "Failed to create Ktpack folder $KTPACK_ROOT"
+            }
+            val defaultConfig = KtpackUserConfig()
+            val encodedConfig = jsonPretty.encodeToString(defaultConfig)
+            configPath.writeUtf8(encodedConfig, ::logError)
+            defaultConfig
         }
     }
+
+    override val config: KtpackUserConfig
+        get() = _config
 
     override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
 
@@ -53,7 +61,7 @@ class KtpackCommand(
         DokkaCli(
             dokkaCliFolder = KTPACK_ROOT / "dokka",
             fs = SystemFs,
-            http = http
+            http = http,
         )
     }
 
@@ -71,6 +79,16 @@ class KtpackCommand(
         .flag()
 
     override fun aliases(): Map<String, List<String>> = emptyMap()
+
+    override fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig) {
+        _config = _config.run(body)
+        logger.d("Updating KtpackUserConfig at $configPath")
+        check(KTPACK_ROOT.mkdirs().exists()) {
+            "Failed to create Ktpack folder $KTPACK_ROOT"
+        }
+        val encodedConfig = jsonPretty.encodeToString(_config)
+        configPath.writeUtf8(encodedConfig, ::logError)
+    }
 
     override suspend fun loadKtpackConf(filePath: String): KtpackConf {
         return ktpack.script.loadKtpackConf(this, filePath, rebuild)
@@ -92,7 +110,8 @@ class KtpackCommand(
 
     override fun run() {
         Logger.mutableConfig.logWriterList = emptyList()
-        Logger.addLogWriter(MordantLogWriter(term = term, debug = debug))
+        Logger.mutableConfig.minSeverity = if (debug) Severity.Verbose else Severity.Info
+        Logger.addLogWriter(MordantLogWriter(term = term))
         currentContext.obj = this
         if (debug) {
             term.println("${info("Ktpack")} ${verbose(Ktpack.VERSION)}")

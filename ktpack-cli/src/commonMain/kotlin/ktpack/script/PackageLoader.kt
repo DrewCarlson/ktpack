@@ -6,10 +6,9 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.invoke
 import kotlinx.serialization.encodeToString
-import ksubprocess.Process
+import ksubprocess.exec
 import ktpack.*
 import ktpack.configuration.KtpackConf
 import ktpack.configuration.ModuleConf
@@ -46,16 +45,13 @@ suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boo
             logger.d { "Reading manifest from cache" }
             json.decodeFromString(cacheKey.readUtf8())
         } else {
-            logger.d { "Processing manifest" }
             val packageConf = Dispatchers.Default { executeKtpackScript(context, path.toString()) }
             if (cacheKey.createNewFile()) {
                 logger.d { "Caching new manifest output $cacheKey" }
                 cacheKey.writeUtf8(json.encodeToString(packageConf)) { error ->
                     logger.d { "Failed to write packageConf: ${error.message}" }
-                    if (context.stacktrace) {
-                        error.printStackTrace()
-                        exitProcess(1)
-                    }
+                    logger.e(error) { "Error writing to $cacheKey" }
+                    exitProcess(1)
                 }
             }
             packageConf
@@ -72,7 +68,7 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
     check(kotlincPath.toPath().exists()) {
         "Cannot execute ktpack script, kotlinc-jvm does not exist at: $kotlincPath"
     }
-    val moduleConf = Process {
+    val result = exec {
         arg(kotlincPath)
         if (context.debug) arg("-verbose")
         args("-classpath", ktpackScriptJarPath.toString())
@@ -81,16 +77,17 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
         arg(path)
 
         logger.d { "Processing ktpack script:\n${arguments.joinToString("\n")}" }
-    }.run {
-        if (context.debug) {
-            stderrLines.onEach { println(it) }.launchIn(this@coroutineScope)
+    }
+    logger.d(result.errors)
+    val moduleConf = result.output
+        .lines()
+        .mapNotNull { line ->
+            line.substringAfter("ktpack-module:", "")
+                .takeUnless(String::isBlank)
+                ?.let { json.decodeFromString<ModuleConf>(it) }
         }
-        stdoutLines
-            .run { if (context.debug) onEach { println(it) } else this }
-            .mapNotNull { it.substringAfter("ktpack-module:", "").takeUnless(String::isBlank) }
-            .map { json.decodeFromString<ModuleConf>(it) }
-            .toList()
-    }.firstOrNull() ?: error("No modules declared in $path")
+        .toList()
+        .firstOrNull() ?: error("No modules declared in $path")
 
     KtpackConf(moduleConf)
 }

@@ -244,8 +244,9 @@ class MavenDependencyResolver(
                     groupId = mavenDep.groupId.value,
                     artifactId = mavenDep.artifactId.value,
                     version = checkNotNull(mavenDep.version).value,
+                    // TODO: Fix maven dependency scope mapping..
                     scope = when (mavenDep.scope?.value) {
-                        "compile" -> DependencyScope.COMPILE
+                        "compile" -> DependencyScope.IMPLEMENTATION
                         "runtime" -> DependencyScope.IMPLEMENTATION
                         else -> DependencyScope.IMPLEMENTATION
                     },

@@ -3,7 +3,8 @@ package ktpack.compilation.dependencies
 import ktpack.configuration.KotlinTarget
 import ktpack.gradle.GradleModule
 
-
+// TODO: Native and js target selection is mostly accurate, but JVM
+//   modules can have various attributes that are not properly evaluated.
 internal fun List<GradleModule.Variant>.findVariantFor(
     target: KotlinTarget,
 ): GradleModule.Variant {
@@ -18,14 +19,16 @@ internal fun List<GradleModule.Variant>.findVariantFor(
         firstOrNull { variant ->
             variant.attributes?.run {
                 orgGradleUsage == "java-runtime" &&
-                        orgJetbrainsKotlinPlatformType == "jvm" &&
-                        orgGradleLibraryElements == "jar"
+                        orgJetbrainsKotlinPlatformType == "jvm" /*&&
+                        orgGradleLibraryElements == "jar"*/
             } ?: false
         } ?: firstOrNull { variant ->
             variant.attributes?.run {
                 orgGradleUsage == "java-runtime" &&
                         orgGradleLibraryElements == "jar"
             } ?: false
+        } ?: firstOrNull { variant ->
+            variant.attributes?.orgGradleUsage == "java-runtime"
         }
     } else {
         firstOrNull { variant ->

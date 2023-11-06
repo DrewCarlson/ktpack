@@ -1,24 +1,26 @@
 package ktpack.commands
 
+import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import ktpack.CliContext
 import ktpack.PACK_SCRIPT_FILENAME
 import ktpack.util.exists
 import ktpack.util.failed
-import ktpack.util.pathFrom
 import ktpack.util.workingDirectory
 
 class InitCommand : CliktCommand(
     help = "Create a new package in an existing directory.",
 ) {
     private val context by requireObject<CliContext>()
+    private val logger = Logger.withTag(InitCommand::class.simpleName.orEmpty())
 
     override fun run() {
         val packFile = workingDirectory / PACK_SCRIPT_FILENAME
         if (packFile.exists()) {
-            context.term.println("${failed("Failed")} A pack file already exists in this directory.")
+            logger.i("${failed("Failed")} A pack file already exists in this directory.")
             return
         }
-        TODO("Not yet implemented")
+
+        logger.i("${failed("Failed")} init command is not currently implemented, use `new` instead.")
     }
 }

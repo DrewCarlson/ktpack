@@ -7,5 +7,4 @@ enum class DependencyScope {
     IMPLEMENTATION,
     API,
     TEST,
-    COMPILE,
 }

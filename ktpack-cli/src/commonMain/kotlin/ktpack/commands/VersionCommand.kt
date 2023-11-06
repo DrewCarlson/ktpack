@@ -1,5 +1,6 @@
 package ktpack.commands
 
+import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import ktpack.CliContext
 import ktpack.Ktpack
@@ -10,14 +11,15 @@ class VersionCommand : CliktCommand(
     help = "Show Ktpack version information.",
 ) {
     private val context by requireObject<CliContext>()
+    private val logger = Logger.withTag(VersionCommand::class.simpleName.orEmpty())
 
     override fun run() {
-        context.term.println("${verbose("Ktpack")} version ${info(Ktpack.VERSION)}")
-        context.term.println("${verbose("Kotlin")} version ${info(Ktpack.KOTLIN_VERSION)}")
-        context.term.println("${verbose("Coroutines")} version ${info(Ktpack.COROUTINES_VERSION)}")
-        context.term.println("${verbose("Ktor")} version ${info(Ktpack.KTOR_VERSION)}")
-        context.term.println("${verbose("Serialization")} version ${info(Ktpack.SERIALIZATION_VERSION)}")
-        context.term.println("${verbose("Build")} sha ${info(Ktpack.BUILD_SHA)}")
-        context.term.println("${verbose("Build")} date ${info(Ktpack.BUILD_DATE)}")
+        logger.i("${info("Ktpack")} v${verbose(Ktpack.VERSION)}")
+        logger.i("${info("Kotlin")} v${verbose(Ktpack.KOTLIN_VERSION)}")
+        logger.i("${info("Coroutines")} v${verbose(Ktpack.COROUTINES_VERSION)}")
+        logger.i("${info("Ktor")} v${verbose(Ktpack.KTOR_VERSION)}")
+        logger.i("${info("Serialization")} v${verbose(Ktpack.SERIALIZATION_VERSION)}")
+        logger.i("${info("Build sha")} ${verbose(Ktpack.BUILD_SHA)}")
+        logger.i("${info("Build date")} ${verbose(Ktpack.BUILD_DATE)}")
     }
 }

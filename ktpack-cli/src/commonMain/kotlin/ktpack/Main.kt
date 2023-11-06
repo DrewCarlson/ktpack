@@ -1,6 +1,7 @@
 package ktpack
 
 import com.github.ajalt.clikt.core.*
+import com.github.ajalt.mordant.rendering.TextStyles.underline
 import com.github.ajalt.mordant.terminal.*
 import ktpack.commands.*
 import ktpack.commands.jdk.*
@@ -21,7 +22,7 @@ fun main(args: Array<String>) {
             RunCommand(),
             TestCommand(),
             NewCommand(),
-            //InitCommand(),
+            InitCommand(),
             CleanCommand(),
             DocCommand(),
             VersionCommand(),
@@ -47,18 +48,17 @@ fun main(args: Array<String>) {
 
     try {
         command.main(args)
-
-        // runBlocking { command.taskRunner.execute() }
     } catch (e: Throwable) {
-        term.println(
-            buildString {
-                append(failed("Failed"))
-                append(" Uncaught error: ")
-                e.message?.let(::append)
-            },
-        )
+        term.println()
+        term.println("${failed("Failed")} Uncaught error: ${e.message}")
         if (command.stacktrace) {
             term.println(e.stackTraceToString())
+        }
+        if (!command.debug || !command.stacktrace) {
+            term.println()
+            term.println("Run the command again with '--debug --stacktrace' or '-ds' to see more details. (example: ktpack -ds test)")
+            term.println("Submit the logs with your issue report @ ${underline("https://github.com/DrewCarlson/ktpack/issues/new")}")
+            term.println()
         }
         exitProcess(1)
     }

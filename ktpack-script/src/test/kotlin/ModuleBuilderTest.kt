@@ -4,7 +4,6 @@ import kotlinx.serialization.encodeToString
 import ktpack.configuration.DependencyConf.GitDependency
 import ktpack.configuration.DependencyConf.LocalPathDependency
 import ktpack.configuration.DependencyScope.API
-import ktpack.configuration.DependencyScope.COMPILE
 import ktpack.configuration.DependencyScope.IMPLEMENTATION
 import ktpack.configuration.DependencyScope.TEST
 import ktpack.configuration.KotlinTarget.JS_BROWSER
@@ -93,7 +92,6 @@ class ModuleBuilderTest {
                 local("test_module_impl")
                 localApi("test_module_api")
                 localTest("test_module_test")
-                localCompile("test_module_compile")
             }
         }
 
@@ -108,12 +106,10 @@ class ModuleBuilderTest {
         val implDep = depContainer.dependencies[0]
         val apiDep = depContainer.dependencies[1]
         val testDep = depContainer.dependencies[2]
-        val compileDep = depContainer.dependencies[3]
 
         assertEquals(LocalPathDependency("test_module_impl", IMPLEMENTATION), implDep)
         assertEquals(LocalPathDependency("test_module_api", API), apiDep)
         assertEquals(LocalPathDependency("test_module_test", TEST), testDep)
-        assertEquals(LocalPathDependency("test_module_compile", COMPILE), compileDep)
 
         assertEquals(
             """|{
@@ -160,7 +156,6 @@ class ModuleBuilderTest {
                 git("test_module_impl")
                 gitApi("test_module_api")
                 gitTest("test_module_test")
-                gitCompile("test_module_compile")
             }
         }
 
@@ -174,11 +169,9 @@ class ModuleBuilderTest {
         val implDep = depContainer.dependencies[0]
         val apiDep = depContainer.dependencies[1]
         val testDep = depContainer.dependencies[2]
-        val compileDep = depContainer.dependencies[3]
 
         assertEquals(GitDependency("test_module_impl", null, null, null, IMPLEMENTATION), implDep)
         assertEquals(GitDependency("test_module_api", null, null, null, API), apiDep)
         assertEquals(GitDependency("test_module_test", null, null, null, TEST), testDep)
-        assertEquals(GitDependency("test_module_compile", null, null, null, COMPILE), compileDep)
     }
 }
