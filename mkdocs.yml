@@ -11,6 +11,8 @@ theme:
   name: material
   icon:
     repo: fontawesome/brands/github
+  features:
+    - content.action.edit
   palette:
     - scheme: slate
       toggle:
