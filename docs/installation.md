@@ -9,7 +9,7 @@ At this time, releases are published to [Github](https://github.com/DrewCarlson/
 ## macOS
 
 ```shell
-$ curl https://github.com/DrewCarlson/Ktpack/releases/latest/download/ktpack-macos.zip -o ktpack-macos.zip
+$ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-macos.zip -o ktpack-macos.zip
 $ unzip ktpack-macos.zip && cd ktpack-macos
 
 $ ktpack version
@@ -18,7 +18,7 @@ Ktpack version 1.0.0-SNAPSHOT
 
 ## Windows
 
-1. Download the latest windows release above.
+1. Download the Windows release above.
 2. Extract the `ktpack-windows.zip` to your system, for example `C:\Program Files\ktpack-windows\ktpack.exe`.
 3. Add to your system `PATH`: Start menu, search "environment", click "Environment Variables...".
 
@@ -27,7 +27,7 @@ _It is recommended you use the [Terminal](https://github.com/microsoft/terminal)
 ## Linux
 
 ```shell
-$ curl https://github.com/DrewCarlson/Ktpack/releases/latest/download/ktpack-linux.zip -o ktpack-linux.zip
+$ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-linux.zip -o ktpack-linux.zip
 $ unzip ktpack-linux.zip && cd ktpack-linux
 
 $ ktpack version
