@@ -100,7 +100,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
-          draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          draft: true
           files: |
             ktpack-script.jar
             ktpack-script.jar.sha256
@@ -147,7 +147,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
-          draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          draft: true
           files: |
             ktpack-cli/build/release/ktpack-windows.zip
             ktpack-cli/build/release/ktpack-windows.zip.sha256
@@ -191,7 +191,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
-          draft: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          draft: true
           files: |
             ktpack-cli/build/release/ktpack-linux.zip
             ktpack-cli/build/release/ktpack-linux.zip.sha256
