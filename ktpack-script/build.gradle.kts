@@ -23,6 +23,10 @@ sourceSets {
     }
 }
 
+configurations.all {
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit") // Added by kermit
+}
+
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveFileName.set("ktpack-script.jar")
     // TODO: The following doesn't seem to be consistent with 1.9, needs investigation
