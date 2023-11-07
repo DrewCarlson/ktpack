@@ -59,7 +59,7 @@ jobs:
 
       - name: Deploy with mike
         run: |
-          VERSION=${GITHUB_REF_NAME#v} mike deploy --push ${{ github.ref_name }} latest
+          VERSION=${GITHUB_REF_NAME#v} mike deploy --update-aliases --push ${{ github.ref_name }} latest
 
   publish-ktpack-script:
     runs-on: ubuntu-latest
