@@ -49,13 +49,13 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install -r ./docs/requirements.txt
 
-      - uses: gradle/gradle-build-action@v2
-        name: Build KDocs
-        with:
-          arguments: clean dokkaHtmlMultiModule
+#      - uses: gradle/gradle-build-action@v2
+#        name: Build KDocs
+#        with:
+#          arguments: clean dokkaHtmlMultiModule
 
-      - name: Move KDoc build
-        run: mv build/dokka/htmlMultiModule docs/kdoc
+#      - name: Move KDoc build
+#        run: mv build/dokka/htmlMultiModule docs/kdoc
 
       - name: Deploy with mike
         run: |
