@@ -13,7 +13,7 @@ $ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/
 $ unzip ktpack-macos.zip && cd ktpack-macos
 
 $ ktpack version
-Ktpack version 1.0.0-SNAPSHOT
+Ktpack version {{ lib_version }}
 ```
 
 ## Windows
@@ -31,7 +31,7 @@ $ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/
 $ unzip ktpack-linux.zip && cd ktpack-linux
 
 $ ktpack version
-Ktpack version 1.0.0-SNAPSHOT
+Ktpack version {{ lib_version }}
 ```
 
 ## Environment Setup
