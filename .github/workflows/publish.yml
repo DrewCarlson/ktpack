@@ -88,7 +88,7 @@ jobs:
       - uses: gradle/gradle-build-action@v2
         name: Build CLI
         with:
-          arguments: :ktpack-script:shadowJar
+          arguments: clean :ktpack-script:shadowJar
 
       - name: Compress and checksum
         run: |
