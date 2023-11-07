@@ -63,7 +63,7 @@ val buildRuntimeBundle by tasks.creating {
                |import ktpack.util.pathFrom
                |import ktpack.util.USER_HOME
                |
-               |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/${version}/ktpack-script.jar"
+               |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/v${version}/ktpack-script.jar"
                |val ktpackScriptJarPath = pathFrom($pathValue)
                |""".trimMargin(),
         )
