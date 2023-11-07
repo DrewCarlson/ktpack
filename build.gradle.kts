@@ -10,4 +10,8 @@ allprojects {
         mavenCentral()
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
+
+    System.getenv("GITHUB_REF_NAME")
+        ?.takeIf { it.startsWith("v") }
+        ?.let { version = it.removePrefix("v") }
 }
