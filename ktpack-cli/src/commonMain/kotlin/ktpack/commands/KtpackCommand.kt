@@ -30,23 +30,7 @@ class KtpackCommand(
     private val logger = Logger.withTag(KtpackCommand::class.simpleName.orEmpty())
 
     private val configPath = KTPACK_ROOT / "config.json"
-    private var _config: KtpackUserConfig
-
-    init {
-        _config = if (configPath.exists()) {
-            logger.d("Loading existing KtpackUserConfig at $configPath")
-            json.decodeFromString(configPath.readUtf8())
-        } else {
-            logger.d("Creating default KtpackUserConfig at $configPath")
-            check(KTPACK_ROOT.mkdirs().exists()) {
-                "Failed to create Ktpack folder $KTPACK_ROOT"
-            }
-            val defaultConfig = KtpackUserConfig()
-            val encodedConfig = jsonPretty.encodeToString(defaultConfig)
-            configPath.writeUtf8(encodedConfig, ::logError)
-            defaultConfig
-        }
-    }
+    private lateinit var _config: KtpackUserConfig
 
     override val config: KtpackUserConfig
         get() = _config
@@ -112,9 +96,24 @@ class KtpackCommand(
         Logger.mutableConfig.logWriterList = emptyList()
         Logger.mutableConfig.minSeverity = if (debug) Severity.Verbose else Severity.Info
         Logger.addLogWriter(MordantLogWriter(term = term))
+        loadConfig()
         currentContext.obj = this
-        if (debug) {
-            term.println("${info("Ktpack")} ${verbose(Ktpack.VERSION)}")
+        logger.d("${info("Ktpack")} ${verbose(Ktpack.VERSION)}")
+    }
+
+    private fun loadConfig() {
+        _config = if (configPath.exists()) {
+            logger.d("Loading existing KtpackUserConfig at $configPath")
+            json.decodeFromString(configPath.readUtf8())
+        } else {
+            logger.d("Creating default KtpackUserConfig at $configPath")
+            check(KTPACK_ROOT.mkdirs().exists()) {
+                "Failed to create Ktpack folder $KTPACK_ROOT"
+            }
+            val defaultConfig = KtpackUserConfig()
+            val encodedConfig = jsonPretty.encodeToString(defaultConfig)
+            configPath.writeUtf8(encodedConfig, ::logError)
+            defaultConfig
         }
     }
 }
