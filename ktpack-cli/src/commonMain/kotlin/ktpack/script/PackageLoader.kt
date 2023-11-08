@@ -64,6 +64,9 @@ suspend fun loadKtpackConf(context: CliContext, pathString: String, rebuild: Boo
 private suspend fun executeKtpackScript(context: CliContext, path: String): KtpackConf = coroutineScope {
     installScriptBuilderJar(context)
 
+    val jdkHome = checkNotNull(context.jdkInstalls.getDefaultJdk()) {
+        "Run `ktpack setup` before using your project"
+    }
     val kotlincPath = context.kotlinInstalls.findKotlincJvm(context.config.kotlin.version)
     check(kotlincPath.toPath().exists()) {
         "Cannot execute ktpack script, kotlinc-jvm does not exist at: $kotlincPath"
@@ -73,6 +76,7 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
         if (context.debug) arg("-verbose")
         args("-classpath", ktpackScriptJarPath.toString())
         args("-script-templates", "ktpack.configuration.KtpackScriptScopeDefinition")
+        args("-jdk-home", jdkHome.path)
         arg("-script")
         arg(path)
 

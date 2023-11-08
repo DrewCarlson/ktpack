@@ -455,12 +455,16 @@ class ModuleBuilder(
         check(output.isAbsolute) {
             "ModuleBuilder.startKotlinCompiler(...) requires `output` to be an absolute path: $output"
         }
+        val defaultJdk  = checkNotNull(context.jdkInstalls.getDefaultJdk()) {
+            "Run `ktpack setup` before using your project"
+        }
         val outputDir = checkNotNull(output.parent).mkdirs()
         val compileOpts = outputDir / "${Random.nextBytes(6).toHexString()}.opts"
         val kotlinVersion = module.kotlinVersion ?: Ktpack.KOTLIN_VERSION
         return try {
             exec {
                 workingDirectory = outputDir.toString()
+                environment["JAVA_HOME"] = defaultJdk.path
                 when (target) {
                     KotlinTarget.JVM -> {
                         configureJvmCompilerArgs(output, kotlinVersion, libs, compileOpts)
@@ -518,6 +522,11 @@ class ModuleBuilder(
 
         mainSource?.toString()?.run(::arg)
         sourceFiles.forEach { file -> arg(file) }
+
+        // Sources of the common module that need to be compiled together with this module in the multi-platform mode.
+        // Should be a subset of sources passed as free arguments
+        // args("-Xcommon-sources", "array(string)")
+        // args("-language-version", "2.0")
 
         logger.d { "Launching Kotlin Compiler:\n${arguments.joinToString("\n")}" }
         if (compileOpts.exists()) {
