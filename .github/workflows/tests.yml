@@ -12,7 +12,7 @@ jobs:
     outputs:
       any: ${{ steps.check.outputs.any_changed }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: 0
@@ -48,7 +48,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt install libcurl4-openssl-dev
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - uses: actions/setup-java@v3
