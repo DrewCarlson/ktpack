@@ -1,9 +1,10 @@
 module("hello_world") {
     version = "0.0.1"
-    kotlinVersion = "1.9.20"
+    kotlinVersion = "1.9.22"
     description = "A sample that uses multiple KMP libraries."
-    val ktorVersion = "2.3.5"
+    val ktorVersion = "2.3.8"
     dependencies {
+        maven("co.touchlab:kermit:2.0.3")
         maven("org.drewcarlson:coingecko:1.0.0-beta02")
     }
     dependencies(JS_BROWSER, JS_NODE) {

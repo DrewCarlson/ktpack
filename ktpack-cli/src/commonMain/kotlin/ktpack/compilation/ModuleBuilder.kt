@@ -532,6 +532,9 @@ class ModuleBuilder(
         if (compileOpts.exists()) {
             logger.d { "${compileOpts.name}:\n${compileOpts.readUtf8()}" }
         }
+
+        environment["SystemRoot"] = getEnv("windir").orEmpty()
+        environment["TMP"] = TEMP_PATH.toString()
     }
 
     private fun ExecArgumentsBuilder.configureJvmCompilerArgs(

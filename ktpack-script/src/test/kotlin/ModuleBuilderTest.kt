@@ -38,7 +38,7 @@ class ModuleBuilderTest {
     fun testCompleteModuleConfiguration() = withTestScope {
         module("hello_world") {
             version = "1.0.0"
-            kotlinVersion = "1.9.20"
+            kotlinVersion = "1.9.22"
             authors += "Test Author"
             autobin = false
             license = "license"
@@ -54,7 +54,7 @@ class ModuleBuilderTest {
         val confJson = testJson.encodeToString(conf)
         assertEquals("hello_world", conf.name)
         assertEquals("1.0.0", conf.version)
-        assertEquals("1.7.10", conf.kotlinVersion)
+        assertEquals("1.9.22", conf.kotlinVersion)
         assertEquals("Test Author", conf.authors.firstOrNull())
         assertEquals(false, conf.autobin)
         assertEquals("license", conf.license)
@@ -78,7 +78,7 @@ class ModuleBuilderTest {
                |        "jvm",
                |        "js_browser"
                |    ],
-               |    "kotlinVersion": "1.7.10"
+               |    "kotlinVersion": "1.9.22"
                |}
             """.trimMargin(),
             confJson,
@@ -134,11 +134,6 @@ class ModuleBuilderTest {
                |                    "type": "ktpack.configuration.DependencyConf.LocalPathDependency",
                |                    "path": "test_module_test",
                |                    "scope": "TEST"
-               |                },
-               |                {
-               |                    "type": "ktpack.configuration.DependencyConf.LocalPathDependency",
-               |                    "path": "test_module_compile",
-               |                    "scope": "COMPILE"
                |                }
                |            ]
                |        }

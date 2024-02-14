@@ -1,11 +1,11 @@
 [versions]
-kotlin = { strictly = "1.9.20" }
+kotlin = { strictly = "1.9.22" }
 dokka = "1.9.10"
 coroutines = "1.7.3"
-serialization = "1.6.0"
-ktorio = "2.3.5"
-binary_compat = "0.13.2"
-okio = "3.6.0"
+serialization = "1.6.2"
+ktorio = "2.3.8"
+binary_compat = "0.14.0"
+okio = "3.8.0"
 
 spotless = "6.22.0"
 ktlint = "1.0.1"
@@ -39,17 +39,17 @@ ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktorio"
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktorio" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 
-kermit = { module = "co.touchlab:kermit", version = "2.0.2"}
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.1" }
-mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.2.0" }
+kermit = { module = "co.touchlab:kermit", version = "2.0.3" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.2" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.3.0" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
-ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.5.0" }
+ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.2" }
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.3" }
 semver = { module = "io.github.z4kn4fein:semver", version = "1.4.2" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.0" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.4.1" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.1" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.5.0" }
 
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
