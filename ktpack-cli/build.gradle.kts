@@ -50,6 +50,8 @@ kotlin {
                 implementation(libs.clikt)
                 implementation(libs.cryptohash)
                 implementation(libs.xmlutil.serialization)
+                implementation(libs.ktoml.core)
+                implementation(libs.okio)
                 implementation(libs.semver)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)

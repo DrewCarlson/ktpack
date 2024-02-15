@@ -107,6 +107,7 @@ kotlin {
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.serialization)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.ktoml.core)
             }
         }
 

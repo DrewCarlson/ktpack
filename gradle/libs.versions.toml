@@ -6,7 +6,7 @@ serialization = "1.6.2"
 ktorio = "2.3.8"
 binary_compat = "0.14.0"
 okio = "3.8.0"
-
+ktoml = "0.5.1"
 spotless = "6.22.0"
 ktlint = "1.0.1"
 
@@ -46,6 +46,8 @@ ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.3" }
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 semver = { module = "io.github.z4kn4fein:semver", version = "1.4.2" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
