@@ -48,29 +48,31 @@ class MavenDependencyResolverTests {
             .map { it.substringAfterLast(DIRECTORY_SEPARATOR) }
 
         val expected = listOf(
-            "kotlinx-atomicfu-runtime-1.9.10.klib",
+            "kotlinx-atomicfu-runtime-1.8.20.klib",
             "atomicfu-jsir-0.20.2.klib",
             "kotlinx-coroutines-core-jsir-1.7.1.klib",
             "kotlinx-serialization-core-jsir-1.3.3.klib",
             "kotlinx-serialization-json-jsir-1.3.3.klib",
-            "kotlin-dom-api-compat-1.9.10.klib",
-            "ktor-io-js-2.3.5.klib",
-            "ktor-utils-js-2.3.5.klib",
-            "ktor-http-js-2.3.5.klib",
-            "ktor-events-js-2.3.5.klib",
-            "ktor-websockets-js-2.3.5.klib",
-            "ktor-serialization-js-2.3.5.klib",
-            "ktor-websocket-serialization-js-2.3.5.klib",
-            "ktor-client-core-js-2.3.5.klib",
+            "kotlin-dom-api-compat-1.9.22.klib",
+            "ktor-io-js-2.3.8.klib",
+            "ktor-utils-js-2.3.8.klib",
+            "ktor-http-js-2.3.8.klib",
+            "ktor-events-js-2.3.8.klib",
+            "ktor-websockets-js-2.3.8.klib",
+            "ktor-serialization-js-2.3.8.klib",
+            "ktor-websocket-serialization-js-2.3.8.klib",
+            "ktor-client-core-js-2.3.8.klib",
+            "kermit-js-2.0.3.klib",
+            "kermit-core-js-2.0.3.klib",
             "atomicfu-1.6.21.jar",
             "ktor-client-content-negotiation-jsir-2.0.3.klib",
             "ktor-serialization-kotlinx-jsir-2.0.3.klib",
             "ktor-serialization-kotlinx-json-jsir-2.0.3.klib",
             "coingecko-js-1.0.0-beta02.klib",
-            "atomicfu-js-0.22.0.klib",
-            "ktor-client-js-js-2.3.5.klib",
+            "ktor-client-js-js-2.3.8.klib",
         )
-        expected.forEach { assertTrue(actual.contains(it)) }
+        expected.forEach { assertTrue(actual.contains(it), "missing from actual: $it") }
+        actual.forEach { assertTrue(expected.contains(it), "missing from expect: $it") }
     }
 
     @Test
@@ -85,30 +87,33 @@ class MavenDependencyResolverTests {
 
         val expected = listOf(
             "annotations-23.0.0.jar",
-            "kotlinx-coroutines-core-jvm-1.7.3.jar",
+            "kotlinx-coroutines-core-jvm-1.7.1.jar",
             "kotlinx-serialization-core-jvm-1.3.3.jar",
             "kotlinx-serialization-json-jvm-1.3.3.jar",
             "kotlinx-coroutines-jdk8-1.7.1.jar",
             "slf4j-api-1.7.36.jar",
-            "ktor-io-jvm-2.3.5.jar",
-            "ktor-utils-jvm-2.3.5.jar",
-            "ktor-http-jvm-2.3.5.jar",
-            "ktor-events-jvm-2.3.5.jar",
-            "ktor-websockets-jvm-2.3.5.jar",
-            "ktor-serialization-jvm-2.3.5.jar",
-            "ktor-websocket-serialization-jvm-2.3.5.jar",
-            "kotlinx-coroutines-slf4j-1.7.3.jar",
-            "ktor-client-core-jvm-2.3.5.jar",
+            "ktor-io-jvm-2.3.8.jar",
+            "ktor-utils-jvm-2.3.8.jar",
+            "ktor-http-jvm-2.3.8.jar",
+            "ktor-events-jvm-2.3.8.jar",
+            "ktor-websockets-jvm-2.3.8.jar",
+            "ktor-serialization-jvm-2.3.8.jar",
+            "ktor-websocket-serialization-jvm-2.3.8.jar",
+            "kotlinx-coroutines-slf4j-1.7.1.jar",
+            "ktor-client-core-jvm-2.3.8.jar",
             "ktor-client-content-negotiation-jvm-2.0.3.jar",
             "ktor-serialization-kotlinx-jvm-2.0.3.jar",
             "ktor-serialization-kotlinx-json-jvm-2.0.3.jar",
             "coingecko-jvm-1.0.0-beta02.jar",
-            "ktor-network-jvm-2.3.5.jar",
-            "ktor-http-cio-jvm-2.3.5.jar",
-            "ktor-network-tls-jvm-2.3.5.jar",
-            "ktor-client-cio-jvm-2.3.5.jar",
+            "kermit-jvm-2.0.3.jar",
+            "kermit-core-jvm-2.0.3.jar",
+            "ktor-network-jvm-2.3.8.jar",
+            "ktor-http-cio-jvm-2.3.8.jar",
+            "ktor-network-tls-jvm-2.3.8.jar",
+            "ktor-client-cio-jvm-2.3.8.jar",
         )
-        expected.forEach { assertTrue(actual.contains(it)) }
+        expected.forEach { assertTrue(actual.contains(it), "missing from actual: $it") }
+        actual.forEach { assertTrue(expected.contains(it), "missing from expect: $it") }
     }
 
     @Test
@@ -139,10 +144,13 @@ class MavenDependencyResolverTests {
             "ktor-serialization-kotlinx.klib",
             "ktor-serialization-kotlinx-json.klib",
             "coingecko.klib",
+            "kermit.klib",
+            "kermit-core.klib",
             "ktor-http-cio.klib",
             "ktor-client-winhttp.klib",
             "ktor-client-winhttp-cinterop-winhttp.klib",
         )
-        expected.forEach { assertTrue(actual.contains(it)) }
+        expected.forEach { assertTrue(actual.contains(it), "missing from actual: $it") }
+        actual.forEach { assertTrue(expected.contains(it), "missing from expect: $it") }
     }
 }
