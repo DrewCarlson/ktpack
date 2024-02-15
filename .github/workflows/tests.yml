@@ -67,6 +67,12 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
       - uses: gradle/gradle-build-action@v3
+        name: Test Core (JVM)
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          arguments: jvmTest
+
+      - uses: gradle/gradle-build-action@v3
         name: Test Apple Targets
         if: startsWith(matrix.os, 'macos')
         with:
