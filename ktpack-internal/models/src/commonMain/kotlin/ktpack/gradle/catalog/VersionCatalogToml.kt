@@ -9,12 +9,6 @@ data class VersionCatalogToml(
     val libraries: Map<String, Library>,
 ) {
 
-    companion object {
-        fun parse(tomlString: String): VersionCatalogToml {
-            return VersionCatalogTomlParser.parse(tomlString)
-        }
-    }
-
     /*
     TODO: Expand support for libs.versions.toml
     require: the required version

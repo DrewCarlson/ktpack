@@ -29,6 +29,10 @@ public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
         )
     }
 
+    public fun maven(provider: DependencyConfProvider) {
+        maven(coordinates = provider.getDependencyConf())
+    }
+
     public fun maven(coordinates: String) {
         val (groupId: String, artifactId: String, version: String) = coordinates.extractMavenComponents()
         add(
@@ -66,6 +70,10 @@ public open class DependencyBuilder(private val targets: List<KotlinTarget>) {
                 scope = DependencyScope.API,
             ),
         )
+    }
+
+    public fun mavenApi(provider: DependencyConfProvider) {
+        mavenApi(coordinates = provider.getDependencyConf())
     }
 
     public fun mavenApi(coordinates: String) {

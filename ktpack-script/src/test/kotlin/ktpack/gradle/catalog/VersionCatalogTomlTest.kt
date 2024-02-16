@@ -11,7 +11,7 @@ class VersionCatalogTomlTest {
             [versions]
             test = "1.0.0"
         """
-        val versionCatalog = VersionCatalogToml.parse(tomlString)
+        val versionCatalog = VersionCatalogTomlParser.parse(tomlString)
 
         val expected = VersionCatalogToml(
             libraries = emptyMap(),
@@ -30,7 +30,7 @@ class VersionCatalogTomlTest {
                 [versions]
                 kotlin = { strictly = "1.9.22" }
             """
-        val versionCatalog = VersionCatalogToml.parse(tomlString)
+        val versionCatalog = VersionCatalogTomlParser.parse(tomlString)
         val expected = VersionCatalogToml(
             libraries = emptyMap(),
             versions = mapOf(
@@ -50,7 +50,7 @@ class VersionCatalogTomlTest {
             [libraries]
             test = { group = "org.test", name = "test", version.ref = "test" }
         """
-        val versionCatalog = VersionCatalogToml.parse(tomlString)
+        val versionCatalog = VersionCatalogTomlParser.parse(tomlString)
         val expected = VersionCatalogToml(
             versions = mapOf(
                 "test" to VersionCatalogToml.Version("1.0.0", strict = false),
@@ -72,7 +72,7 @@ class VersionCatalogTomlTest {
             [libraries]
             test = { group = "org.test", name = "test", version = "1.0.0" }
         """
-        val versionCatalog = VersionCatalogToml.parse(tomlString)
+        val versionCatalog = VersionCatalogTomlParser.parse(tomlString)
         val expected = VersionCatalogToml(
             versions = emptyMap(),
             libraries = mapOf(

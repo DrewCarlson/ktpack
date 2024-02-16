@@ -1,10 +1,21 @@
 package ktpack.gradle.catalog
 
+import com.akuleshov7.ktoml.Toml
+import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.tree.nodes.TomlFile
 import com.akuleshov7.ktoml.tree.nodes.TomlKeyValuePrimitive
 import com.akuleshov7.ktoml.tree.nodes.TomlNode
 import com.akuleshov7.ktoml.tree.nodes.TomlTable
-import ktpack.toml
+
+private val toml = Toml(
+    inputConfig = TomlInputConfig(
+        ignoreUnknownNames = true,
+        allowEmptyValues = true,
+        allowNullValues = true,
+        allowEscapedQuotesInLiteralStrings = true,
+        allowEmptyToml = true,
+    ),
+)
 
 internal object VersionCatalogTomlParser {
 

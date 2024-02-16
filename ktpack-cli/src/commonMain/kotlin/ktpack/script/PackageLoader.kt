@@ -72,10 +72,13 @@ private suspend fun executeKtpackScript(context: CliContext, path: String): Ktpa
         "Cannot execute ktpack script, kotlinc-jvm does not exist at: $kotlincPath"
     }
     val result = exec {
+        path.toPath().parent?.let { parent ->
+            workingDirectory = parent.toString()
+        }
         arg(kotlincPath)
         if (context.debug) arg("-verbose")
         args("-classpath", ktpackScriptJarPath.toString())
-        args("-script-templates", "ktpack.configuration.KtpackScriptScopeDefinition")
+        args("-script-templates", "ktpack.configuration.KtpackScriptTemplate")
         args("-jdk-home", jdkHome.path)
         arg("-script")
         arg(path)
