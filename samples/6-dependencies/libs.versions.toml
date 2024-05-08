@@ -1,5 +1,5 @@
 [versions]
-ktor = "2.3.8"
+ktor = "2.3.11"
 
 [libraries]
 kermit = { module = "co.touchlab:kermit", version = "2.0.3" }
