@@ -1,3 +1,5 @@
+import org.gradle.jvm.tasks.Jar
+
 plugins {
     kotlin("jvm")
     alias(libs.plugins.serialization)
@@ -12,11 +14,13 @@ kotlin {
 
 sourceSets {
     dependencies {
-        compileOnly(kotlin("scripting-jvm-host"))
+        implementation(kotlin("scripting-jvm-host"))
         compileOnly(kotlin("scripting-jvm"))
-        compileOnly(kotlin("script-runtime"))
-        compileOnly(kotlin("stdlib"))
+        implementation(kotlin("scripting-dependencies"))
+        implementation(kotlin("scripting-dependencies-maven-all"))
+        implementation(kotlin("script-runtime"))
         api(project(":ktpack-internal:models"))
+        implementation(libs.coroutines.core)
         implementation(libs.serialization.json)
         implementation(libs.kotlinpoet)
         implementation(libs.ktoml.core)
@@ -26,11 +30,16 @@ sourceSets {
     }
 }
 
+tasks.withType<org.gradle.api.tasks.bundling.Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveFileName.set("ktpack-script.jar")
     // TODO: The following doesn't seem to be consistent with 1.9, needs investigation
     // stdlib will be provided by kotlinc
-    dependencies { exclude(dependency("org.jetbrains.kotlin:.*:.*")) }
+    //dependencies { exclude(dependency("org.jetbrains.kotlin:.*:.*")) }
 }
 
 spotless {

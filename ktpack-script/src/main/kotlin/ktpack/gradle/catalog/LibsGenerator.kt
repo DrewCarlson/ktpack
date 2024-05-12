@@ -2,7 +2,6 @@ package ktpack.gradle.catalog
 
 import com.squareup.kotlinpoet.*
 import ktpack.configuration.DependencyConfProvider
-import ktpack.gradle.catalog.VersionCatalogToml
 
 internal object LibsGenerator {
 

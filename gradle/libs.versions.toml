@@ -1,14 +1,14 @@
 [versions]
-kotlin = { strictly = "1.9.22" }
-dokka = "1.9.10"
-coroutines = "1.7.3"
-serialization = "1.6.2"
-ktorio = "2.3.8"
-binary_compat = "0.14.0"
-okio = "3.8.0"
+kotlin = { strictly = "2.0.0-RC3" }
+dokka = "1.9.20"
+coroutines = "1.8.1"
+serialization = "1.6.3"
+ktorio = "2.3.11"
+binary_compat = "0.15.0-Beta.2"
+okio = "3.9.0"
 ktoml = "0.5.1"
-spotless = "6.22.0"
-ktlint = "1.0.1"
+spotless = "6.25.0"
+ktlint = "1.2.1"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -40,8 +40,8 @@ ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "k
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 
 kermit = { module = "co.touchlab:kermit", version = "2.0.3" }
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.2.2" }
-mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.3.0" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.4.0" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.5.0" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
@@ -52,6 +52,7 @@ semver = { module = "io.github.z4kn4fein:semver", version = "1.4.2" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.1" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.5.0" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.0-RC.2" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.16.0" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
+ivy = { module = "org.apache.ivy:ivy", version = "2.5.2" }

@@ -17,9 +17,9 @@ private val toml = Toml(
     ),
 )
 
-internal object VersionCatalogTomlParser {
+public object VersionCatalogTomlParser {
 
-    fun parse(tomlString: String): VersionCatalogToml {
+    public fun parse(tomlString: String): VersionCatalogToml {
         val libsToml = toml.tomlParser.parseString(tomlString)
 
         val versionsToml = libsToml.getChildTable("versions")

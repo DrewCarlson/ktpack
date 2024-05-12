@@ -1,6 +1,6 @@
 module("hello_world") {
     version = "0.0.1"
-    kotlinVersion = "1.9.22"
+    kotlinVersion = "2.0.0-RC3"
     description = "A sample that uses multiple KMP libraries."
     dependencies {
         maven(libs.kermit)
@@ -13,10 +13,10 @@ module("hello_world") {
     dependencies(JVM) {
         maven(libs.ktor.cio)
     }
-    dependencies(LINUX_X64) {
+    dependencies(LINUX_X64, LINUX_ARM64) {
         maven(libs.ktor.curl)
     }
-    dependencies(MACOS_X64) {
+    dependencies(MACOS_X64, MACOS_ARM64) {
         maven(libs.ktor.darwin)
     }
     dependencies(MINGW_X64) {

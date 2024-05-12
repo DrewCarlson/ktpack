@@ -8,7 +8,7 @@ plugins {
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
     jvm()
     val nativeTargets = listOfNotNull(
         if (hostOs.isMacOsX) macosX64() else null,
