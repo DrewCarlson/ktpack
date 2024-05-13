@@ -99,7 +99,7 @@ jobs:
           arguments: packageReleaseWindows
 
       - name: Upload to Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
@@ -143,7 +143,7 @@ jobs:
           arguments: packageReleaseLinux
 
       - name: Upload to Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
@@ -182,7 +182,7 @@ jobs:
           arguments: packageReleaseMacos --no-parallel
 
       - name: Upload to Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-') }}
