@@ -3,7 +3,7 @@ package ktpack.commands
 import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import ktpack.CliContext
-import ktpack.PACK_SCRIPT_FILENAME
+import ktpack.MANIFEST_FILENAME
 import ktpack.util.exists
 import ktpack.util.failed
 import ktpack.util.workingDirectory
@@ -15,7 +15,7 @@ class InitCommand : CliktCommand(
     private val logger = Logger.withTag(InitCommand::class.simpleName.orEmpty())
 
     override fun run() {
-        val packFile = workingDirectory / PACK_SCRIPT_FILENAME
+        val packFile = workingDirectory / MANIFEST_FILENAME
         if (packFile.exists()) {
             logger.i("${failed("Failed")} A pack file already exists in this directory.")
             return

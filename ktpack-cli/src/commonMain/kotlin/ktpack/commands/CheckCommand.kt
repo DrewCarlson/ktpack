@@ -11,12 +11,12 @@ class CheckCommand : CliktCommand(
 
     private val filePath by argument("file")
         .help("The package file to validate.")
-        .default(PACK_SCRIPT_FILENAME)
+        .default(MANIFEST_FILENAME)
 
     private val context by requireObject<CliContext>()
 
     override fun run() = runBlocking {
-        val packageConf = context.loadKtpackConf(filePath)
+        val packageConf = context.loadManifestToml(filePath)
         // TODO: Validate all package properties
         println(packageConf)
     }

@@ -11,6 +11,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.serialization.core)
+                implementation(libs.tomlkt)
+                implementation(libs.ktfio)
             }
         }
     }

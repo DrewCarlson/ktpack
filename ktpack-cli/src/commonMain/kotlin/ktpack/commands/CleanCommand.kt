@@ -24,13 +24,12 @@ class CleanCommand : CliktCommand(
 
     override fun run() = runBlocking {
         val userTarget = userTarget
-        val packageConf = context.loadKtpackConf()
-        val module = packageConf.module
-        val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
+        val manifestToml = context.loadManifestToml()
+        val moduleBuilder = ModuleBuilder(manifestToml, context, workingDirectory)
 
         val dependencyTree = moduleBuilder.resolveRootDependencyTree(listOfNotNull(userTarget))
         dependencyTree
-            .mapNotNull { child -> child.localModule?.name }
+            .mapNotNull { child -> child.localManifest?.module?.name }
             .map { name ->
                 // TODO: Handle cleaning local child dependency build folder
                 if (userTarget == null) {

@@ -11,6 +11,8 @@ import ktpack.compilation.dependencies.models.DependencyNode
 import ktpack.configuration.*
 import ktpack.gradle.GradleModule
 import ktpack.json
+import ktpack.manifest.DependencyToml
+import ktpack.manifest.ManifestToml
 import ktpack.maven.MavenProject
 import ktpack.util.*
 import ktpack.xml
@@ -18,7 +20,7 @@ import okio.Path
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 
 class MavenDependencyResolver(
-    override val module: ModuleConf,
+    override val manifest: ManifestToml,
     private val http: HttpClient,
 ) : DependencyResolver() {
     // TODO: Support list of maven urls and local repo folders
@@ -31,7 +33,7 @@ class MavenDependencyResolver(
     private val mavenProjectCache = mutableMapOf<String, MavenProject>()
 
     override fun canResolve(node: DependencyNode): Boolean {
-        return node.dependencyConf is DependencyConf.MavenDependency
+        return node.dependencyConf is DependencyToml.Maven
     }
 
     override suspend fun resolveArtifacts(
@@ -42,7 +44,7 @@ class MavenDependencyResolver(
         logger.d { "Resolving artifacts [$target] (${if (releaseMode) "release" else "debug"})" }
         nodes.forEach { logger.d(it.toString()) }
         return nodes.mapNotNull { node ->
-            val dependency = node.dependencyConf as DependencyConf.MavenDependency
+            val dependency = node.dependencyConf as DependencyToml.Maven
             val cachedGradleModule = readCachedGradleModule(dependency)
             if (cachedGradleModule != null) {
                 val (variant, files) = downloadVariantArtifacts(target, cachedGradleModule.variants, dependency)
@@ -64,7 +66,7 @@ class MavenDependencyResolver(
     }
 
     private suspend fun loadLocalDependencyNode(
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
         releaseMode: Boolean,
         target: KotlinTarget,
     ): DependencyNode? {
@@ -73,7 +75,7 @@ class MavenDependencyResolver(
         if (cachedGradleModule != null) {
             val targetVariant = resolveGradleModuleVariant(target, cachedGradleModule.variants, dependency)
             return DependencyNode(
-                localModule = null,
+                localManifest = null,
                 dependencyConf = dependency,
                 children = resolveGradleVariantDependencies(targetVariant, releaseMode, target),
                 artifacts = emptyList(),
@@ -84,7 +86,7 @@ class MavenDependencyResolver(
         val cachedPom = readCachedPom(dependency)
         if (cachedPom != null) {
             return DependencyNode(
-                localModule = null,
+                localManifest = null,
                 dependencyConf = dependency,
                 children = parseChildDependencies(cachedPom, releaseMode, target),
                 artifacts = emptyList(),
@@ -99,7 +101,7 @@ class MavenDependencyResolver(
         releaseMode: Boolean,
         target: KotlinTarget,
     ): DependencyNode {
-        val dependency = node.dependencyConf as DependencyConf.MavenDependency
+        val dependency = node.dependencyConf as DependencyToml.Maven
         val cachedNode = nodeCache[dependency.toMavenString()]
         if (cachedNode != null) {
             return cachedNode
@@ -143,12 +145,10 @@ class MavenDependencyResolver(
             .filter { !it.module.startsWith("kotlin-stdlib") && !it.module.endsWith("-bom") }
             .map { gradleDep ->
                 val newNode = DependencyNode(
-                    localModule = null,
-                    dependencyConf = DependencyConf.MavenDependency(
-                        groupId = gradleDep.group,
-                        artifactId = gradleDep.module,
+                    localManifest = null,
+                    dependencyConf = DependencyToml.Maven(
+                        maven = "${gradleDep.group}:${gradleDep.module}",
                         version = gradleDep.version.requires,
-                        scope = DependencyScope.IMPLEMENTATION,
                     ),
                     children = emptyList(),
                     artifacts = emptyList(),
@@ -158,7 +158,7 @@ class MavenDependencyResolver(
     }
 
     private suspend fun fetchPomDependency(
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
         releaseMode: Boolean,
         target: KotlinTarget,
         child: DependencyNode,
@@ -182,7 +182,7 @@ class MavenDependencyResolver(
         )
     }
 
-    private fun readCachedPom(dependency: DependencyConf.MavenDependency): MavenProject? {
+    private fun readCachedPom(dependency: DependencyToml.Maven): MavenProject? {
         val pomPath = dependency.toPathString(DIRECTORY_SEPARATOR)
         val pomFileName = "${dependency.artifactId}-${dependency.version}.pom"
         val pomFileNameCacheFile = cacheRoot / pomPath / pomFileName
@@ -196,7 +196,7 @@ class MavenDependencyResolver(
     }
 
     private suspend fun fetchPomFile(
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
     ): MavenProject {
         val artifactRemotePath = dependency.toPathString("/")
         val cached = mavenProjectCache[artifactRemotePath]
@@ -240,19 +240,13 @@ class MavenDependencyResolver(
         return pom.dependencies
             .filter { it.scope?.value != "test" && it.version != null }
             .map { mavenDep ->
-                val depConf = DependencyConf.MavenDependency(
-                    groupId = mavenDep.groupId.value,
-                    artifactId = mavenDep.artifactId.value,
+                val depConf = DependencyToml.Maven(
+                    maven = "${mavenDep.groupId.value}:${mavenDep.artifactId.value}",
                     version = checkNotNull(mavenDep.version).value,
                     // TODO: Fix maven dependency scope mapping..
-                    scope = when (mavenDep.scope?.value) {
-                        "compile" -> DependencyScope.IMPLEMENTATION
-                        "runtime" -> DependencyScope.IMPLEMENTATION
-                        else -> DependencyScope.IMPLEMENTATION
-                    },
                 )
                 val newChild = DependencyNode(
-                    localModule = null,
+                    localManifest = null,
                     dependencyConf = depConf,
                     children = emptyList(),
                     artifacts = emptyList(),
@@ -289,7 +283,7 @@ class MavenDependencyResolver(
     }
 
     private fun readCachedGradleModule(
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
     ): GradleModule? {
         val artifactRemotePath = dependency.toPathString("/")
         val artifactModuleName = "${dependency.artifactId}-${dependency.version}.module"
@@ -345,7 +339,7 @@ class MavenDependencyResolver(
 
     private suspend fun fetchGradleModuleArtifact(
         targetFile: GradleModule.Variant.File,
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
         moduleName: String,
         version: String,
     ): Path {
@@ -362,7 +356,7 @@ class MavenDependencyResolver(
     private suspend fun downloadVariantArtifacts(
         target: KotlinTarget,
         variants: List<GradleModule.Variant>,
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
     ): Pair<GradleModule.Variant, List<String>> {
         val variant = variants.findVariantFor(target)
         val availableAt = variant.availableAt
@@ -372,7 +366,7 @@ class MavenDependencyResolver(
                     file,
                     dependency,
                     dependency.artifactId,
-                    dependency.version,
+                    dependency.version!!,
                 ).takeIf { it.exists() }
                     ?.toString()
             }
@@ -384,7 +378,7 @@ class MavenDependencyResolver(
     private suspend fun resolveGradleModuleVariant(
         target: KotlinTarget,
         variants: List<GradleModule.Variant>,
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
     ): GradleModule.Variant {
         val variant = variants.findVariantFor(target)
         val availableAt = variant.availableAt
@@ -397,7 +391,7 @@ class MavenDependencyResolver(
 
     private suspend fun followVariantRedirect(
         availableAt: GradleModule.Variant.AvailableAt,
-        dependency: DependencyConf.MavenDependency,
+        dependency: DependencyToml.Maven,
         target: KotlinTarget,
         downloadArtifacts: Boolean,
     ): Pair<GradleModule.Variant, List<String>> {

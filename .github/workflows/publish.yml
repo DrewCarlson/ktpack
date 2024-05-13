@@ -26,7 +26,7 @@ jobs:
           path: |
             ~/.konan
             ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
+          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
       - name: Configure Git user
         run: |
@@ -60,50 +60,6 @@ jobs:
       - name: Deploy with mike
         run: |
           VERSION=${GITHUB_REF_NAME#v} mike deploy --update-aliases --push ${{ github.ref_name }} latest
-
-  publish-ktpack-script:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: 11
-
-      - name: Cache Build files
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.konan
-            ~/.gradle
-          key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
-
-      - uses: gradle/gradle-build-action@v3
-        name: Build CLI
-        with:
-          arguments: clean :ktpack-script:shadowJar
-
-      - name: Compress and checksum
-        run: |
-          mv ktpack-script/build/libs/ktpack-script.jar ktpack-script.jar
-          shasum -a 256 ktpack-script.jar > ktpack-script.jar.sha256
-
-      - name: Upload to Github Release
-        uses: softprops/action-gh-release@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: ${{ contains(github.ref, '-') }}
-          draft: true
-          files: |
-            ktpack-script.jar
-            ktpack-script.jar.sha256
 
   publish-cli-windows:
     runs-on: windows-latest

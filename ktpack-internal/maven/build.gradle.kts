@@ -11,7 +11,7 @@ kotlin {
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)
                 implementation(libs.serialization.json)
-                implementation(libs.kotlinx.datetime)
+                //implementation(libs.kotlinx.datetime)
             }
         }
 

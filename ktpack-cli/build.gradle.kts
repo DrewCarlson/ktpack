@@ -12,16 +12,8 @@ plugins {
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
-evaluationDependsOn(":ktpack-script")
-
 kotlin {
     configure(targets) {
-        compilations.named("main") {
-            compileTaskProvider.configure {
-                dependsOn(project(":ktpack-script").tasks.findByName("shadowJar"))
-            }
-        }
-
         if (this is KotlinNativeTarget) {
             binaries {
                 executable {
@@ -50,7 +42,7 @@ kotlin {
                 implementation(libs.clikt)
                 implementation(libs.cryptohash)
                 implementation(libs.xmlutil.serialization)
-                implementation(libs.ktoml.core)
+                implementation(libs.tomlkt)
                 implementation(libs.okio)
                 implementation(libs.semver)
                 implementation(libs.coroutines.core)
@@ -60,7 +52,7 @@ kotlin {
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.ktor.serialization)
-                implementation(libs.kotlinx.datetime)
+                //implementation(libs.kotlinx.datetime)
             }
         }
 

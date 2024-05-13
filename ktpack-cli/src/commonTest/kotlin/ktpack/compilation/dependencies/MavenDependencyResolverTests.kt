@@ -1,12 +1,13 @@
 package ktpack.compilation.dependencies
 
 import kotlinx.coroutines.test.runTest
-import ktpack.PACK_SCRIPT_FILENAME
+import ktpack.MANIFEST_FILENAME
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder
 import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.ModuleToml
 import ktpack.sampleDir
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 import kotlin.test.BeforeTest
@@ -18,7 +19,7 @@ private val timeout = 2.minutes
 
 class MavenDependencyResolverTests {
 
-    private lateinit var module: ModuleConf
+    private lateinit var module: ManifestToml
     private lateinit var context: TestCliContext
     private lateinit var builder: ModuleBuilder
     private lateinit var resolver: MavenDependencyResolver
@@ -26,9 +27,9 @@ class MavenDependencyResolverTests {
     @BeforeTest
     fun setup() = runTest {
         val sampleRoot = sampleDir / "6-dependencies"
-        val packScript = sampleRoot / PACK_SCRIPT_FILENAME
+        val packScript = sampleRoot / MANIFEST_FILENAME
         context = TestCliContext()
-        module = context.loadKtpackConf(packScript.toString()).module
+        module = context.loadManifestToml(packScript.toString())
         builder = ModuleBuilder(
             module,
             context,

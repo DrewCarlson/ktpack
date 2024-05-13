@@ -39,8 +39,8 @@ class DependenciesCommand : CliktCommand(
         .multiple(DependencyScope.entries)
 
     override fun run(): Unit = runBlocking {
-        val packageConf = context.loadKtpackConf()
-        val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
+        val packageConf = context.loadManifestToml()
+        val moduleBuilder = ModuleBuilder(packageConf, context, workingDirectory)
 
         val tree = moduleBuilder.resolveRootDependencyTree(listOfNotNull(target), scopes)
 

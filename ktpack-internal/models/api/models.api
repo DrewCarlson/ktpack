@@ -1,0 +1,383 @@
+public final class ktpack/configuration/DependencyScope : java/lang/Enum {
+	public static final field API Lktpack/configuration/DependencyScope;
+	public static final field Companion Lktpack/configuration/DependencyScope$Companion;
+	public static final field IMPLEMENTATION Lktpack/configuration/DependencyScope;
+	public static final field TEST Lktpack/configuration/DependencyScope;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lktpack/configuration/DependencyScope;
+	public static fun values ()[Lktpack/configuration/DependencyScope;
+}
+
+public final class ktpack/configuration/DependencyScope$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/configuration/KotlinTarget : java/lang/Enum {
+	public static final field Companion Lktpack/configuration/KotlinTarget$Companion;
+	public static final field JS_BROWSER Lktpack/configuration/KotlinTarget;
+	public static final field JS_NODE Lktpack/configuration/KotlinTarget;
+	public static final field JVM Lktpack/configuration/KotlinTarget;
+	public static final field LINUX_ARM64 Lktpack/configuration/KotlinTarget;
+	public static final field LINUX_X64 Lktpack/configuration/KotlinTarget;
+	public static final field MACOS_ARM64 Lktpack/configuration/KotlinTarget;
+	public static final field MACOS_X64 Lktpack/configuration/KotlinTarget;
+	public static final field MINGW_X64 Lktpack/configuration/KotlinTarget;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getExecutableExt ()Ljava/lang/String;
+	public final fun getLibraryExt ()Ljava/lang/String;
+	public final fun isJs ()Z
+	public final fun isNative ()Z
+	public static fun valueOf (Ljava/lang/String;)Lktpack/configuration/KotlinTarget;
+	public static fun values ()[Lktpack/configuration/KotlinTarget;
+}
+
+public final class ktpack/configuration/KotlinTarget$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public final fun targetsFromAlias (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml {
+	public static final field Companion Lktpack/gradle/catalog/VersionCatalogToml$Companion;
+	public fun <init> (Ljava/util/Map;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;Ljava/util/Map;)Lktpack/gradle/catalog/VersionCatalogToml;
+	public static synthetic fun copy$default (Lktpack/gradle/catalog/VersionCatalogToml;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lktpack/gradle/catalog/VersionCatalogToml;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLibraries ()Ljava/util/Map;
+	public final fun getVersions ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/gradle/catalog/VersionCatalogToml$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/gradle/catalog/VersionCatalogToml;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/gradle/catalog/VersionCatalogToml;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Library {
+	public static final field Companion Lktpack/gradle/catalog/VersionCatalogToml$Library$Companion;
+	public fun <init> (Ljava/lang/String;Lktpack/gradle/catalog/VersionCatalogToml$Version;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lktpack/gradle/catalog/VersionCatalogToml$Version;
+	public final fun copy (Ljava/lang/String;Lktpack/gradle/catalog/VersionCatalogToml$Version;)Lktpack/gradle/catalog/VersionCatalogToml$Library;
+	public static synthetic fun copy$default (Lktpack/gradle/catalog/VersionCatalogToml$Library;Ljava/lang/String;Lktpack/gradle/catalog/VersionCatalogToml$Version;ILjava/lang/Object;)Lktpack/gradle/catalog/VersionCatalogToml$Library;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getModule ()Ljava/lang/String;
+	public final fun getVersion ()Lktpack/gradle/catalog/VersionCatalogToml$Version;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Library$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/gradle/catalog/VersionCatalogToml$Library$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/gradle/catalog/VersionCatalogToml$Library;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/gradle/catalog/VersionCatalogToml$Library;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Library$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Version {
+	public static final field Companion Lktpack/gradle/catalog/VersionCatalogToml$Version$Companion;
+	public fun <init> (Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun copy (Ljava/lang/String;Z)Lktpack/gradle/catalog/VersionCatalogToml$Version;
+	public static synthetic fun copy$default (Lktpack/gradle/catalog/VersionCatalogToml$Version;Ljava/lang/String;ZILjava/lang/Object;)Lktpack/gradle/catalog/VersionCatalogToml$Version;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getStrict ()Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Version$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/gradle/catalog/VersionCatalogToml$Version$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/gradle/catalog/VersionCatalogToml$Version;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/gradle/catalog/VersionCatalogToml$Version;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/gradle/catalog/VersionCatalogToml$Version$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract class ktpack/manifest/DependencyToml {
+	public static final field Companion Lktpack/manifest/DependencyToml$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public abstract fun getKey ()Ljava/lang/String;
+	public abstract fun getPublic ()Z
+	public final fun getScope ()Lktpack/configuration/DependencyScope;
+	public abstract fun getTest ()Z
+	public abstract fun getVersion ()Ljava/lang/String;
+	public final fun withVersion (Ljava/lang/String;)Lktpack/manifest/DependencyToml;
+	public static final synthetic fun write$Self (Lktpack/manifest/DependencyToml;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class ktpack/manifest/DependencyToml$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Git : ktpack/manifest/DependencyToml {
+	public static final field Companion Lktpack/manifest/DependencyToml$Git$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Z
+	public final fun component7 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZ)Lktpack/manifest/DependencyToml$Git;
+	public static synthetic fun copy$default (Lktpack/manifest/DependencyToml$Git;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZILjava/lang/Object;)Lktpack/manifest/DependencyToml$Git;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBranch ()Ljava/lang/String;
+	public final fun getGit ()Ljava/lang/String;
+	public fun getKey ()Ljava/lang/String;
+	public fun getPublic ()Z
+	public final fun getRef ()Ljava/lang/String;
+	public final fun getTag ()Ljava/lang/String;
+	public fun getTest ()Z
+	public fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/DependencyToml$Git$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/DependencyToml$Git$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/DependencyToml$Git;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/DependencyToml$Git;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Git$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Local : ktpack/manifest/DependencyToml {
+	public static final field Companion Lktpack/manifest/DependencyToml$Local$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZ)Lktpack/manifest/DependencyToml$Local;
+	public static synthetic fun copy$default (Lktpack/manifest/DependencyToml$Local;Ljava/lang/String;Ljava/lang/String;ZZILjava/lang/Object;)Lktpack/manifest/DependencyToml$Local;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public fun getPublic ()Z
+	public fun getTest ()Z
+	public fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/DependencyToml$Local$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/DependencyToml$Local$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/DependencyToml$Local;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/DependencyToml$Local;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Local$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Maven : ktpack/manifest/DependencyToml {
+	public static final field Companion Lktpack/manifest/DependencyToml$Maven$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZ)Lktpack/manifest/DependencyToml$Maven;
+	public static synthetic fun copy$default (Lktpack/manifest/DependencyToml$Maven;Ljava/lang/String;Ljava/lang/String;ZZILjava/lang/Object;)Lktpack/manifest/DependencyToml$Maven;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArtifactId ()Ljava/lang/String;
+	public final fun getGroupId ()Ljava/lang/String;
+	public fun getKey ()Ljava/lang/String;
+	public final fun getMaven ()Ljava/lang/String;
+	public fun getPublic ()Z
+	public fun getTest ()Z
+	public fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toMavenString ()Ljava/lang/String;
+	public final fun toPathParts ()Ljava/util/List;
+	public final fun toPathString (Ljava/lang/String;)Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/DependencyToml$Maven$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/DependencyToml$Maven$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/DependencyToml$Maven;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/DependencyToml$Maven;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Maven$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Npm : ktpack/manifest/DependencyToml {
+	public static final field Companion Lktpack/manifest/DependencyToml$Npm$Companion;
+	public fun <init> (Ljava/lang/String;ZLjava/lang/String;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;ZLjava/lang/String;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (Ljava/lang/String;ZLjava/lang/String;ZZ)Lktpack/manifest/DependencyToml$Npm;
+	public static synthetic fun copy$default (Lktpack/manifest/DependencyToml$Npm;Ljava/lang/String;ZLjava/lang/String;ZZILjava/lang/Object;)Lktpack/manifest/DependencyToml$Npm;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Ljava/lang/String;
+	public final fun getNpm ()Ljava/lang/String;
+	public fun getPublic ()Z
+	public fun getTest ()Z
+	public fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isDev ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/DependencyToml$Npm$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/DependencyToml$Npm$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/DependencyToml$Npm;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/DependencyToml$Npm;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/DependencyToml$Npm$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/ManifestToml {
+	public static final field Companion Lktpack/manifest/ManifestToml$Companion;
+	public fun <init> (Lktpack/manifest/ModuleToml;Ljava/util/Map;Ljava/util/Map;)V
+	public synthetic fun <init> (Lktpack/manifest/ModuleToml;Ljava/util/Map;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lktpack/manifest/ModuleToml;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Lktpack/manifest/ModuleToml;Ljava/util/Map;Ljava/util/Map;)Lktpack/manifest/ManifestToml;
+	public static synthetic fun copy$default (Lktpack/manifest/ManifestToml;Lktpack/manifest/ModuleToml;Ljava/util/Map;Ljava/util/Map;ILjava/lang/Object;)Lktpack/manifest/ManifestToml;
+	public final fun dependenciesFor (Ljava/util/List;Ljava/util/List;)Ljava/util/Map;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDependencies ()Ljava/util/Map;
+	public final fun getModule ()Lktpack/manifest/ModuleToml;
+	public final fun getVersions ()Ljava/util/Map;
+	public fun hashCode ()I
+	public final fun resolveDependencyShorthand ()Lktpack/manifest/ManifestToml;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/ManifestToml$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/ManifestToml$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/ManifestToml;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/ManifestToml;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/ManifestToml$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/ModuleToml {
+	public static final field Companion Lktpack/manifest/ModuleToml$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Z
+	public final fun component11 ()Ljava/util/List;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;)Lktpack/manifest/ModuleToml;
+	public static synthetic fun copy$default (Lktpack/manifest/ModuleToml;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lktpack/manifest/ModuleToml;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAuthors ()Ljava/util/List;
+	public final fun getAutobin ()Z
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getHomepage ()Ljava/lang/String;
+	public final fun getKotlinVersion ()Ljava/lang/String;
+	public final fun getLicense ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPublish ()Z
+	public final fun getReadme ()Ljava/lang/String;
+	public final fun getRepository ()Ljava/lang/String;
+	public final fun getTargets ()Ljava/util/List;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class ktpack/manifest/ModuleToml$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lktpack/manifest/ModuleToml$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lktpack/manifest/ModuleToml;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lktpack/manifest/ModuleToml;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/ModuleToml$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class ktpack/manifest/TomlKt {
+	public static final fun getToml ()Lnet/peanuuutz/tomlkt/Toml;
+}
+

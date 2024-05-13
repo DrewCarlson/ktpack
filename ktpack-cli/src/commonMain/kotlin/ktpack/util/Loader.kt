@@ -10,7 +10,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -22,17 +21,17 @@ suspend inline fun <R : Any> Terminal.loadingIndeterminate(
     },
     crossinline execute: suspend () -> R,
 ) = coroutineScope {
-    val startTime = Clock.System.now()
-    var currentDuration = Duration.ZERO
+    val startTime = 0L
+    var currentDuration = 0L
     val animation = textAnimation<Int> { frame ->
-        animate(frames[frame], currentDuration)
+        animate(frames[frame], currentDuration.milliseconds)
     }
     val animateJob = launch {
         var i = 0
         while (i < loadingFrames.size) {
             animation.update(i)
             if (i == loadingFrames.lastIndex) i = 0 else i++
-            currentDuration = Clock.System.now() - startTime
+            currentDuration = startTime + 500L
             delay(500.milliseconds)
         }
     }

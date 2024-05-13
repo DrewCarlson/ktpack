@@ -6,12 +6,14 @@ import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import ktpack.CliContext
 import ktpack.Ktpack
-import ktpack.PACK_SCRIPT_FILENAME
+import ktpack.MANIFEST_FILENAME
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.KtpackConf
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.ModuleToml
+import ktpack.manifest.toml
 import ktpack.util.*
 import okio.*
 import okio.Path.Companion.toPath
@@ -112,9 +114,8 @@ class NewCommand : CliktCommand(
         checkDirDoesNotExist(folder)
         checkMakeDir(folder)
 
-        val packFile = folder / PACK_SCRIPT_FILENAME
-        val conf = generateKtpackConf()
-        packFile.writeUtf8(newPackScriptSource(conf)) { error ->
+        val packFile = folder / MANIFEST_FILENAME
+        packFile.writeUtf8(toml.encodeToString(generateKtpackConf())) { error ->
             context.term.println("${failed("Failed")} package could not be generated for `$packFile`.")
             context.logError(error)
             exitProcess(1)
@@ -171,11 +172,11 @@ class NewCommand : CliktCommand(
         }
     }
 
-    private fun generateKtpackConf() = KtpackConf(
-        module = ModuleConf(
+    private fun generateKtpackConf() = ManifestToml(
+        module = ModuleToml(
             name = flagOrUserPrompt("Project Name", moduleName) { moduleName },
             kotlinVersion = flagOrUserPrompt("Kotlin Version", Ktpack.KOTLIN_VERSION) { kotlinVersion },
-            version = flagOrUserPrompt("Project Version", "1.0.0") { projectVersion },
+            version = flagOrUserPrompt("Project Version", null) { projectVersion },
             publish = flagOrUserPrompt("Publish library", false) { publish },
             license = flagOrUserPrompt("License", "MIT") { license },
             description = flagOrUserPrompt("Description", null) { description },
@@ -243,31 +244,6 @@ fun Path.generateSourceFile(context: CliContext, fileName: String, contents: Str
         context.logError(error)
         exitProcess(1)
     }
-}
-
-private fun newPackScriptSource(
-    ktpackConf: KtpackConf,
-): String = buildString {
-    val targetList = ktpackConf.module.targets.joinToString("\n") { target ->
-        "targets += \"${target.name.lowercase()}\""
-    }
-    val authorsList = ktpackConf.module.authors.joinToString("\n") { "authors += \"${it}\"" }
-    return """|module("${ktpackConf.module.name}") {
-              |  version = "${ktpackConf.module.version}"
-              |  kotlinVersion = "${ktpackConf.module.kotlinVersion}"
-              |  ${ktpackConf.module.description?.let { "description = \"$it\"" }}
-              |  ${authorsList.takeIf(String::isNotBlank)}
-              |  ${targetList.takeIf(String::isNotBlank)}
-              |  ${ktpackConf.module.publish.takeIf { it }?.let { "publish = $it" }}
-              |  ${ktpackConf.module.license?.let { "license = \"$it\"" }}
-              |  ${ktpackConf.module.repository?.let { "repository = \"$it\"" }}
-              |
-              |  dependencies {
-              |
-              |  }
-              |}
-              |
-    """.trimMargin().replace("\n  null", "")
 }
 
 private val NEW_BIN_SOURCE =

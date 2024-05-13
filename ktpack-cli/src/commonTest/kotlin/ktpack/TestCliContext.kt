@@ -3,19 +3,19 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
 import io.ktor.client.plugins.logging.*
+import kotlinx.serialization.decodeFromString
 import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
-import ktpack.configuration.KtpackConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
-import ktpack.util.GitCli
-import ktpack.util.KTPACK_ROOT
-import ktpack.util.SystemFs
+import ktpack.util.*
+import okio.Path.Companion.toPath
 
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
     override val debug: Boolean = true
-    override val rebuild: Boolean = true
     override val http: HttpClient = HttpClient {
         install(Logging) {
             logger = Logger.SIMPLE
@@ -42,7 +42,18 @@ class TestCliContext : CliContext {
         config = config.run(body)
     }
 
-    override suspend fun loadKtpackConf(filePath: String): KtpackConf {
-        return ktpack.script.loadKtpackConf(this, filePath, rebuild)
+    override fun loadManifestToml(filePath: String): ManifestToml {
+        val path = filePath.toPath().let { path ->
+            if (path.isRelative) {
+                workingDirectory.resolve(path, normalize = true)
+            } else {
+                path
+            }
+        }
+        check(path.exists()) {
+            "No $MANIFEST_FILENAME file found in '${path.parent}'"
+        }
+        return toml.decodeFromString<ManifestToml>(path.readUtf8())
+            .resolveDependencyShorthand()
     }
 }

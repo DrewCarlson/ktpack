@@ -11,14 +11,17 @@ import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktpack.*
 import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
-import ktpack.configuration.KtpackConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
+import okio.Path.Companion.toPath
 
 class KtpackCommand(
     override val term: Terminal,
@@ -51,10 +54,6 @@ class KtpackCommand(
 
     override val gitCli: GitCli = GitCli()
 
-    override val rebuild: Boolean by option()
-        .help("Force the pack script to be rebuilt, even if it has not changed.")
-        .flag()
-
     override val stacktrace: Boolean by option("--stacktrace", "-s")
         .help("Print the stacktrace in the case of an unhandled exception.")
         .flag()
@@ -74,8 +73,17 @@ class KtpackCommand(
         configPath.writeUtf8(encodedConfig, ::logError)
     }
 
-    override suspend fun loadKtpackConf(filePath: String): KtpackConf {
-        return ktpack.script.loadKtpackConf(this, filePath, rebuild)
+    override fun loadManifestToml(filePath: String): ManifestToml {
+        val path = filePath.toPath().let { path ->
+            if (path.isRelative) {
+                workingDirectory.resolve(path, normalize = true)
+            } else {
+                path
+            }
+        }
+        check(path.exists()) { "No $MANIFEST_FILENAME file found in '${path.parent}'" }
+        return toml.decodeFromString<ManifestToml>(path.readUtf8())
+            .resolveDependencyShorthand()
     }
 
     override val http: HttpClient by lazy {

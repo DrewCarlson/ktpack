@@ -17,7 +17,7 @@ import ktpack.*
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ModuleToml
 import ktpack.util.*
 import mongoose.*
 import okio.Path.Companion.DIRECTORY_SEPARATOR
@@ -47,17 +47,17 @@ class RunCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val packageConf = context.loadKtpackConf()
-        val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
-        val targetBin = targetBin ?: packageConf.module.name
+        val manifest = context.loadManifestToml()
+        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
+        val targetBin = targetBin ?: manifest.module.name
 
         logger.i {
-            val name = packageConf.module.name
-            val version = packageConf.module.version
+            val name = manifest.module.name
+            val version = manifest.module.version
             val modulePath = moduleBuilder.modulePath
             "${success("Compiling")} $name v$version ($modulePath)"
         }
-        val target = packageConf.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
+        val target = manifest.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         val result = terminal.loadingIndeterminate {
             moduleBuilder.buildBin(releaseMode, targetBin, target)
         }
@@ -76,7 +76,7 @@ class RunCommand : CliktCommand(
                 logger.i("${success("Running")} '${result.artifactPath}'")
                 try {
                     val (exitCode, duration) = measureSeconds {
-                        runBuildArtifact(packageConf.module, target, result.artifactPath, result.dependencyArtifacts)
+                        runBuildArtifact(manifest.module, target, result.artifactPath, result.dependencyArtifacts)
                     }
                     val durationString = bold(white(duration.toString()))
                     if (exitCode == 0) {
@@ -106,7 +106,7 @@ class RunCommand : CliktCommand(
     }
 
     private suspend fun runBuildArtifact(
-        module: ModuleConf,
+        module: ModuleToml,
         target: KotlinTarget,
         artifactPath: String,
         dependencyArtifacts: List<String>,
@@ -160,7 +160,7 @@ class RunCommand : CliktCommand(
         }
     }
 
-    private suspend fun runJsBrowserArtifact(module: ModuleConf, artifactPath: String) {
+    private suspend fun runJsBrowserArtifact(module: ModuleToml, artifactPath: String) {
         runWebServer(
             httpPort,
             onServerStarted = {

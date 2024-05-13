@@ -20,8 +20,6 @@ val buildTestConstants by tasks.creating {
     }
 }
 
-evaluationDependsOn(":ktpack-script")
-
 kotlin {
     configure(targets) {
         compilations.named("main") {

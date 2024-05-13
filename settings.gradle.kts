@@ -3,7 +3,6 @@ rootProject.name = "ktpack"
 include(
     ":ktpack-cli",
     ":ktpack-cli-tests",
-    ":ktpack-script",
     ":ktpack-internal:core",
     ":ktpack-internal:compression",
     ":ktpack-internal:dependency-resolver",

@@ -1,11 +1,13 @@
-package ktpack.configuration
+package ktpack.manifest
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import ktpack.configuration.KotlinTarget
 
 @Serializable
-data class ModuleConf(
+data class ModuleToml(
     val name: String,
-    val version: String,
+    val version: String? = null,
     val authors: List<String> = emptyList(),
     val description: String? = null,
     val readme: String? = null,
@@ -15,6 +17,6 @@ data class ModuleConf(
     val publish: Boolean = false,
     val autobin: Boolean = true,
     val targets: List<KotlinTarget> = emptyList(),
+    @SerialName("kotlin_version")
     val kotlinVersion: String? = null,
-    val dependencies: List<DependencyContainer> = emptyList(),
 )

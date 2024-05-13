@@ -3,23 +3,22 @@ package ktpack.compilation.dependencies.models
 import io.github.z4kn4fein.semver.Version
 import io.github.z4kn4fein.semver.VersionFormatException
 import kotlinx.serialization.Serializable
-import ktpack.configuration.DependencyConf
-import ktpack.configuration.ExcludeDependency
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.DependencyToml
+import ktpack.manifest.ManifestToml
 
 @Serializable
 data class DependencyNode(
-    val localModule: ModuleConf?,
-    val dependencyConf: DependencyConf,
+    val localManifest: ManifestToml?,
+    val dependencyConf: DependencyToml,
     val children: List<DependencyNode>,
     val artifacts: List<String>,
     val exclude: Boolean = false,
 ) {
     override fun toString(): String = when (dependencyConf) {
-        is DependencyConf.LocalPathDependency -> "[local] module=${localModule?.name} path=${dependencyConf.path}"
-        is DependencyConf.GitDependency -> "[git] module=${localModule?.name} url=${dependencyConf.gitUrl}"
-        is DependencyConf.MavenDependency -> "[maven] ${dependencyConf.toMavenString()}"
-        is DependencyConf.NpmDependency -> "[npm] name=${dependencyConf.name} dev=${dependencyConf.isDev}"
+        is DependencyToml.Local -> "[local] module=${localManifest?.module?.name} path=${dependencyConf.path}"
+        is DependencyToml.Git -> "[git] module=${localManifest?.module?.name} url=${dependencyConf.git}"
+        is DependencyToml.Maven -> "[maven] ${dependencyConf.toMavenString()}"
+        is DependencyToml.Npm -> "[npm] name=${dependencyConf.npm} dev=${dependencyConf.isDev}"
     }
 }
 
@@ -79,7 +78,7 @@ private fun DependencyNode.applyRules(override: (node: DependencyNode) -> Depend
     )
 }
 
-private fun List<ExcludeDependency>.check(dependencyConf: DependencyConf): Boolean {
+/*private fun List<ExcludeDependency>.check(dependencyConf: DependencyConf): Boolean {
     val dependency = dependencyConf
     if (dependency !is DependencyConf.MavenDependency) {
         println("Excludes are implemented only for Maven dependencies.")
@@ -94,7 +93,7 @@ private fun List<ExcludeDependency>.check(dependencyConf: DependencyConf): Boole
             "${exclude.path}:${exclude.version}" == mavenStringNoVersion
         }
     }
-}
+}*/
 
 private fun collectDependencies(
     node: DependencyNode,

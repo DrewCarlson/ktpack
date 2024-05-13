@@ -3,13 +3,13 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.HttpClient
 import ktpack.compilation.tools.DokkaCli
-import ktpack.configuration.KtpackConf
+import ktpack.manifest.ManifestToml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.GitCli
 
-const val PACK_SCRIPT_FILENAME = "pack.kts"
+const val MANIFEST_FILENAME = "pack.toml"
 
 interface CliContext {
 
@@ -24,10 +24,6 @@ interface CliContext {
      */
     val debug: Boolean
 
-    /**
-     * When true, all pack.kts scripts will be rebuilt before use.
-     */
-    val rebuild: Boolean
     val http: HttpClient
     val term: Terminal
     val config: KtpackUserConfig
@@ -39,10 +35,5 @@ interface CliContext {
 
     fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig)
 
-    /**
-     * Load the [KtpackConf] for the pack.kts file at [filePath].
-     * If [filePath] is a relative, it will be resolved to the current
-     * working directory.
-     */
-    suspend fun loadKtpackConf(filePath: String = PACK_SCRIPT_FILENAME): KtpackConf
+    fun loadManifestToml(filePath: String = MANIFEST_FILENAME): ManifestToml
 }

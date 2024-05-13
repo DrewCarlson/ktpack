@@ -1,12 +1,11 @@
 [versions]
-kotlin = { strictly = "2.0.0-RC3" }
+kotlin = { strictly = "1.9.24" }
 dokka = "1.9.20"
 coroutines = "1.8.1"
 serialization = "1.6.3"
 ktorio = "2.3.11"
 binary_compat = "0.15.0-Beta.2"
 okio = "3.9.0"
-ktoml = "0.5.1"
 spotless = "6.25.0"
 ktlint = "1.2.1"
 
@@ -46,8 +45,6 @@ ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.3" }
-ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
-ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 semver = { module = "io.github.z4kn4fein:semver", version = "1.4.2" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
@@ -56,3 +53,4 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version 
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.16.0" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
 ivy = { module = "org.apache.ivy:ivy", version = "2.5.2" }
+tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.3.7" }

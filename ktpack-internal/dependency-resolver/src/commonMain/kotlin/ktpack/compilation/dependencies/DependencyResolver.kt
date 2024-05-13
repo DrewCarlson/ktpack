@@ -2,10 +2,14 @@ package ktpack.compilation.dependencies
 
 import ktpack.compilation.dependencies.models.DependencyNode
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.ModuleToml
 
 abstract class DependencyResolver {
-    protected abstract val module: ModuleConf
+    protected abstract val manifest: ManifestToml
+
+    val module: ModuleToml
+        get() = manifest.module
 
     abstract fun canResolve(node: DependencyNode): Boolean
 

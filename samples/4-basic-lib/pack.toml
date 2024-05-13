@@ -1,0 +1,5 @@
+[module]
+name = "hello_world"
+version = "0.0.1"
+kotlin_version = "1.9.24"
+description = "A sample that produces a library."

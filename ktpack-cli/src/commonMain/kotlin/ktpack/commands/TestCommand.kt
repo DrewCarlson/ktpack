@@ -23,7 +23,7 @@ import ktpack.CliContext
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.KtpackConf
+import ktpack.manifest.ManifestToml
 import ktpack.util.*
 
 class TestCommand : CliktCommand(
@@ -39,20 +39,20 @@ class TestCommand : CliktCommand(
         .multiple(listOf(PlatformUtils.getHostTarget()))
 
     override fun run(): Unit = runBlocking {
-        val packageConf = context.loadKtpackConf()
-        val moduleBuilder = ModuleBuilder(packageConf.module, context, workingDirectory)
+        val manifest = context.loadManifestToml()
+        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
 
         userTargets.forEach { target ->
-            buildAndRunTests(packageConf, moduleBuilder, target)
+            buildAndRunTests(manifest, moduleBuilder, target)
         }
     }
 
     private suspend fun buildAndRunTests(
-        packageConf: KtpackConf,
+        manifest: ManifestToml,
         moduleBuilder: ModuleBuilder,
         target: KotlinTarget,
     ) {
-        val name = packageConf.module.name
+        val name = manifest.module.name
         val modulePath = moduleBuilder.modulePath
         logger.i("${success("Compiling")} ${bold(target.name)} tests for $name ($modulePath)")
         val result = terminal.loadingIndeterminate {

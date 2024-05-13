@@ -122,7 +122,7 @@ data class KotlincInstalls(
             else -> error("Unsupported Host ${Platform.osFamily} ${Platform.cpuArchitecture}")
         }.run(::append)
         append('-')
-        if (major == 1 && minor >= 6) {
+        if (major > 1 || (major == 1 && minor >= 6)) {
             append(ARCH)
             append('-')
         }

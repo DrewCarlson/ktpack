@@ -41,15 +41,15 @@ class BuildCommand : CliktCommand(
         .flag()
 
     override fun run() = runBlocking {
-        val packageConf = context.loadKtpackConf()
-        val module = packageConf.module
-        val moduleBuilder = ModuleBuilder(module, context, workingDirectory)
+        val manifest = context.loadManifestToml()
+        val module = manifest.module
+        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
 
         logger.i {
             "{} {} v{} ({})".format(
                 success("Compiling"),
-                packageConf.module.name,
-                packageConf.module.version,
+                module.name,
+                module.version,
                 moduleBuilder.modulePath,
             )
         }

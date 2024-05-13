@@ -3,7 +3,8 @@ package ktpack.compilation
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder.BuildType
 import ktpack.configuration.KotlinTarget
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ManifestToml
+import ktpack.manifest.ModuleToml
 import ktpack.sampleDir
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -65,7 +66,7 @@ class ModuleBuilderTests {
         body: ModuleBuilder.CollectedSource.() -> Unit,
     ) {
         builder = ModuleBuilder(
-            ModuleConf("test", "0.0.0"),
+            ManifestToml(ModuleToml("test", "0.0.0")),
             TestCliContext(),
             modulePath = sampleDir / sample,
         )

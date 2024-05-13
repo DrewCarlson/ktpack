@@ -15,7 +15,7 @@ The command generated two files:
 $ cd hello_world
 $ tree .
 .
-├── pack.kts
+├── pack.toml
 └── src
     └── common
         └── kotlin
@@ -25,16 +25,16 @@ $ tree .
 ```
 
 This is a basic, yet fully functional Ktpack project.
-The project is described in `pack.kts`:
+The project is described in `pack.toml`:
 
-```kotlin
-module("hello_world") {
-    version = "1.0.0"
-    kotlinVersion = "2.0.0-RC3"
-}
+```toml
+[module]
+name = "hello_world"
+version = "1.0.0"
+kotlinVersion = "1.9.24"
 ```
 
-The [Ktpack Script]() contains all the metadata required to operate a Ktpack project.
+The `pack.toml` [Manifest]() contains all the metadata required to operate a Ktpack project.
 In `src/common/kotlin/main.kt` we have this program:
 
 ```kotlin

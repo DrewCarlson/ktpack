@@ -17,7 +17,7 @@ import ktpack.CliContext
 import ktpack.compilation.tools.models.DokkaConfiguration
 import ktpack.compilation.tools.models.SourceSet
 import ktpack.compilation.tools.models.SourceSetID
-import ktpack.configuration.ModuleConf
+import ktpack.manifest.ModuleToml
 import ktpack.util.*
 import mongoose.runWebServer
 import okio.Path.Companion.toPath
@@ -39,7 +39,7 @@ class DocCommand : CliktCommand(
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val moduleConf = context.loadKtpackConf().module
+        val moduleConf = context.loadManifestToml().module
         val jdk = checkNotNull(context.jdkInstalls.getDefaultJdk())
         if (context.dokka.getDefaultCli() == null) {
             if (!context.dokka.download("1.9.10")) {
@@ -79,7 +79,7 @@ class DocCommand : CliktCommand(
         }
     }
 
-    private fun createSourceSets(moduleConf: ModuleConf): List<SourceSet> {
+    private fun createSourceSets(moduleConf: ModuleToml): List<SourceSet> {
         return listOf(
             SourceSet(
                 displayName = "common",

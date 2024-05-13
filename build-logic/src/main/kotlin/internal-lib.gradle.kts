@@ -61,7 +61,6 @@ kotlin {
             }
         }
 
-
         if (hostOs.isWindows) {
             named("windowsX64Main") {
                 dependencies {

@@ -49,10 +49,9 @@ val buildRuntimeBundle by tasks.creating {
     val debug = (version as String).endsWith("-SNAPSHOT")
     val bundledFile = file("${mainGenSrcPath}/manifest.kt")
     onlyIf { !bundledFile.exists() || !debug }
-    dependsOn(":ktpack-script:shadowJar")
     doFirst {
         file(mainGenSrcPath).mkdirs()
-        val jar = rootProject.file("ktpack-script/build/libs/ktpack-script.jar")
+        /*val jar = rootProject.file("ktpack-script/build/libs/ktpack-script.jar")
         val pathValue = if (debug) {
             """"${jar.absolutePath.replace("\\", "\\\\")}""""
         } else {
@@ -66,11 +65,9 @@ val buildRuntimeBundle by tasks.creating {
                |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/v${version}/ktpack-script.jar"
                |val ktpackScriptJarPath = pathFrom($pathValue)
                |""".trimMargin(),
-        )
+        )*/
     }
 }
-
-evaluationDependsOn(":ktpack-script")
 
 kotlin {
     configure(targets) {
@@ -106,8 +103,8 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.serialization)
-                implementation(libs.kotlinx.datetime)
-                implementation(libs.ktoml.core)
+                //implementation(libs.kotlinx.datetime)
+                api(libs.tomlkt)
             }
         }
 
