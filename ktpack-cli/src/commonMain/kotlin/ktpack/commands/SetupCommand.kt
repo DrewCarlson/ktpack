@@ -2,11 +2,15 @@ package ktpack.commands
 
 import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.core.theme
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.mordant.terminal.prompt
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.jdk.JdkInstallDetails
 import ktpack.toolchain.kotlin.KotlinInstallDetails
@@ -15,12 +19,13 @@ import ktpack.toolchain.nodejs.NodejsInstallDetails
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class SetupCommand : CliktCommand(
-    name = "setup",
-    help = "Setup your environment to build and run packages.",
-) {
+class SetupCommand : CliktCommand(name = "setup") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Setup your environment to build and run packages.")
+    }
+
     private val logger = Logger.withTag(SetupCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
@@ -55,7 +60,7 @@ class SetupCommand : CliktCommand(
 
     private suspend fun setupNodejs(): Boolean {
         logger.i("${info("Setup")} Checking for Nodejs")
-        val root = context.config.nodejs.rootPath.toPath()
+        val root = Path(context.config.nodejs.rootPath)
         val version = context.config.nodejs.version
         val existingNodejs: NodejsInstallDetails? = context.nodejsInstalls.getDefaultNodejs()
 
@@ -99,7 +104,7 @@ class SetupCommand : CliktCommand(
 
     private suspend fun setupKotlin(): Boolean {
         logger.i("${info("Setup")} Checking for Kotlin compilers")
-        val root = context.config.kotlin.rootPath.toPath()
+        val root = Path(context.config.kotlin.rootPath)
         val version = context.config.kotlin.version
         val existingKotlinJvm: KotlinInstallDetails? =
             context.kotlinInstalls.getDefaultKotlin(KotlincInstalls.CompilerType.JVM)
@@ -205,7 +210,7 @@ class SetupCommand : CliktCommand(
                 logger.i("${info("Setup")} Skipping JDK installation.")
                 return false
             } else {
-                val root = context.config.jdk.rootPath.toPath()
+                val root = Path(context.config.jdk.rootPath)
                 val result = context.jdkInstalls.findAndInstallJdk(root, version, distribution, progressLog)
                 when (result) {
                     is ToolchainInstallResult.Success -> {

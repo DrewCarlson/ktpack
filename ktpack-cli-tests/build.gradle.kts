@@ -33,13 +33,13 @@ val installTestConfig by tasks.creating {
             configFile.writeText(
                 """|package ktpack
                    |
-                   |import okio.*
+                   |import kotlinx.io.files.Path
                    |import ktpack.util.*
                    |
                    |val KTPACK_BIN = "$ktpackBin"
                    |
                    |fun getSample(vararg names: String): Path {
-                   |    return pathFrom("${rootProject.file("samples").absolutePath}", *names)
+                   |    return Path("${rootProject.file("samples").absolutePath}", *names)
                    |}
                    |
                    |fun getSamplePath(name: String): String = getSample(name).toString()
@@ -128,7 +128,6 @@ kotlin {
                 implementation(project(":ktpack-cli"))
                 implementation(project(":ktpack-internal:core"))
                 implementation(project(":ktpack-internal:models"))
-                implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)
                 implementation(libs.clikt)

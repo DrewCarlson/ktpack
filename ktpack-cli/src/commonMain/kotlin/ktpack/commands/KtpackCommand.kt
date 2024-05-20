@@ -11,6 +11,8 @@ import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktpack.*
@@ -21,18 +23,18 @@ import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
 class KtpackCommand(
     override val term: Terminal,
-) : CliktCommand(
-    help = "A simple tool for building and publishing Kotlin software.",
-),
-    CliContext {
+) : CliktCommand(), CliContext {
+
+    override fun help(context: Context): String {
+        return context.theme.info("A simple tool for building and publishing Kotlin software.")
+    }
 
     private val logger = Logger.withTag(KtpackCommand::class.simpleName.orEmpty())
 
-    private val configPath = KTPACK_ROOT / "config.json"
+    private val configPath = Path(KTPACK_ROOT, "config.json")
     private lateinit var _config: KtpackUserConfig
 
     override val config: KtpackUserConfig
@@ -46,8 +48,7 @@ class KtpackCommand(
 
     override val dokka: DokkaCli by lazy {
         DokkaCli(
-            dokkaCliFolder = KTPACK_ROOT / "dokka",
-            fs = SystemFs,
+            dokkaCliFolder = Path(KTPACK_ROOT, "dokka"),
             http = http,
         )
     }
@@ -74,11 +75,11 @@ class KtpackCommand(
     }
 
     override fun loadManifestToml(filePath: String): ManifestToml {
-        val path = filePath.toPath().let { path ->
-            if (path.isRelative) {
-                workingDirectory.resolve(path, normalize = true)
-            } else {
+        val path = Path(filePath).let { path ->
+            if (path.isAbsolute) {
                 path
+            } else {
+                SystemFileSystem.resolve(Path(workingDirectory, path.toString()))
             }
         }
         check(path.exists()) { "No $MANIFEST_FILENAME file found in '${path.parent}'" }

@@ -1,13 +1,13 @@
 package ktpack.compilation.dependencies
 
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.files.Path
 import ktpack.MANIFEST_FILENAME
 import ktpack.TestCliContext
 import ktpack.compilation.ModuleBuilder
 import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.KotlinTarget
 import ktpack.manifest.ManifestToml
-import ktpack.manifest.ModuleToml
 import ktpack.sampleDir
 import okio.Path.Companion.DIRECTORY_SEPARATOR
 import kotlin.test.BeforeTest
@@ -26,8 +26,8 @@ class MavenDependencyResolverTests {
 
     @BeforeTest
     fun setup() = runTest {
-        val sampleRoot = sampleDir / "6-dependencies"
-        val packScript = sampleRoot / MANIFEST_FILENAME
+        val sampleRoot = Path(sampleDir, "6-dependencies")
+        val packScript = Path(sampleRoot, MANIFEST_FILENAME)
         context = TestCliContext()
         module = context.loadManifestToml(packScript.toString())
         builder = ModuleBuilder(

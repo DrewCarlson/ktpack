@@ -15,9 +15,9 @@
 ---
 
 <p align="center">
-<a href="https://drewcarlson.github.io/ktpack/installation"><b>Installation</b></a> -
-<a href="https://drewcarlson.github.io/ktpack/getting-started/"><b>Getting Started</b></a> -
-<a href="https://drewcarlson.github.io/ktpack/"><b>Documentation</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/latest/installation"><b>Installation</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/latest/getting-started/"><b>Getting Started</b></a> -
+<a href="https://drewcarlson.github.io/ktpack/latest/"><b>Documentation</b></a> -
 <a href="https://github.com/DrewCarlson/ktpack/releases/"><b>Releases</b></a>
 </p>
 
@@ -28,7 +28,7 @@
 Ktpack is a build tool for [Kotlin Multiplatform](https://kotl.in/multiplatform) projects
 providing a comprehensive set of features with one configuration file:
 
-- Multiple binary application outputs and library modules
+- Single project configuration file
 - Write tests and benchmarks inside or next to main source files
 - Automatic Kotlin, JDK, and Nodejs toolchain management
 - Consume Maven dependencies or [npm](https://www.npmjs.com/) dependencies

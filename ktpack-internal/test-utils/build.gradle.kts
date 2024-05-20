@@ -11,10 +11,10 @@ val buildTestConstants by tasks.creating {
         file(mainGenSrcPath).mkdirs()
         constantsFile.writeText(
             """|package ktpack
-               |import okio.Path.Companion.toPath
+               |import kotlinx.io.files.Path
                |
-               |val buildDir = "${rootProject.buildDir.absolutePath.replace("\\", "\\\\")}".toPath()
-               |val sampleDir = "${rootProject.file("samples").absolutePath.replace("\\", "\\\\")}".toPath()
+               |val buildDir = Path("${rootProject.buildDir.absolutePath.replace("\\", "\\\\")}")
+               |val sampleDir = Path("${rootProject.file("samples").absolutePath.replace("\\", "\\\\")}")
                |""".trimMargin()
         )
     }
@@ -35,7 +35,7 @@ kotlin {
             dependencies {
                 implementation(project(":ktpack-internal:models"))
                 implementation(libs.coroutines.core)
-                implementation(libs.okio)
+                implementation(libs.kotlin.io)
             }
         }
 

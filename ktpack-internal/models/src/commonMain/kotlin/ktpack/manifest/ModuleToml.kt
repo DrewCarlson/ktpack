@@ -19,4 +19,5 @@ data class ModuleToml(
     val targets: List<KotlinTarget> = emptyList(),
     @SerialName("kotlin_version")
     val kotlinVersion: String? = null,
+    val output: OutputToml? = null,
 )

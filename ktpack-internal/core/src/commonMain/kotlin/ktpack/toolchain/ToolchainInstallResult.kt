@@ -1,7 +1,7 @@
 package ktpack.toolchain
 
 import io.ktor.client.statement.*
-import okio.Path
+import kotlinx.io.files.Path
 
 
 sealed class ToolchainInstallResult<out I : InstallDetails> {

@@ -5,14 +5,11 @@ plugins {
 }
 
 kotlin {
-    jvm()
-
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.serialization.core)
                 implementation(libs.tomlkt)
-                implementation(libs.ktfio)
             }
         }
     }

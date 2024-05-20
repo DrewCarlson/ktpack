@@ -1,10 +1,11 @@
-package ktpack.manifest
+package ktpack.manifest.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import ktpack.manifest.DependencyToml
 
 internal class DependencyTomlSerializer : KSerializer<DependencyToml> {
     override val descriptor: SerialDescriptor = DependencyToml.serializer().descriptor

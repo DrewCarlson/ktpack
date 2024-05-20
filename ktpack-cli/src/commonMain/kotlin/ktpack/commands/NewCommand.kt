@@ -5,7 +5,9 @@ import com.github.ajalt.clikt.parameters.arguments.*
 import com.github.ajalt.clikt.parameters.groups.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
+import com.github.ajalt.mordant.terminal.prompt
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import kotlinx.serialization.encodeToString
 import ktpack.CliContext
 import ktpack.Ktpack
@@ -15,29 +17,28 @@ import ktpack.manifest.ManifestToml
 import ktpack.manifest.ModuleToml
 import ktpack.manifest.toml
 import ktpack.util.*
-import okio.*
-import okio.Path.Companion.toPath
 
 private enum class Template { BIN, LIB }
 
 private const val DEFAULT_LICENSE = "MIT"
 private const val EMPTY = "(empty)"
 
-class NewCommand : CliktCommand(
-    name = "new",
-    help = "Create a new package.",
-) {
+class NewCommand : CliktCommand(name = "new") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Create a new package.")
+    }
 
     private val moduleNameRegex = """^[A-Za-z0-9._-]+$""".toRegex()
 
     private val folder by argument("module_name")
         .help("The folder name to use for the new project.")
         .convert { folder ->
-            val folderPath = folder.toPath()
+            val folderPath = Path(folder)
             if (folderPath.isAbsolute) {
                 folderPath
             } else {
-                workingDirectory / folderPath
+                Path(workingDirectory, folderPath.toString())
             }
         }
         .validate { require(moduleNameRegex.matches(it.name)) }
@@ -114,15 +115,15 @@ class NewCommand : CliktCommand(
         checkDirDoesNotExist(folder)
         checkMakeDir(folder)
 
-        val packFile = folder / MANIFEST_FILENAME
+        val packFile = Path(folder, MANIFEST_FILENAME)
         packFile.writeUtf8(toml.encodeToString(generateKtpackConf())) { error ->
             context.term.println("${failed("Failed")} package could not be generated for `$packFile`.")
             context.logError(error)
             exitProcess(1)
         }
 
-        val srcDir = folder / "src"
-        val kotlinCommonDir = (srcDir / "common" / "kotlin").mkdirs()
+        val srcDir = Path(folder, "src")
+        val kotlinCommonDir = Path(srcDir, "common", "kotlin").mkdirs()
         if (!kotlinCommonDir.exists()) {
             context.term.println("${failed("Failed")} source folder could not be created for `$srcDir`.")
             exitProcess(1)
@@ -137,7 +138,7 @@ class NewCommand : CliktCommand(
             if (vcs == VcsType.GIT && context.gitCli.hasGit()) {
                 context.gitCli.initRepository(folder.toString())
                 context.term.println("${info("Initialized")} ${VcsType.GIT} repository")
-                val gitignorePath = folder / ".gitignore"
+                val gitignorePath = Path(folder, ".gitignore")
                 gitignorePath.writeUtf8(NEW_GITIGNORE_SOURCE) { error ->
                     context.term.println("${failed("Failed")} Could not write .gitignore")
                     context.logError(error)
@@ -238,7 +239,7 @@ class NewCommand : CliktCommand(
 }
 
 fun Path.generateSourceFile(context: CliContext, fileName: String, contents: String) {
-    val sourceFile = this / fileName
+    val sourceFile = Path(this, fileName)
     sourceFile.writeUtf8(contents) { error ->
         context.term.println("${failed("Failed")} source could not be created at `$sourceFile`.")
         context.logError(error)

@@ -1,5 +1,6 @@
 package ktpack.toolchain.nodejs
 
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
 import ktpack.toolchain.ToolchainInstaller
@@ -9,8 +10,6 @@ import ktpack.util.PlatformUtils
 import ktpack.util.exists
 import ktpack.util.isDirectory
 import ktpack.util.list
-import okio.Path
-import okio.Path.Companion.toPath
 
 class NodejsInstalls(
     private val context: CliContext
@@ -18,7 +17,7 @@ class NodejsInstalls(
 
     fun getDefaultNodejs(): NodejsInstallDetails? {
         return findNodejs(
-            context.config.nodejs.rootPath.toPath(),
+            Path(context.config.nodejs.rootPath),
             context.config.nodejs.version
         )
     }
@@ -50,7 +49,7 @@ class NodejsInstalls(
         }
 
         val newNodejsName = tempExtractPath.name.split('-')[1]
-        val newNodejsFolder = rootPath / newNodejsName
+        val newNodejsFolder = Path(rootPath, newNodejsName)
         return moveExtractedFiles(
             installDetails = createInstallDetails(newNodejsFolder),
             extractPath = tempExtractPath,
@@ -64,18 +63,18 @@ class NodejsInstalls(
         } else {
             "node"
         }
-        return (context.config.nodejs.rootPath.toPath() / "v$version" / exe)
+        return Path(context.config.nodejs.rootPath, "v$version", exe)
             .takeIf(Path::exists)
     }
 
     fun findNodejs(version: String): NodejsInstallDetails? {
-        return (context.config.nodejs.rootPath.toPath() / "v$version")
+        return Path(context.config.nodejs.rootPath, "v$version")
             .takeIf(Path::exists)
             ?.let(::createInstallDetails)
     }
 
     fun findNodejs(nodejsRoot: Path, version: String): NodejsInstallDetails? {
-        return (nodejsRoot / "v$version")
+        return Path(nodejsRoot, "v$version")
             .takeIf(Path::exists)
             ?.let(::createInstallDetails)
     }

@@ -1,15 +1,14 @@
 package ktpack.util
 
 import kotlinx.cinterop.*
-import okio.FileSystem
-import okio.Path
-import okio.Path.Companion.toPath
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import platform.posix.*
 import platform.posix.NULL
 import platform.windows.*
 
-actual fun getHomePath(): String? {
-    return getenv("userprofile")?.toKString() ?: memScoped {
+actual fun getHomePath(): Path? {
+    val result =  getenv("userprofile")?.toKString() ?: memScoped {
         val path = allocArray<WCHARVar>(MAX_PATH)
         if (SHGetFolderPathW(null, CSIDL_PROFILE, NULL, 0u, path) == 0) {
             path.toKString()
@@ -17,23 +16,6 @@ actual fun getHomePath(): String? {
             null
         }
     }
+    return result?.run(::Path)?.run(SystemFileSystem::resolve)
 }
 
-actual val workingDirectory: Path by lazy {
-    memScoped {
-        allocArray<ByteVar>(MAX_PATH).apply { getcwd(this, MAX_PATH) }
-            .toKString()
-            .toPath()
-    }
-}
-
-actual val TEMP_PATH: Path by lazy {
-    val tempPath = checkNotNull(getenv("temp")).toKStringFromUtf8().toPath()
-    if (!FileSystem.SYSTEM.exists(tempPath)) {
-        FileSystem.SYSTEM.createDirectories(tempPath, mustCreate = false)
-        check(FileSystem.SYSTEM.exists(tempPath)) {
-            "Failed to create temp directory: $tempPath"
-        }
-    }
-    tempPath
-}

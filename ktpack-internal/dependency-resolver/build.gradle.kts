@@ -16,8 +16,7 @@ kotlin {
                 implementation(libs.serialization.json)
                 //implementation(libs.kotlinx.datetime)
                 implementation(libs.ktor.client.core)
-                implementation(libs.okio)
-                implementation(libs.ktfio)
+                implementation(libs.kotlin.io)
                 implementation(libs.semver)
             }
         }

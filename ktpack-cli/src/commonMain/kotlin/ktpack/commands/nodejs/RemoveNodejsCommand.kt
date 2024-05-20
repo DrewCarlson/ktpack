@@ -5,14 +5,17 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.mordant.terminal.prompt
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class RemoveNodejsCommand : CliktCommand(
-    name = "remove",
-    help = "Remove an existing Nodejs version.",
-) {
+class RemoveNodejsCommand : CliktCommand(name = "remove") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Remove an existing Nodejs version.")
+    }
+
     private val logger = Logger.withTag(RemoveNodejsCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
@@ -21,8 +24,8 @@ class RemoveNodejsCommand : CliktCommand(
 
     private val path by option()
         .help("The folder path where Nodejs versions are stored.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.nodejs.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.nodejs.rootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }
@@ -57,7 +60,7 @@ class RemoveNodejsCommand : CliktCommand(
 
         // Attempt to delete kotlinc folder
         installs.forEach { install ->
-            if (install.path.toPath().deleteRecursively()) {
+            if (Path(install.path).deleteRecursively()) {
                 context.term.println("${success("Success")} Nodejs ${info(install.version)} was removed")
             } else {
                 context.term.println("${failed("Failed")} Nodejs ${info(install.version)} was not removed")

@@ -14,7 +14,6 @@ include(
     ":ktpack-internal:mongoose",
     ":ktpack-internal:platform",
     ":ktpack-internal:test-utils",
-    ":libs:mongoose",
     ":libs:zip",
 )
 

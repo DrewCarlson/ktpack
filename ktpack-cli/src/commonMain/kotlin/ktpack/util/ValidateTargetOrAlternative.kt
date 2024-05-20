@@ -2,7 +2,7 @@ package ktpack.util
 
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
-import ktpack.manifest.ModuleToml
+import ktpack.manifest.OutputToml
 
 /**
  * Given a non-null [requestedTarget], ensure that [PlatformUtils.getHostTarget]
@@ -10,7 +10,7 @@ import ktpack.manifest.ModuleToml
  * When no target is requested ([requestedTarget] is null), return a target
  * supported by [PlatformUtils.getHostTarget] or null.
  */
-fun ModuleToml.validateTargetOrAlternative(
+fun OutputToml.validateTargetOrAlternative(
     context: CliContext,
     requestedTarget: KotlinTarget?,
 ): KotlinTarget? {

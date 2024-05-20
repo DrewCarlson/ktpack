@@ -5,7 +5,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.utils.io.*
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemPathSeparator
 import kotlinx.serialization.decodeFromString
 import ktpack.compilation.dependencies.models.DependencyNode
 import ktpack.configuration.*
@@ -16,8 +18,6 @@ import ktpack.manifest.ManifestToml
 import ktpack.maven.MavenProject
 import ktpack.util.*
 import ktpack.xml
-import okio.Path
-import okio.Path.Companion.DIRECTORY_SEPARATOR
 
 class MavenDependencyResolver(
     override val manifest: ManifestToml,
@@ -25,7 +25,7 @@ class MavenDependencyResolver(
 ) : DependencyResolver() {
     // TODO: Support list of maven urls and local repo folders
     private val mavenRepoUrl = "https://repo1.maven.org/maven2"
-    private val cacheRoot = (KTPACK_ROOT / "maven-cache")
+    private val cacheRoot = Path(KTPACK_ROOT, "maven-cache")
     private val logger = Logger.withTag(MavenDependencyResolver::class.simpleName.orEmpty())
 
     private val nodeCache = mutableMapOf<String, DependencyNode>()
@@ -183,9 +183,9 @@ class MavenDependencyResolver(
     }
 
     private fun readCachedPom(dependency: DependencyToml.Maven): MavenProject? {
-        val pomPath = dependency.toPathString(DIRECTORY_SEPARATOR)
+        val pomPath = dependency.toPathString(SystemPathSeparator.toString())
         val pomFileName = "${dependency.artifactId}-${dependency.version}.pom"
-        val pomFileNameCacheFile = cacheRoot / pomPath / pomFileName
+        val pomFileNameCacheFile = Path(cacheRoot, pomPath, pomFileName)
 
         return if (pomFileNameCacheFile.exists()) {
             logger.d { "Found cached POM for '${dependency.toMavenString()}': $pomFileNameCacheFile" }
@@ -218,7 +218,7 @@ class MavenDependencyResolver(
 
         val pomBody = response.bodyAsText()
         val pomFilePath = artifactRemotePath.urlAsPath()
-        val pomFileNameCacheFile = cacheRoot / pomFilePath / pomFileName
+        val pomFileNameCacheFile = Path(cacheRoot, pomFilePath, pomFileName)
         pomFileNameCacheFile.apply {
             parent?.mkdirs()
             createNewFile()
@@ -259,11 +259,11 @@ class MavenDependencyResolver(
 
     private suspend fun fetchPomArtifact(artifactUrlPath: String, overrideName: String? = null): Path {
         val cacheFile = if (overrideName == null) {
-            cacheRoot / artifactUrlPath.urlAsPath()
+            Path(cacheRoot, artifactUrlPath.urlAsPath())
         } else {
             // NOTE: Native targets have their klib file names without the target and version name.
             // This is not how gradle stores them on disk, but it is what the metadata defines.
-            (cacheRoot / artifactUrlPath.urlAsPath()).parent!! / overrideName
+            Path(Path(cacheRoot, artifactUrlPath.urlAsPath()).parent!!, overrideName)
         }
         if (cacheFile.exists()) {
             return cacheFile
@@ -298,7 +298,7 @@ class MavenDependencyResolver(
         if (cached != null) {
             return cached
         }
-        val artifactModuleCacheFile = cacheRoot / artifactRemotePath.urlAsPath() / artifactModuleName
+        val artifactModuleCacheFile = Path(cacheRoot, artifactRemotePath.urlAsPath(), artifactModuleName)
         return if (artifactModuleCacheFile.exists()) {
             logger.d { "Read cached Gradle module: $artifactModuleCacheFile" }
             json.decodeFromString<GradleModule?>(artifactModuleCacheFile.readUtf8())
@@ -327,7 +327,7 @@ class MavenDependencyResolver(
             return null
         }
         val bodyText = response.bodyAsText()
-        val artifactModuleCacheFile = cacheRoot / artifactRemotePath.urlAsPath() / artifactName
+        val artifactModuleCacheFile = Path(cacheRoot, artifactRemotePath.urlAsPath(), artifactName)
         artifactModuleCacheFile.apply {
             parent?.mkdirs()
             createNewFile()
@@ -420,6 +420,6 @@ class MavenDependencyResolver(
     }
 
     private fun String.urlAsPath(): String {
-        return replace("/", DIRECTORY_SEPARATOR)
+        return replace("/", SystemPathSeparator.toString())
     }
 }

@@ -1,4 +1,5 @@
 import org.gradle.nativeplatform.platform.internal.*
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     kotlin("multiplatform")
@@ -17,18 +18,15 @@ kotlin {
         if (hostOs.isWindows) mingwX64("windowsX64") else null,
     )
 
-    configure(nativeTargets) {
-        compilations.named("main") {
-            kotlinOptions {
-                //freeCompilerArgs = listOf("-Xallocator=mimalloc")
-                freeCompilerArgs = listOf("-Xexpect-actual-classes")
-            }
-        }
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        freeCompilerArgs = listOf("-Xexpect-actual-classes")
     }
 
     applyDefaultHierarchyTemplate()
 
     sourceSets {
+        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         all {
             languageSettings {
                 optIn("kotlin.ExperimentalStdlibApi")
@@ -41,7 +39,6 @@ kotlin {
         }
 
         named("commonMain") {
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 api(libs.findLibrary("kermit").get())
             }
@@ -54,10 +51,14 @@ kotlin {
             }
         }
 
+        nativeTest {
+            dependencies {
+            }
+        }
+
         jvmTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
             }
         }
 
@@ -91,6 +92,10 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 /*spotless {

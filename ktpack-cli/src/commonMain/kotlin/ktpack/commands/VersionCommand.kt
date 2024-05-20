@@ -7,9 +7,11 @@ import ktpack.Ktpack
 import ktpack.util.info
 import ktpack.util.verbose
 
-class VersionCommand : CliktCommand(
-    help = "Show Ktpack version information.",
-) {
+class VersionCommand : CliktCommand() {
+    override fun help(context: Context): String {
+        return context.theme.info("Show Ktpack version information.")
+    }
+
     private val context by requireObject<CliContext>()
     private val logger = Logger.withTag(VersionCommand::class.simpleName.orEmpty())
 

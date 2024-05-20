@@ -9,23 +9,26 @@ import com.github.ajalt.mordant.rendering.TextColors.*
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.reset
 import io.ktor.http.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.io.IOException
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemPathSeparator
 import ksubprocess.*
 import ktpack.*
 import ktpack.compilation.ArtifactResult
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
 import ktpack.manifest.ModuleToml
+import ktpack.manifest.OutputToml
 import ktpack.util.*
 import mongoose.*
-import okio.Path.Companion.DIRECTORY_SEPARATOR
-import okio.Path.Companion.toPath
 
-class RunCommand : CliktCommand(
-    help = "Compile and run binary packages.",
-) {
+class RunCommand : CliktCommand() {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Compile and run binary packages.")
+    }
 
     private val logger = Logger.withTag(RunCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
@@ -48,6 +51,10 @@ class RunCommand : CliktCommand(
 
     override fun run(): Unit = runBlocking {
         val manifest = context.loadManifestToml()
+        val output = manifest.module.output
+            ?: OutputToml.BinCommon.Bin(
+                targets = PlatformUtils.getHostSupportedTargets(),
+            )
         val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
         val targetBin = targetBin ?: manifest.module.name
 
@@ -57,7 +64,7 @@ class RunCommand : CliktCommand(
             val modulePath = moduleBuilder.modulePath
             "${success("Compiling")} $name v$version ($modulePath)"
         }
-        val target = manifest.module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
+        val target = output.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking
         val result = terminal.loadingIndeterminate {
             moduleBuilder.buildBin(releaseMode, targetBin, target)
         }
@@ -124,7 +131,7 @@ class RunCommand : CliktCommand(
                         logger.i("${failed("Failed")} Could not find JDK installation.")
                         exitProcess(1)
                     }
-                    arg(pathFrom(jdkInstallation.path, "bin", "java").name)
+                    arg(Path(jdkInstallation.path, "bin", "java").name)
                     args("-classpath", (dependencyArtifacts + artifactPath).joinToString(CPSEP))
                     arg("MainKt") // TODO: get main class from artifact
                 }
@@ -173,11 +180,11 @@ class RunCommand : CliktCommand(
                     DEFAULT_HTML.format(
                         module.name,
                         module.kotlinVersion ?: Ktpack.KOTLIN_VERSION,
-                        artifactPath.substringAfterLast(DIRECTORY_SEPARATOR),
+                        artifactPath.substringAfterLast(SystemPathSeparator),
                     ),
                 )
             }
-            route("/${artifactPath.toPath().name}") { respondFile(artifactPath) }
+            route("/${Path(artifactPath).name}") { respondFile(artifactPath) }
             route("/*") { respondDirectory(".") }
         }
     }

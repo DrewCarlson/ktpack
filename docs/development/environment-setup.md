@@ -8,6 +8,7 @@ For Linux and macOS, there should be no extra steps.
 
 #### Windows
 
+- Remove Visual Studio if installed
 - Install [msys2](https://www.msys2.org/)
 - Add `C:\msys64\mingw64\bin` to the top of your `PATH` variable (restart intellij)
 - Open `MSYS2 MinGW 64-bit` and run `mv /mingw64/bin/gcc /mingw64/bin/gcc-disable`

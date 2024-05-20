@@ -8,6 +8,5 @@ dependencies {
 }
 
 repositories {
-    mavenLocal()
     gradlePluginPortal()
 }

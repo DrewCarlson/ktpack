@@ -13,11 +13,6 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.jvmMain(
     named("jvmMain", configure)
 }
 
-fun NamedDomainObjectContainer<KotlinSourceSet>.jvmTest(
-    configure: KotlinSourceSet.() -> Unit,
-) {
-    named("jvmTest", configure)
-}
 
 fun NamedDomainObjectContainer<KotlinSourceSet>.posixMain(
     configure: KotlinSourceSet.() -> Unit,

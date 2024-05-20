@@ -3,6 +3,7 @@ package ktpack
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
 import io.ktor.client.plugins.logging.*
+import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
 import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
@@ -11,7 +12,6 @@ import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
@@ -31,8 +31,7 @@ class TestCliContext : CliContext {
     override val nodejsInstalls: NodejsInstalls = NodejsInstalls(this)
     override val dokka: DokkaCli by lazy {
         DokkaCli(
-            dokkaCliFolder = KTPACK_ROOT / "dokka",
-            fs = SystemFs,
+            dokkaCliFolder = Path(KTPACK_ROOT, "dokka"),
             http = http
         )
     }
@@ -43,13 +42,7 @@ class TestCliContext : CliContext {
     }
 
     override fun loadManifestToml(filePath: String): ManifestToml {
-        val path = filePath.toPath().let { path ->
-            if (path.isRelative) {
-                workingDirectory.resolve(path, normalize = true)
-            } else {
-                path
-            }
-        }
+        val path = Path(filePath).resolve()
         check(path.exists()) {
             "No $MANIFEST_FILENAME file found in '${path.parent}'"
         }

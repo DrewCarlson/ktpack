@@ -31,7 +31,7 @@ The project is described in `pack.toml`:
 [module]
 name = "hello_world"
 version = "1.0.0"
-kotlinVersion = "1.9.24"
+kotlin_version = "2.0.0"
 ```
 
 The `pack.toml` [Manifest]() contains all the metadata required to operate a Ktpack project.

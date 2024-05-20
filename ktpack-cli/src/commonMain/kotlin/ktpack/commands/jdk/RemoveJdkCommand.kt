@@ -8,16 +8,18 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
+import com.github.ajalt.mordant.terminal.prompt
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.jdk.JdkInstallDetails
 import ktpack.toolchain.jdk.JdkDistribution
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class RemoveJdkCommand : CliktCommand(
-    name = "remove",
-    help = "Remove an existing JDK version.",
-) {
+class RemoveJdkCommand : CliktCommand(name = "remove") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Remove an existing JDK version.")
+    }
 
     private val version by argument()
         .help("The JDK version to remove, can be a partial version string.")
@@ -28,8 +30,8 @@ class RemoveJdkCommand : CliktCommand(
 
     private val path by option()
         .help("The folder path where JDKs are stored.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.jdk.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.jdk.rootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }
@@ -83,7 +85,7 @@ class RemoveJdkCommand : CliktCommand(
         }
 
         // Attempt to delete jdk folder
-        if (match.path.toPath().deleteRecursively()) {
+        if (Path(match.path).deleteRecursively()) {
             context.term.println("${success("Success")} JDK ${info(match.distribution.name)} ${info(match.version)} was removed")
         } else {
             context.term.println("${failed("Failed")} JDK install was not removed")

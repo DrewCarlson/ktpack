@@ -4,10 +4,11 @@ import com.github.ajalt.clikt.core.*
 import kotlinx.coroutines.*
 import ktpack.CliContext
 
-class FindJdkCommand : CliktCommand(
-    name = "find",
-    help = "Find JDK versions to add.",
-) {
+class FindJdkCommand : CliktCommand(name = "find") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Find JDK versions to add.")
+    }
 
     private val context by requireObject<CliContext>()
 

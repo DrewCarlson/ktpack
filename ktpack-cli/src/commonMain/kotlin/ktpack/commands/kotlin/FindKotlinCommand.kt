@@ -13,10 +13,11 @@ private enum class Channel {
     RELEASE, RC, BETA, EAP, ALL
 }
 
-class FindKotlinCommand : CliktCommand(
-    name = "find",
-    help = "Find available Kotlin compiler versions.",
-) {
+class FindKotlinCommand : CliktCommand(name = "find") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Find available Kotlin compiler versions.")
+    }
 
     private val context by requireObject<CliContext>()
 

@@ -2,7 +2,9 @@ package ktpack.commands
 
 import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.core.theme
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
@@ -13,6 +15,7 @@ import com.github.ajalt.mordant.rendering.TextColors.white
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.reset
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.compilation.tools.models.DokkaConfiguration
 import ktpack.compilation.tools.models.SourceSet
@@ -20,12 +23,13 @@ import ktpack.compilation.tools.models.SourceSetID
 import ktpack.manifest.ModuleToml
 import ktpack.util.*
 import mongoose.runWebServer
-import okio.Path.Companion.toPath
 
-class DocCommand : CliktCommand(
-    name = "doc",
-    help = "Build project documentation.",
-) {
+class DocCommand : CliktCommand(name = "doc") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Build project documentation.")
+    }
+
     private val context by requireObject<CliContext>()
     private val logger = Logger.withTag(DocCommand::class.simpleName.orEmpty())
 
@@ -47,7 +51,7 @@ class DocCommand : CliktCommand(
                 return@runBlocking
             }
         }
-        val docOutputDir = (workingDirectory / "out" / "docs").toString()
+        val docOutputDir = Path(workingDirectory, "out", "docs").toString()
 
         val configuration = DokkaConfiguration(
             moduleName = moduleConf.name,
@@ -59,8 +63,8 @@ class DocCommand : CliktCommand(
         val (_, duration) = measureSeconds {
             context.term.loadingIndeterminate {
                 context.dokka.runDokka(
-                    javaPath = jdk.path.toPath() / "bin" / "java",
-                    outPath = workingDirectory / "out",
+                    javaPath = Path(jdk.path, "bin", "java"),
+                    outPath = Path(workingDirectory, "out"),
                     dokkaConfiguration = configuration,
                 )
             }
@@ -88,7 +92,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "common",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "common" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "common", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "native",
@@ -97,7 +101,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "native",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "native" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "native", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "posix",
@@ -106,7 +110,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "posix",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "posix" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "posix", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "linux",
@@ -115,7 +119,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "linux",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "linux" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "linux", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "macos",
@@ -125,9 +129,9 @@ class DocCommand : CliktCommand(
                     sourceSetName = "macos",
                 ),
                 sourceRoots = listOf(
-                    (workingDirectory / "src" / "macos" / "kotlin").toString(),
-                    (workingDirectory / "src" / "macosarm64" / "kotlin").toString(),
-                    (workingDirectory / "src" / "macosx64" / "kotlin").toString(),
+                    Path(workingDirectory, "src", "macos", "kotlin").toString(),
+                    Path(workingDirectory, "src", "macosarm64", "kotlin").toString(),
+                    Path(workingDirectory, "src", "macosx64", "kotlin").toString(),
                 ),
             ),
             SourceSet(
@@ -137,7 +141,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "mingw",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "mingw" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "mingw", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "jvm",
@@ -146,7 +150,7 @@ class DocCommand : CliktCommand(
                     scopeId = moduleConf.name,
                     sourceSetName = "jvm",
                 ),
-                sourceRoots = listOf((workingDirectory / "src" / "jvm" / "kotlin").toString()),
+                sourceRoots = listOf(Path(workingDirectory, "src", "jvm", "kotlin").toString()),
             ),
             SourceSet(
                 displayName = "js",
@@ -156,9 +160,9 @@ class DocCommand : CliktCommand(
                     sourceSetName = "js",
                 ),
                 sourceRoots = listOf(
-                    (workingDirectory / "src" / "js" / "kotlin").toString(),
-                    (workingDirectory / "src" / "jsbrowser" / "kotlin").toString(),
-                    (workingDirectory / "src" / "jsnode" / "kotlin").toString(),
+                    Path(workingDirectory, "src", "js", "kotlin").toString(),
+                    Path(workingDirectory, "src", "jsbrowser", "kotlin").toString(),
+                    Path(workingDirectory, "src", "jsnode", "kotlin").toString(),
                 ),
             ),
         )
