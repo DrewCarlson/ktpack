@@ -8,7 +8,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 private const val LOG = "[{}] {}: {}"
 private val VERBOSE = verbose("Verbose")
 private val DEBUG = verbose("Debug")
-private val WARN = warn("Warm")
+private val WARN = warn("Warn")
 private val ERROR = failed("Error")
 private val ASSERT = failed("Assert")
 

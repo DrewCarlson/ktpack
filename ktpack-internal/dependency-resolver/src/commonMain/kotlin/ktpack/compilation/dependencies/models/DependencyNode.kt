@@ -48,9 +48,7 @@ private fun StringBuilder.generateTreeString(node: DependencyNode, prefix: Strin
  */
 // TODO: Optimize this...
 fun List<DependencyNode>.resolveAndFlatten(): List<DependencyNode> {
-    val resolved = resolveVersions()
-
-    return resolved
+    return resolveVersions()
         .flatten()
         .map { it.copy(children = emptyList()) }
         .distinctBy { it.dependencyConf.key }

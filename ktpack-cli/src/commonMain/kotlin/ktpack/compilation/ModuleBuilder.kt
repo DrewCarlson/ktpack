@@ -1,6 +1,7 @@
 package ktpack.compilation
 
 import co.touchlab.kermit.Logger
+import io.github.z4kn4fein.semver.Version
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.invoke
@@ -38,14 +39,6 @@ class ModuleBuilder(
     private val context: CliContext,
     val modulePath: Path,
 ) {
-    data class CollectedSource(
-        val sourceFiles: List<String>,
-        val mainFile: String?,
-        val binFiles: List<String>,
-    ) {
-        val hasLibFile = mainFile != null || binFiles.isNotEmpty()
-        val isEmpty = mainFile == null && sourceFiles.isEmpty() && binFiles.isEmpty()
-    }
 
     enum class BuildType { BIN, LIB, TEST }
 
@@ -55,17 +48,7 @@ class ModuleBuilder(
 
     private val module = manifest.module
     private val resolver = MavenDependencyResolver(manifest, context.http)
-
-    private val targetFolderAliases = mapOf(
-        KotlinTarget.JVM to listOf("common", "jvm"),
-        KotlinTarget.JS_NODE to listOf("common", "js", "jsnode"),
-        KotlinTarget.JS_BROWSER to listOf("common", "js", "jsbrowser"),
-        KotlinTarget.MACOS_ARM64 to listOf("common", "native", "macos", "posix", "macosarm64"),
-        KotlinTarget.MACOS_X64 to listOf("common", "native", "macos", "posix", "macosx64"),
-        KotlinTarget.MINGW_X64 to listOf("common", "native", "mingw", "mingwx64"),
-        KotlinTarget.LINUX_ARM64 to listOf("common", "native", "linux", "posix", "linuxarm64"),
-        KotlinTarget.LINUX_X64 to listOf("common", "native", "linux", "posix", "linuxx64"),
-    )
+    internal val sourceCollector = KotlinSourceCollector(srcFolder)
 
     init {
         require(modulePath.isAbsolute) {
@@ -73,82 +56,62 @@ class ModuleBuilder(
         }
     }
 
-    fun collectSourceFiles(target: KotlinTarget, buildType: BuildType): CollectedSource {
-        check(srcFolder.isDirectory()) { "Expected directory at $srcFolder" }
-        val (mainFileName, secondaryDir) = when (buildType) {
-            BuildType.BIN -> "main.kt" to "bin"
-            BuildType.LIB -> "lib.kt" to "lib"
-            BuildType.TEST -> "" to ""
+    suspend fun buildCommonLib(
+        platformSources: CollectedSource,
+        releaseMode: Boolean,
+        target: KotlinTarget,
+        buildType: BuildType,
+        libs: List<String>? = null,
+    ): ArtifactResult = Dispatchers.IO {
+        val dependencyScopes = listOf(DependencyScope.IMPLEMENTATION, DependencyScope.API)
+        val dependencyTree = resolveRootDependencyTree(listOf(target), dependencyScopes, includeCommon = true)
+
+        val collectedSourceFiles = sourceCollector.collect(null, buildType)
+        if (collectedSourceFiles.isEmpty && platformSources.isEmpty) {
+            return@IO ArtifactResult.NoSourceFiles
         }
-        val sourceAliases = targetFolderAliases.getValue(target)
-        val testAliases = if (buildType == BuildType.TEST) {
-            sourceAliases.map { "${it}Test" }
+
+        val resolvedLibs = libs ?: assembleDependencies(dependencyTree, false, target)
+            .flatMap { it.artifacts }
+        val modeString = if (releaseMode) "release" else "debug"
+        val commonLibOutput = outFolder / target.name.lowercase() / modeString / "klib" / "common"
+        commonLibOutput.parent?.let { parent ->
+            if (!parent.exists()) parent.mkdirs()
+        }
+        val (result, duration) = measureSeconds {
+            startKotlinCompiler(
+                sourceFiles = platformSources.sourceFiles + listOfNotNull(platformSources.mainFile),
+                commonSourceFiles = collectedSourceFiles.sourceFiles + listOfNotNull(collectedSourceFiles.mainFile),
+                releaseMode = releaseMode,
+                output = commonLibOutput,
+                target = target,
+                isBinary = false,
+                libs = resolvedLibs,
+                isTest = false,
+                isMultiplatform = true,
+            )
+        }
+
+        if (result.exitCode == 0) {
+            ArtifactResult.Success(
+                target = target,
+                artifactPath = "${commonLibOutput}.klib",
+                compilationDuration = duration,
+                outputText = listOf(result.output, result.errors).joinToString("\n"),
+                dependencyArtifacts = resolvedLibs,
+            )
         } else {
-            emptyList()
+            ArtifactResult.ProcessError(result.exitCode, result.output)
         }
-        val allTargetKotlinRoots = (sourceAliases + testAliases)
-            .map { alias -> (srcFolder / alias / "kotlin") }
-        val targetKotlinRoots = allTargetKotlinRoots.filter { it.exists() }
-
-        logger.d {
-            val pathStrings = allTargetKotlinRoots.joinToString("\n") {
-                val exists = if (targetKotlinRoots.contains(it)) "*" else "!"
-                "[$exists] $it"
-            }
-            "Searching Kotlin source folders:\n${pathStrings}"
-        }
-
-        val sourceFiles = targetKotlinRoots.flatMap { targetKotlinRoot ->
-            val targetFolder = File(targetKotlinRoot.toString())
-            targetFolder.walkTopDown()
-                .onEnter { folder ->
-                    if (folder.getParentFileUnsafe() == targetFolder) {
-                        folder.getName() != secondaryDir
-                    } else {
-                        true
-                    }
-                }
-                .filter { file ->
-                    val fileName = file.getName()
-                    fileName.endsWith(".kt") && fileName != mainFileName
-                }
-                .map(File::getAbsolutePath)
-                .toList()
-        }
-        val mainFile = targetKotlinRoots.firstNotNullOfOrNull { kotlinRoot ->
-            (kotlinRoot / mainFileName).takeIf(Path::exists)
-        }
-        val binFiles = targetKotlinRoots.flatMap { kotlinRoot ->
-            val binRoot = File(kotlinRoot.toString()).nestedFile(secondaryDir)
-            if (binRoot.exists()) {
-                binRoot.walk()
-                    .drop(1) // Ignore the parent folder
-                    .map(File::getAbsolutePath)
-                    .toList()
-            } else {
-                emptyList()
-            }
-        }
-
-        val sources = CollectedSource(
-            sourceFiles = sourceFiles,
-            mainFile = mainFile?.toString(),
-            binFiles = binFiles,
-        )
-        logger.d { "Collected sources:\n${sources.sourceFiles.joinToString("\n")}" }
-        logger.d { "Collected bin files:\n${sources.binFiles.joinToString("\n")}" }
-        logger.d { "Collected main file:\n${sources.mainFile}" }
-        return sources
     }
 
     suspend fun buildTest(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.IO {
-        val dependencyScopes = listOf(DependencyScope.IMPLEMENTATION, DependencyScope.TEST)
-        val dependencyTree = resolveRootDependencyTree(listOf(target), dependencyScopes)
+        val dependencyTree = resolveRootDependencyTree(listOf(target), DependencyScope.entries)
 
-        val collectedSourceFiles = collectSourceFiles(target, BuildType.TEST)
+        val collectedSourceFiles = sourceCollector.collect(target, BuildType.TEST)
         if (collectedSourceFiles.isEmpty) {
             return@IO ArtifactResult.NoSourceFiles
         }
@@ -157,8 +120,7 @@ class ModuleBuilder(
             .flatMap { it.artifacts }
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
-                mainSource = null,
-                sourceFiles = collectedSourceFiles.sourceFiles + collectedSourceFiles.binFiles,
+                sourceFiles = collectedSourceFiles.sourceFiles,
                 releaseMode = false,
                 output = outFolder / "test" / target.name.lowercase() / module.name,
                 target = target,
@@ -189,19 +151,33 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.IO {
-        val dependencyTree = resolveRootDependencyTree(listOf(target))
-
-        val collectedSourceFiles = collectSourceFiles(target, BuildType.BIN)
+        val collectedSourceFiles = sourceCollector.collect(target, BuildType.BIN)
         if (collectedSourceFiles.isEmpty) {
-            return@IO ArtifactResult.NoSourceFiles
+            // TODO: Restore this check, but consider common sources
+            //return@IO ArtifactResult.NoSourceFiles
         }
+
+        val commonLibPath = if (target == KotlinTarget.JVM) {
+            null
+        } else {
+            when (val result = buildCommonLib(collectedSourceFiles, releaseMode, target, BuildType.BIN, libs)) {
+                is ArtifactResult.Success -> result.artifactPath
+                ArtifactResult.NoSourceFiles -> null
+                ArtifactResult.NoArtifactFound,
+                is ArtifactResult.ProcessError -> return@IO result
+            }
+        }
+
+        val dependencyTree = resolveRootDependencyTree(listOf(target), includeCommon = true)
+
         val selectedBinFile = if (binName == module.name) {
             collectedSourceFiles.mainFile?.toPath()
         } else {
-            collectedSourceFiles.binFiles.firstNotNullOf { filePath ->
+            collectedSourceFiles.binFiles.firstNotNullOfOrNull { filePath ->
                 filePath.toPath().takeIf { it.nameWithoutExtension == binName }
             }
-        } ?: return@IO ArtifactResult.NoArtifactFound
+        } // TODO: ?: return@IO ArtifactResult.NoArtifactFound
+        //    Restore, but consider common sources
 
         val modeString = if (releaseMode) "release" else "debug"
         val targetBinDir = outFolder / target.name.lowercase() / modeString / "bin"
@@ -209,16 +185,31 @@ class ModuleBuilder(
         val outputPath = targetBinDir / binName
         val resolvedLibs = libs ?: assembleDependencies(dependencyTree, releaseMode, target)
             .flatMap { it.artifacts }
+        // TODO: Improve handling for JVM (one-shot) MPP compilation
+        val commonSources by lazy(LazyThreadSafetyMode.NONE) {
+            sourceCollector.collect(null, BuildType.BIN)
+        }
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
-                selectedBinFile,
-                collectedSourceFiles.sourceFiles,
-                releaseMode,
-                outputPath,
-                target,
+                sourceFiles = if (commonLibPath == null) {
+                    val mergedSources = commonSources.merge(collectedSourceFiles)
+                    mergedSources.sourceFiles + listOfNotNull(selectedBinFile?.toString())
+                } else {
+                    emptyList()
+                },
+                commonSourceFiles = if (commonLibPath == null) {
+                    commonSources.sourceFiles + listOfNotNull(commonSources.mainFile)
+                } else {
+                    emptyList()
+                },
+                releaseMode = releaseMode,
+                output = outputPath,
+                target = target,
                 isBinary = true,
                 isTest = false,
-                resolvedLibs,
+                isMultiplatform = commonLibPath == null,
+                includes = listOfNotNull(commonLibPath),
+                libs = resolvedLibs,
             )
         }
         return@IO if (result.exitCode == 0) {
@@ -239,7 +230,12 @@ class ModuleBuilder(
         target: KotlinTarget,
         libs: List<String>? = null,
     ): ArtifactResult = Dispatchers.Default {
-        val collectedSourceFiles = collectSourceFiles(target, BuildType.LIB)
+        val collectedSourceFiles = sourceCollector.collect(target, BuildType.LIB)
+
+        val commonLibPath =
+            (buildCommonLib(collectedSourceFiles, releaseMode, target, BuildType.LIB, libs) as ArtifactResult.Success)
+            .artifactPath
+
         val sourceFiles = collectedSourceFiles.sourceFiles
         if (collectedSourceFiles.isEmpty || !collectedSourceFiles.hasLibFile) {
             return@Default ArtifactResult.NoArtifactFound
@@ -256,14 +252,13 @@ class ModuleBuilder(
         val outputPath = targetLibDir / module.name
         val (result, duration) = measureSeconds {
             startKotlinCompiler(
-                libFile,
-                sourceFiles,
-                releaseMode,
-                outputPath,
-                target,
-                false,
+                sourceFiles = sourceFiles + libFile.toString(),
+                releaseMode = releaseMode,
+                output = outputPath,
+                target = target,
+                isBinary = false,
                 isTest = false,
-                resolvedLibs,
+                libs = listOfNotNull(commonLibPath) + resolvedLibs,
             )
         }
         return@Default if (result.exitCode == 0) {
@@ -290,7 +285,8 @@ class ModuleBuilder(
 
         val resolvedDeps = assembleDependencies(dependencyTree, releaseMode, target)
             .flatMap { it.artifacts }
-        val sourceFiles = collectSourceFiles(target, BuildType.BIN) // TODO: Scan only for main.kt and bin files
+        val sourceFiles = sourceCollector.collect(null, BuildType.BIN)
+            .merge(sourceCollector.collect(target, BuildType.BIN)) // TODO: Scan only for main.kt and bin files
         val mainSource: Path? = sourceFiles.mainFile?.toPath()
         return listOfNotNull(
             if (mainSource?.exists() == true) {
@@ -373,8 +369,9 @@ class ModuleBuilder(
     suspend fun resolveRootDependencyTree(
         targets: List<KotlinTarget>,
         scopes: List<DependencyScope> = listOf(DependencyScope.IMPLEMENTATION),
+        includeCommon: Boolean = true
     ): List<DependencyNode> {
-        return resolveDependencyTree(manifest, workingDirectory, targets, scopes)
+        return resolveDependencyTree(manifest, workingDirectory, targets, scopes, includeCommon)
     }
 
     private suspend fun resolveDependencyTree(
@@ -382,17 +379,19 @@ class ModuleBuilder(
         rootFolder: Path,
         targets: List<KotlinTarget>,
         scopes: List<DependencyScope>,
+        includeCommon: Boolean
     ): List<DependencyNode> {
-        return rootManifest.dependenciesFor(targets, scopes)
+        return rootManifest.dependenciesFor(scopes, targets, includeCommon = includeCommon)
             .flatMap { it.value.values }
             .distinctBy { it.key }
             .map { dependency ->
                 when (dependency) {
                     is DependencyToml.Local -> resolveLocalDependency(
-                        dependency,
-                        rootFolder,
-                        targets,
-                        scopes,
+                        dependencyConf = dependency,
+                        rootFolder = rootFolder,
+                        targets = targets,
+                        scopes = scopes,
+                        includeCommon = includeCommon
                     )
 
                     is DependencyToml.Maven -> resolveMavenDependency(dependency, targets)
@@ -422,7 +421,7 @@ class ModuleBuilder(
             artifacts = emptyList(),
         )
         // TODO: address default target selection
-        return resolver.resolve(node, false, targets.firstOrNull() ?: PlatformUtils.getHostTarget())
+        return resolver.resolve(node, false, targets.first())
     }
 
     private suspend fun resolveLocalDependency(
@@ -430,10 +429,17 @@ class ModuleBuilder(
         rootFolder: Path,
         targets: List<KotlinTarget>,
         scopes: List<DependencyScope>,
+        includeCommon: Boolean,
     ): DependencyNode {
         val packFile = rootFolder / dependencyConf.path / MANIFEST_FILENAME
         val localModule = context.loadManifestToml(packFile.toString())
-        val children = resolveDependencyTree(localModule, rootFolder / dependencyConf.path, targets, scopes)
+        val children = resolveDependencyTree(
+            localModule,
+            rootFolder / dependencyConf.path,
+            targets,
+            scopes,
+            includeCommon = includeCommon
+        )
         return DependencyNode(
             localManifest = localModule,
             dependencyConf = dependencyConf,
@@ -444,19 +450,21 @@ class ModuleBuilder(
 
     @OptIn(ExperimentalStdlibApi::class)
     private suspend fun startKotlinCompiler(
-        mainSource: Path?,
         sourceFiles: List<String>,
+        commonSourceFiles: List<String> = emptyList(),
         releaseMode: Boolean,
         output: Path,
         target: KotlinTarget,
         isBinary: Boolean,
         isTest: Boolean,
         libs: List<String>,
+        includes: List<String> = emptyList(),
+        isMultiplatform: Boolean = false,
     ): CommunicateResult {
         check(output.isAbsolute) {
             "ModuleBuilder.startKotlinCompiler(...) requires `output` to be an absolute path: $output"
         }
-        val defaultJdk  = checkNotNull(context.jdkInstalls.getDefaultJdk()) {
+        val defaultJdk = checkNotNull(context.jdkInstalls.getDefaultJdk()) {
             "Run `ktpack setup` before using your project"
         }
         val outputDir = checkNotNull(output.parent).mkdirs()
@@ -472,7 +480,7 @@ class ModuleBuilder(
                     }
 
                     KotlinTarget.JS_NODE, KotlinTarget.JS_BROWSER -> {
-                        configureJsCompilerArgs(kotlinVersion, releaseMode, output, isBinary, libs, compileOpts)
+                        configureJsCompilerArgs(kotlinVersion, releaseMode, output, isBinary, libs, includes, compileOpts)
                     }
 
                     KotlinTarget.MACOS_ARM64,
@@ -490,11 +498,12 @@ class ModuleBuilder(
                             libs = libs,
                             compileOpts = compileOpts,
                             isTest = isTest,
+                            includes = includes,
                         )
                     }
                 }
 
-                configureCommonCompilerArgs(mainSource, sourceFiles, compileOpts)
+                configureCommonCompilerArgs(sourceFiles, commonSourceFiles, compileOpts, isMultiplatform)
             }
         } finally {
             compileOpts.delete()
@@ -502,9 +511,10 @@ class ModuleBuilder(
     }
 
     private fun ExecArgumentsBuilder.configureCommonCompilerArgs(
-        mainSource: Path?,
         sourceFiles: List<String>,
+        commonSourceFiles: List<String>,
         compileOpts: Path,
+        isMultiplatform: Boolean,
     ) {
         if (context.debug) {
             arg("-verbose")
@@ -512,8 +522,13 @@ class ModuleBuilder(
         // arg("-nowarn")
         // arg("-Werror")
 
-        arg("-Xmulti-platform")
-
+        if (isMultiplatform) {
+            arg("-Xmulti-platform")
+        } else {
+            check(commonSourceFiles.isEmpty()) {
+                "Cannot provide common source files unless compiling in multiplatform mode"
+            }
+        }
         //val serializationPlugin = File(context.kotlinInstalls.findKotlinHome(kotlinVersion), "lib")
         //    .nestedFile("kotlinx-serialization-compiler-plugin.jar")
         // arg("-Xplugin=${serializationPlugin.getAbsolutePath()}")
@@ -521,15 +536,15 @@ class ModuleBuilder(
         // args("-kotlin-home", path)
         // args("-opt-in", <class>)
 
-        mainSource?.toString()?.run(::arg)
-        sourceFiles.forEach { file -> arg(file) }
+        if (commonSourceFiles.isNotEmpty()) {
+            arg("-Xcommon-sources=${commonSourceFiles.joinToString(CPSEP)}")
+        }
 
-        // Sources of the common module that need to be compiled together with this module in the multi-platform mode.
-        // Should be a subset of sources passed as free arguments
-        // args("-Xcommon-sources", "array(string)")
+        (sourceFiles + commonSourceFiles).forEach { file -> arg(file) }
+
         // args("-language-version", "2.0")
 
-        logger.d { "Launching Kotlin Compiler:\n${arguments.joinToString("\n")}" }
+        logger.d { "Launching Kotlin Compiler: ${arguments.joinToString(" ")}" }
         if (compileOpts.exists()) {
             logger.d { "${compileOpts.name}:\n${compileOpts.readUtf8()}" }
         }
@@ -569,13 +584,16 @@ class ModuleBuilder(
         output: Path,
         isBinary: Boolean,
         libs: List<String>,
+        includes: List<String>,
         compileOpts: Path,
     ) {
         val kotlincPath = context.kotlinInstalls.findKotlincJs(kotlinVersion).toPath()
         arg(kotlincPath.toString())
 
-        args("-main", if (isBinary) "call" else "noCall")
-        args("-module-kind", "umd") // umd|commonjs|amd|plain
+        if (isBinary) {
+            args("-main", "call") // "noCall"
+            args("-module-kind", "umd") // umd|commonjs|amd|plain
+        }
 
         //arg("-Xir-only")
         if (releaseMode) {
@@ -584,15 +602,22 @@ class ModuleBuilder(
         }
 
         //arg("-Xir-build-cache")
-        //arg("")
         //compileOpts.appendUtf8("-Xcache-directory=${output.parent}", onError = { throw it })
 
         //arg("-Xgenerate-dts")
 
-        arg("-Xir-produce-js")
+        if (isBinary) {
+            arg("-Xir-produce-js")
+        } else {
+            arg("-Xir-produce-klib-file")
+        }
         args("-ir-output-dir", output.parent!!.toString())
         args("-ir-output-name", output.name)
         //args("-output", targetOutPath.toString()) // output js file
+
+        environment["JAVA_OPTS"] = "-Xmx1g"
+        arg("-Xdisable-default-scripting-plugin")
+        arg("-Xir-property-lazy-initialization")
 
         if (!isBinary) {
             arg("-meta-info")
@@ -601,18 +626,27 @@ class ModuleBuilder(
         // args("-source-map-base-dirs", <path>)
         // args("-source-map-embed-sources", "never") // always|never|inlining
 
+        val opsStringSize = includes.sumOf { it.length } + libs.sumOf { it.length }
+        val compilerOptsString = StringBuilder(opsStringSize)
+
+        if (includes.isNotEmpty()) {
+            compilerOptsString.append(includes.joinToString(CPSEP, prefix = "-Xinclude="))
+            compilerOptsString.append(" ")
+        }
 
         // arg("-no-stdlib")
         // Later version of kotlinc-js fail to provide the sdk by default
-        val jsLibs = libs + (kotlincPath.parent?.parent!! / "lib" / "kotlin-stdlib-js.jar").toString()
+        val stdlibExtension = if (Version.parse(kotlinVersion).major >= 2) "klib" else "jar"
+        val jsLibs = libs + (kotlincPath.parent?.parent!! / "lib" / "kotlin-stdlib-js.$stdlibExtension").toString()
         if (jsLibs.isNotEmpty()) {
             val archiveLibFiles = jsLibs.filter {
                 it.endsWith(".klib") || it.endsWith(".jar")
             }
 
             val optString = archiveLibFiles.joinToString(CPSEP, prefix = "-libraries ")
-            compileOpts.appendUtf8(optString, onError = { throw it })
+            compilerOptsString.append(optString)
         }
+        compileOpts.appendUtf8(compilerOptsString.toString(), onError = { throw it })
         arg("@${compileOpts.name}")
     }
 
@@ -624,6 +658,7 @@ class ModuleBuilder(
         releaseMode: Boolean,
         libs: List<String>,
         compileOpts: Path,
+        includes: List<String>,
         isTest: Boolean,
     ) {
         val targetOutPath = if (isBinary) {
@@ -663,6 +698,10 @@ class ModuleBuilder(
             val libList = libs.joinToString("\n") { libFlag + it }
             compileOpts.writeUtf8(libList) { throw it }
             args("@${compileOpts.name}")
+        }
+
+        if (includes.isNotEmpty()) {
+            args(includes.joinToString(";", prefix = "-Xinclude="))
         }
 
         // args("-manifest", "")

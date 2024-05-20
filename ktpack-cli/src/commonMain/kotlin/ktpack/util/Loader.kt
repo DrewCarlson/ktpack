@@ -21,7 +21,6 @@ suspend inline fun <R : Any> Terminal.loadingIndeterminate(
     },
     crossinline execute: suspend () -> R,
 ) = coroutineScope {
-    val startTime = 0L
     var currentDuration = 0L
     val animation = textAnimation<Int> { frame ->
         animate(frames[frame], currentDuration.milliseconds)
@@ -31,8 +30,8 @@ suspend inline fun <R : Any> Terminal.loadingIndeterminate(
         while (i < loadingFrames.size) {
             animation.update(i)
             if (i == loadingFrames.lastIndex) i = 0 else i++
-            currentDuration = startTime + 500L
             delay(500.milliseconds)
+            currentDuration += 500L
         }
     }
     try {

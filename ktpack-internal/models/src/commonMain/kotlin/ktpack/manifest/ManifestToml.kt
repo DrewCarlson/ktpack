@@ -27,13 +27,18 @@ data class ManifestToml(
     }
 
     fun dependenciesFor(
-        targets: List<KotlinTarget>,
         scopes: List<DependencyScope>,
+        targets: List<KotlinTarget> = emptyList(),
+        includeCommon: Boolean = false
     ): Map<String, TargetDependenciesToml> {
         return dependencies
             .filter { (targetName, _) ->
-                val aliasTargets = KotlinTarget.targetsFromAlias(targetName)
-                targets.any { aliasTargets.contains(it) }
+                if (targets.isEmpty()) {
+                    targetName == "common"
+                } else {
+                    val aliasTargets = KotlinTarget.targetsFromAlias(targetName)
+                    (includeCommon && targetName == "common") || targets.any { aliasTargets.contains(it) }
+                }
             }
             .filterValues { dependencies ->
                 dependencies.any { scopes.contains(it.value.scope) }

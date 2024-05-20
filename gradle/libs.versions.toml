@@ -1,5 +1,5 @@
 [versions]
-kotlin = { strictly = "1.9.24" }
+kotlin = { strictly = "2.0.0-RC3" }
 dokka = "1.9.20"
 coroutines = "1.8.1"
 serialization = "1.6.3"
@@ -8,6 +8,7 @@ binary_compat = "0.15.0-Beta.2"
 okio = "3.9.0"
 spotless = "6.25.0"
 ktlint = "1.2.1"
+kotest = "5.9.0"
 
 [plugins]
 multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -49,8 +50,14 @@ semver = { module = "io.github.z4kn4fein:semver", version = "2.0.0" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.4" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.0-RC.2" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.0" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.16.0" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
 ivy = { module = "org.apache.ivy:ivy", version = "2.5.2" }
 tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.3.7" }
+kotest-plugin = { module = "io.kotest:kotest-framework-multiplatform-plugin-gradle", version.ref = "kotest" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-api = { module = "io.kotest:kotest-framework-api", version.ref = "kotest" }
+kotest-native = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }

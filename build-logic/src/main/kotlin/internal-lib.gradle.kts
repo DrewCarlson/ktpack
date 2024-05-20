@@ -2,6 +2,7 @@ import org.gradle.nativeplatform.platform.internal.*
 
 plugins {
     kotlin("multiplatform")
+    id("io.kotest.multiplatform")
     //alias(libs.plugins.spotless)
 }
 
@@ -20,7 +21,6 @@ kotlin {
     configure(nativeTargets) {
         compilations.named("main") {
             kotlinOptions {
-                //freeCompilerArgs = listOf("-Xallocator=mimalloc")
                 freeCompilerArgs = listOf("-Xexpect-actual-classes")
             }
         }
@@ -29,6 +29,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
+        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         all {
             languageSettings {
                 optIn("kotlin.ExperimentalStdlibApi")
@@ -41,7 +42,6 @@ kotlin {
         }
 
         named("commonMain") {
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 api(libs.findLibrary("kermit").get())
             }
@@ -51,13 +51,22 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+                implementation(libs.findLibrary("kotest-assertions").get())
+                implementation(libs.findLibrary("kotest-property").get())
+                implementation(libs.findLibrary("kotest-api").get())
+            }
+        }
+
+        nativeTest {
+            dependencies {
+                implementation(libs.findLibrary("kotest-native").get())
             }
         }
 
         jvmTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(kotlin("test-junit"))
+                implementation(libs.findLibrary("kotest-junit5").get())
             }
         }
 
@@ -91,6 +100,10 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 /*spotless {

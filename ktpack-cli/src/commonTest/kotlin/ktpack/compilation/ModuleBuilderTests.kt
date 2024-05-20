@@ -63,7 +63,7 @@ class ModuleBuilderTests {
         sample: String,
         type: BuildType,
         target: KotlinTarget? = null,
-        body: ModuleBuilder.CollectedSource.() -> Unit,
+        body: CollectedSource.() -> Unit,
     ) {
         builder = ModuleBuilder(
             ManifestToml(ModuleToml("test", "0.0.0")),
@@ -73,10 +73,10 @@ class ModuleBuilderTests {
 
         if (target == null) {
             KotlinTarget.entries.forEach { currentTarget ->
-                body(builder.collectSourceFiles(currentTarget, type))
+                body(builder.sourceCollector.collect(currentTarget, type))
             }
         } else {
-            body(builder.collectSourceFiles(target, type))
+            body(builder.sourceCollector.collect(target, type))
         }
     }
 }
