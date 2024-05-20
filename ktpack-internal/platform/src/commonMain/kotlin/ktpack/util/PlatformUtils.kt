@@ -1,27 +1,23 @@
 package ktpack.util
 
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import ktpack.configuration.KotlinTarget
-import okio.FileSystem
-import okio.Path
-import okio.Path.Companion.DIRECTORY_SEPARATOR
-import okio.Path.Companion.toPath
 
 /**
  * Attempt to find the user's home directory first by the
  * platform's home directory environment variable, and if
  * not found use native platform function to find it.
  */
-expect fun getHomePath(): String?
-
-expect val workingDirectory: Path
-
-expect val TEMP_PATH: Path
+expect fun getHomePath(): Path?
 
 expect fun getEnv(key: String): String?
 
 expect fun exitProcess(code: Int): Nothing
 
-expect val SystemFs: FileSystem
+val workingDirectory: Path by lazy {
+    SystemFileSystem.resolve(Path("."))
+}
 
 val EXE_EXTENSION by lazy {
     if (Platform.osFamily == OsFamily.WINDOWS) "exe" else "kexe"
@@ -31,7 +27,10 @@ val USER_HOME = checkNotNull(getHomePath()) {
     "Failed to find user home path."
 }
 
-val KTPACK_ROOT = "${getEnv("KTPACK_PATH") ?: USER_HOME}$DIRECTORY_SEPARATOR.ktpack".toPath()
+val KTPACK_ROOT = Path(
+    getEnv("KTPACK_PATH")?.run(::Path)?.resolve() ?: USER_HOME,
+    ".ktpack"
+)
 
 val ARCH by lazy {
     when (Platform.cpuArchitecture) {

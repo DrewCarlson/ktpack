@@ -1,7 +1,6 @@
 package ktpack.util
 
 import kotlinx.cinterop.toKStringFromUtf8
-import okio.FileSystem
 import platform.posix.getenv
 
 
@@ -11,4 +10,3 @@ actual fun getEnv(key: String): String? {
 
 actual fun exitProcess(code: Int): Nothing = kotlin.system.exitProcess(code)
 
-actual val SystemFs = FileSystem.SYSTEM

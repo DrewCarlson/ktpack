@@ -8,18 +8,19 @@ import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.kotlin.KotlinInstallDetails
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class InstallKotlinCommand : CliktCommand(
-    name = "install",
-    help = "Install a new Kotlin Compiler version.",
-) {
+class InstallKotlinCommand : CliktCommand(name = "install") {
+    override fun help(context: Context): String {
+        return context.theme.info("Install a new Kotlin Compiler version.")
+    }
+
     private val context by requireObject<CliContext>()
     private val logger = Logger.withTag(InstallKotlinCommand::class.simpleName.orEmpty())
 
@@ -34,8 +35,8 @@ class InstallKotlinCommand : CliktCommand(
 
     private val path by option()
         .help("The root path to store the Kotlin installation.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.kotlin.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.kotlin.rootPath)) }
         .check({ "Kotlin root path must exist." }) { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }

@@ -5,15 +5,19 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.*
 import ktpack.compilation.ArtifactResult
+import ktpack.compilation.KtpackSourceCollector
 import ktpack.compilation.ModuleBuilder
 import ktpack.configuration.KotlinTarget
 import ktpack.util.*
 
-class BuildCommand : CliktCommand(
-    help = "Compile packages and dependencies.",
-) {
+class BuildCommand : CliktCommand() {
+    override fun help(context: Context): String {
+        return context. theme. info("Compile packages and dependencies.")
+    }
+
     private val logger = Logger.withTag(BuildCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
@@ -23,14 +27,6 @@ class BuildCommand : CliktCommand(
 
     private val targetBin by option("--bin")
         .help("Build only the specified binary")
-
-    private val libOnly by option("--lib")
-        .help("Build only this package's library")
-        .flag(default = false)
-
-    private val binsOnly by option("--bins")
-        .help("Build all binaries")
-        .flag(default = false)
 
     private val userTarget by option("--target", "-t")
         .help("The target platform to build for.")
@@ -43,6 +39,8 @@ class BuildCommand : CliktCommand(
     override fun run() = runBlocking {
         val manifest = context.loadManifestToml()
         val module = manifest.module
+        val output =
+            manifest.module.output ?: KtpackSourceCollector(Path(workingDirectory, "src")).getDefaultOutput(userTarget)
         val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
 
         logger.i {
@@ -54,44 +52,35 @@ class BuildCommand : CliktCommand(
             )
         }
 
-        val targetBuildList = if (allTargets) {
-            if (module.targets.isEmpty()) {
-                PlatformUtils.getHostSupportedTargets()
-            } else {
-                PlatformUtils.getHostSupportedTargets().filter(module.targets::contains)
-            }
+        val target = if (allTargets) {
+            val hostTargets = PlatformUtils.getHostSupportedTargets()
+            output.targets.first { hostTargets.contains(it) }
         } else {
-            listOf(module.validateTargetOrAlternative(context, userTarget) ?: return@runBlocking)
+            val alternateTarget = output.validateTargetOrAlternative(context, userTarget)
+            checkNotNull(alternateTarget) { "Failed to select alternateTarget" }
         }
         logger.i {
             "{} Selected target(s): {}".format(
                 info("Building"),
-                targetBuildList.joinToString { verbose(it.name.lowercase()) },
+                verbose(target.name.lowercase()),
             )
         }
-        val results: List<ArtifactResult> =
-            targetBuildList
-                .flatMap { target ->
-                    terminal.loadingIndeterminate {
-                        buildAllForTarget(moduleBuilder, target)
-                    }
-                }
-                .toList()
+        val result = terminal.loadingIndeterminate {
+            buildAllForTarget(moduleBuilder, target)
+        }
 
-        if (results.all { it == ArtifactResult.NoArtifactFound }) {
+        if (result is ArtifactResult.NoArtifactFound) {
             logger.i { "${failed("Failed")} Could not find artifact to build" }
             return@runBlocking
         }
 
-        val totalDuration = results
-            .filterIsInstance<ArtifactResult.Success>()
-            .sumOf { it.compilationDuration }
+        val totalDuration = (result as ArtifactResult.Success).compilationDuration
 
         logger.i {
             "{} {} target(s) in {}s".format(
                 success("Finished"),
                 if (releaseMode) "release [optimized]" else "dev [unoptimized + debuginfo]",
-                totalDuration
+                totalDuration,
             )
         }
     }
@@ -99,32 +88,11 @@ class BuildCommand : CliktCommand(
     private suspend fun buildAllForTarget(
         moduleBuilder: ModuleBuilder,
         target: KotlinTarget,
-    ): List<ArtifactResult> {
+    ): ArtifactResult {
         val targetFormat = "{} Selected build types: {} {}"
-        return when {
-            !targetBin.isNullOrBlank() -> {
-                logger.i { targetFormat.format(info("Building"), "bin", verbose(targetBin!!)) }
-                listOf(moduleBuilder.buildBin(releaseMode, targetBin!!, target))
-            }
+        logger.i { targetFormat.format(info("Building"), "all bins and libs", "") }
 
-            libOnly -> {
-                logger.i { targetFormat.format(info("Building"), "lib", "") }
-                context.term.println("lib ${verbose(target.name.lowercase())}")
-                listOf(moduleBuilder.buildLib(releaseMode, target))
-            }
-
-            binsOnly -> {
-                logger.i { targetFormat.format(info("Building"), "all bins", "") }
-                moduleBuilder.buildAllBins(releaseMode, target)
-            }
-
-            else -> {
-                logger.i { targetFormat.format(info("Building"), "all bins and libs", "") }
-                moduleBuilder.buildAll(releaseMode, target)
-            }
-        }.onEach { artifact ->
-            processArtifact(artifact)
-        }
+        return moduleBuilder.build(releaseMode, target).also(::processArtifact)
     }
 
     private fun processArtifact(artifact: ArtifactResult) {

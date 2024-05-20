@@ -1,6 +1,6 @@
 # Installation
 
-At this time, releases are published to [Github](https://github.com/DrewCarlson/ktpack/releases).
+Releases are available from [Github](https://github.com/DrewCarlson/ktpack/releases) and [Homebrew](https://brew.sh/).
 
 |                                                                                                                                                                                   |                                                                             Download v{{lib_version}}                                                                             |                                                                                                                                                                                         | 
 |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -8,12 +8,17 @@ At this time, releases are published to [Github](https://github.com/DrewCarlson/
 
 ## macOS
 
-```shell
-$ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-macos.zip -o ktpack-macos.zip
-$ unzip ktpack-macos.zip && cd ktpack-macos
+### Homebrew
 
-$ ktpack version
-Ktpack version {{ lib_version }}
+```bash
+brew install drewcarlson/repo/ktpack
+```
+
+### Manual
+
+```shell
+curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-macos.zip -o ktpack-macos.zip
+unzip ktpack-macos.zip && cd ktpack-macos
 ```
 
 ## Windows
@@ -27,19 +32,12 @@ _It is recommended you use the [Terminal](https://github.com/microsoft/terminal)
 ## Linux
 
 ```shell
-$ curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-linux.zip -o ktpack-linux.zip
-$ unzip ktpack-linux.zip && cd ktpack-linux
-
-$ ktpack version
-Ktpack version {{ lib_version }}
+curl https://github.com/DrewCarlson/Ktpack/releases/download/v{{lib_version}}/ktpack-linux.zip -o ktpack-linux.zip
+unzip ktpack-linux.zip && cd ktpack-linux
 ```
 
-## Environment Setup
+## Next Steps
 
-Ktpack manages all the necessary tools required to build your projects.
-You can get started quickly with the `ktpack setup` command, this will check your environment for existing tools and
-install any that are missing.
+Run `ktpack setup`
 
-New machines will install a version of the JDK, Kotlin Compilers (Jvm/Native), and Nodejs.
-Note that additional tool versions may be installed depending on package requirements and all versions can be
-individually managed.
+This will find and install the various toolchains required to build and run your Kotlin projects. 

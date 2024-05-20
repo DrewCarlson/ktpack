@@ -4,13 +4,12 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path
-import okio.Path.Companion.toPath
 
 class JdkInstalls(
     private val context: CliContext,
@@ -20,7 +19,7 @@ class JdkInstalls(
 
     fun getDefaultJdk(): JdkInstallDetails? {
         return findJdk(
-            checkNotNull(config.rootPath).toPath(),
+            Path(checkNotNull(config.rootPath)),
             config.version,
             config.distribution,
         )
@@ -49,7 +48,7 @@ class JdkInstalls(
      */
     fun findJdk(jdksRoot: Path, version: String, distribution: JdkDistribution? = null): JdkInstallDetails? {
         return distribution?.let { dist ->
-            (jdksRoot / "${dist.name.lowercase()}-$version")
+            Path(jdksRoot, "${dist.name.lowercase()}-$version")
                 .takeIf(Path::exists)
                 ?.let(::createInstallDetails)
         } ?: discover(jdksRoot, distribution).firstOrNull { install ->
@@ -103,7 +102,7 @@ class JdkInstalls(
         }
 
         val newJdkName = "${distribution.name.lowercase()}-$jdkVersionString"
-        val newJdkFolder = jdksRoot / newJdkName
+        val newJdkFolder = Path(jdksRoot, newJdkName)
         return moveExtractedFiles(
             installDetails = checkNotNull(createInstallDetails(newJdkFolder)),
             extractPath = tempExtractPath,
@@ -118,7 +117,7 @@ class JdkInstalls(
         } catch (e: IllegalArgumentException) {
             return null
         }
-        val intellijManifestFilename = file / ".$fileName.intellij"
+        val intellijManifestFilename = Path(file, ".$fileName.intellij")
         return JdkInstallDetails(
             distribution = distribution,
             version = fileName.substringAfter('-'),

@@ -7,7 +7,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:models"))
-                implementation(libs.okio)
+                api(libs.kotlin.io)
             }
         }
     }

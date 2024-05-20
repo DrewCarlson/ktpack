@@ -9,8 +9,9 @@ import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemTemporaryDirectory
 import ktpack.util.*
-import okio.Path
 
 abstract class ToolchainInstaller<I : InstallDetails>(
     protected val http: HttpClient,
@@ -35,7 +36,8 @@ abstract class ToolchainInstaller<I : InstallDetails>(
         onProgress(ToolchainInstallProgress.Started(downloadUrl))
         var lastReportedProgress = 0
         onDownload { bytesSentTotal, contentLength ->
-            val completed = ((bytesSentTotal.toDouble() / contentLength) * 100).toInt()
+            // todo: content length is nullable?
+            val completed = ((bytesSentTotal.toDouble() / (contentLength ?: 1)) * 100).toInt()
             if (completed != lastReportedProgress && completed % 10 == 0) {
                 lastReportedProgress = completed
                 onProgress(ToolchainInstallProgress.Download(completed))
@@ -48,8 +50,8 @@ abstract class ToolchainInstaller<I : InstallDetails>(
         onProgress: (ToolchainInstallProgress) -> Unit,
     ): Pair<ToolchainInstallResult<I>?, Path> {
         val archiveName = downloadUrl.substringAfterLast('/')
-        val tempExtractPath = TEMP_PATH / archiveName.substringBeforeLast(packageExtension)
-        val tempArchivePath = TEMP_PATH / archiveName
+        val tempExtractPath = Path(SystemTemporaryDirectory, archiveName.substringBeforeLast(packageExtension))
+        val tempArchivePath = Path(SystemTemporaryDirectory, archiveName)
         if (!tempArchivePath.createNewFile()) {
             logger.e { "Failed to create temp file: $tempArchivePath" }
             return Pair(

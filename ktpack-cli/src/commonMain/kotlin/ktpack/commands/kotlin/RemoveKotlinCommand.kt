@@ -5,14 +5,17 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.mordant.terminal.prompt
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class RemoveKotlinCommand : CliktCommand(
-    name = "remove",
-    help = "Remove an existing Kotlin Compiler version.",
-) {
+class RemoveKotlinCommand : CliktCommand(name = "remove") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Remove an existing Kotlin Compiler version.")
+    }
+
     private val logger = Logger.withTag(RemoveKotlinCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
 
@@ -21,8 +24,8 @@ class RemoveKotlinCommand : CliktCommand(
 
     private val path by option()
         .help("The folder path where Kotlin versions are stored.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.kotlin.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.kotlin.rootPath)) }
         .validate { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }
@@ -57,7 +60,7 @@ class RemoveKotlinCommand : CliktCommand(
 
         // Attempt to delete kotlinc folder
         installs.forEach { install ->
-            if (install.path.toPath().deleteRecursively()) {
+            if (Path(install.path).deleteRecursively()) {
                 context.term.println("${success("Success")} Kotlin ${info(install.type.name)} compiler ${info(install.version)} was removed")
             } else {
                 context.term.println("${failed("Failed")} Kotlin ${info(install.type.name)} compiler ${info(install.version)} was not removed")

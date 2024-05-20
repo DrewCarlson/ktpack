@@ -15,6 +15,7 @@ kotlin {
                 //implementation(libs.kotlinx.datetime)
                 implementation(libs.ksubprocess)
                 implementation(libs.ktor.client.core)
+                implementation(libs.kotlin.io)
             }
         }
 

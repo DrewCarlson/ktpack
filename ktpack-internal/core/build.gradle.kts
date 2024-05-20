@@ -59,11 +59,11 @@ val buildRuntimeBundle by tasks.creating {
         }
         bundledFile.writeText(
             """|package ktpack
-               |import ktpack.util.pathFrom
+               |import kotlinx.io.files.Path
                |import ktpack.util.USER_HOME
                |
                |const val ktpackScriptJarUrl = "https://github.com/DrewCarlson/ktpack/releases/download/v${version}/ktpack-script.jar"
-               |val ktpackScriptJarPath = pathFrom($pathValue)
+               |val ktpackScriptJarPath = Path($pathValue)
                |""".trimMargin(),
         )*/
     }
@@ -91,7 +91,7 @@ kotlin {
                 implementation(project(":ktpack-internal:git"))
                 implementation(project(":ktpack-internal:dokka"))
                 implementation(project(":ktpack-internal:models"))
-                implementation(libs.ktfio)
+                implementation(libs.kotlin.io)
                 implementation(libs.ksubprocess)
                 implementation(libs.mordant)
                 implementation(libs.clikt)

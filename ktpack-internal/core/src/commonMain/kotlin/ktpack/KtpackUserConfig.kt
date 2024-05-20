@@ -1,10 +1,10 @@
 package ktpack
 
+import kotlinx.io.files.Path
 import kotlinx.serialization.Serializable
 import ktpack.toolchain.jdk.JdkDistribution
 import ktpack.util.KTPACK_ROOT
 import ktpack.util.USER_HOME
-import ktpack.util.pathFrom
 
 @Serializable
 data class KtpackUserConfig(
@@ -15,19 +15,19 @@ data class KtpackUserConfig(
     @Serializable
     data class KotlinConfig(
         val version: String = Ktpack.KOTLIN_VERSION,
-        val rootPath: String = pathFrom(USER_HOME, ".konan").toString(),
+        val rootPath: String = Path(USER_HOME, ".konan").toString(),
     )
 
     @Serializable
     data class JdkConfig(
         val distribution: JdkDistribution = JdkDistribution.Zulu,
         val version: String = "17",
-        val rootPath: String = pathFrom(USER_HOME, ".jdks").toString(),
+        val rootPath: String = Path(USER_HOME, ".jdks").toString(),
     )
 
     @Serializable
     data class NodejsConfig(
         val version: String = "20.9.0",
-        val rootPath: String = (KTPACK_ROOT / "nodejs").toString(),
+        val rootPath: String = Path(KTPACK_ROOT, "nodejs").toString(),
     )
 }

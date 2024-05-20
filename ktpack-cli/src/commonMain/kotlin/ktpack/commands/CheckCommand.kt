@@ -5,9 +5,11 @@ import com.github.ajalt.clikt.parameters.arguments.*
 import kotlinx.coroutines.runBlocking
 import ktpack.*
 
-class CheckCommand : CliktCommand(
-    help = "Check a package for errors.",
-) {
+class CheckCommand : CliktCommand() {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Check a package for errors.")
+    }
 
     private val filePath by argument("file")
         .help("The package file to validate.")

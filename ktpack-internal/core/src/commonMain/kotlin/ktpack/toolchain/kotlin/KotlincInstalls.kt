@@ -2,15 +2,14 @@ package ktpack.toolchain.kotlin
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemPathSeparator
 import ktpack.CliContext
 import ktpack.configuration.KotlinTarget
 import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path
-import okio.Path.Companion.DIRECTORY_SEPARATOR
-import okio.Path.Companion.toPath
 
 private val FILE_VERSION_REGEX = """\d+\.\d+\.\d+(?:-\w+)?""".toRegex()
 
@@ -30,7 +29,7 @@ data class KotlincInstalls(
 
     fun getDefaultKotlin(type: CompilerType): KotlinInstallDetails? {
         return findKotlin(
-            context.config.kotlin.rootPath.toPath(),
+            Path(context.config.kotlin.rootPath),
             context.config.kotlin.version,
             type
         )
@@ -71,17 +70,17 @@ data class KotlincInstalls(
 
     private fun findNonNativeBin(version: String): String = buildString {
         append(context.config.kotlin.rootPath)
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("bin")
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
     }
 
     fun findKotlinHome(version: String): String = buildString {
         append(context.config.kotlin.rootPath)
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
     }
@@ -113,7 +112,7 @@ data class KotlincInstalls(
     fun findKotlincNative(version: String): String = buildString {
         val (major, minor, _) = version.split('.').mapNotNull(String::toIntOrNull)
         append(context.config.kotlin.rootPath)
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("kotlin-native-prebuilt-")
         when (Platform.osFamily) {
             OsFamily.MACOSX -> "macos"
@@ -127,9 +126,9 @@ data class KotlincInstalls(
             append('-')
         }
         append(version)
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("bin")
-        append(DIRECTORY_SEPARATOR)
+        append(SystemPathSeparator)
         append("kotlinc-native")
         if (Platform.osFamily == OsFamily.WINDOWS) {
             append(".bat")
@@ -155,7 +154,7 @@ data class KotlincInstalls(
         val newKotlinName = tempExtractPath.name
             .replace("kotlin-compiler", "kotlin-compiler-prebuilt")
             .replace("kotlin-native", "kotlin-native-prebuilt")
-        val newKotlinFolder = kotlincRoot / newKotlinName
+        val newKotlinFolder = Path(kotlincRoot, newKotlinName)
         val installDetails = createInstallDetails(newKotlinFolder, compilerType, version)
         return moveExtractedFiles(
             installDetails = installDetails,
@@ -222,10 +221,10 @@ data class KotlincInstalls(
         compilerType: CompilerType,
     ): KotlinInstallDetails? {
         val folderName = when (compilerType) {
-            CompilerType.JVM -> findNonNativeBin(version).toPath().parent!!.name
-            CompilerType.NATIVE -> findKotlincNative(version).toPath().parent!!.parent!!.name
+            CompilerType.JVM -> Path(findNonNativeBin(version)).parent!!.name
+            CompilerType.NATIVE -> Path(findKotlincNative(version)).parent!!.parent!!.name
         }
-        return (kotlincRoot / folderName)
+        return Path(kotlincRoot, folderName)
             .takeIf(Path::exists)
             ?.let { kotlinFolder ->
                 createInstallDetails(

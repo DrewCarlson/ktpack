@@ -6,16 +6,18 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class InstallNodejsCommand : CliktCommand(
-    name = "install",
-    help = "Install a new Nodejs version.",
-) {
+class InstallNodejsCommand : CliktCommand(name = "install") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Install a new Nodejs version.")
+    }
+
     private val context by requireObject<CliContext>()
     private val logger = Logger.withTag(InstallNodejsCommand::class.simpleName.orEmpty())
 
@@ -24,8 +26,8 @@ class InstallNodejsCommand : CliktCommand(
 
     private val path by option()
         .help("The root path to store the Nodejs installation.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.nodejs.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.nodejs.rootPath)) }
         .check({ "Nodejs root path must exist." }) { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }

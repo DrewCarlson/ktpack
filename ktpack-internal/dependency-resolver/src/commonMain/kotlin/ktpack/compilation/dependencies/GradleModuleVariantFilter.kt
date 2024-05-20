@@ -47,6 +47,6 @@ internal fun List<GradleModule.Variant>.findVariantFor(
 
     return checkNotNull(match) {
         val attributes = joinToString("\n") { it.attributes.toString() }
-        "Failed to resolve variant of (${this.firstOrNull()?.name}) for $target:\n$attributes"
+        "Failed to resolve variant (${this.joinToString(",")}) for $target:\n$attributes"
     }
 }

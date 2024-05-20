@@ -11,12 +11,13 @@ import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.TextStyles.reset
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
+import kotlinx.io.files.Path
 import ksubprocess.Process
 import ksubprocess.ProcessArgumentBuilder
 import ktpack.CliContext
@@ -26,9 +27,10 @@ import ktpack.configuration.KotlinTarget
 import ktpack.manifest.ManifestToml
 import ktpack.util.*
 
-class TestCommand : CliktCommand(
-    help = "Compile and run test suites.",
-) {
+class TestCommand : CliktCommand() {
+    override fun help(context: Context): String {
+        return context.theme.info("Compile and run test suites.")
+    }
 
     private val logger = Logger.withTag(TestCommand::class.simpleName.orEmpty())
     private val context by requireObject<CliContext>()
@@ -163,7 +165,7 @@ class TestCommand : CliktCommand(
         }
 
         // TODO: Move junit download handling and make version configurable
-        val junitConsoleJar = KTPACK_ROOT / "junit" / "junit-platform-console-standalone-1.10.0.jar"
+        val junitConsoleJar = Path(KTPACK_ROOT, "junit", "junit-platform-console-standalone-1.10.0.jar")
         if (!junitConsoleJar.exists()) {
             junitConsoleJar.parent?.mkdirs()
             val response = context.http
@@ -177,7 +179,7 @@ class TestCommand : CliktCommand(
             }
         }
 
-        arg(pathFrom(jdkInstallation.path, "bin", "java").toString())
+        arg(Path(jdkInstallation.path, "bin", "java").toString())
         args("-jar", junitConsoleJar.toString())
         args("-classpath", (dependencyArtifacts + artifactPath).joinToString(CPSEP))
         arg("--disable-banner") // TODO: Put a copy of the JUnit banner in the docs

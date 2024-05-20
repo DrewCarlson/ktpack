@@ -5,19 +5,21 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.invoke
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemTemporaryDirectory
+import kotlinx.io.readByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ksubprocess.exec
 import ktpack.compilation.tools.models.DokkaConfiguration
 import ktpack.compilation.tools.models.PluginsConfiguration
-import ktpack.util.TEMP_PATH
-import okio.FileSystem
-import okio.Path
-import okio.buffer
+import ktpack.util.*
 
 private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
@@ -26,7 +28,6 @@ private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 class DokkaCli(
     private val dokkaCliFolder: Path,
     private val http: HttpClient,
-    private val fs: FileSystem,
 ) {
 
     private val logger = Logger.withTag(DokkaCli::class.simpleName.orEmpty())
@@ -52,12 +53,12 @@ class DokkaCli(
         require(javaPath.isAbsolute) { "Dokka javaPath must be an absolute directory $javaPath" }
         require(outPath.isAbsolute) { "Dokka outPath must be an absolute directory $outPath" }
         val cli = getDefaultCli() ?: return // TODO: Handle this case
-        val dokkaConfigPath = outPath / "config-${dokkaConfiguration.moduleName}.json"
+        val dokkaConfigPath = Path(outPath, "config-${dokkaConfiguration.moduleName}.json")
         val pluginClasspath = getDokkaCliDownloadUrls("1.9.10").mapNotNull { downloadUrl ->
             if (downloadUrl.contains("dokka-cli")) {
                 null
             } else {
-                (dokkaCliFolder / downloadUrl.substringAfterLast('/')).toString()
+                Path(dokkaCliFolder, downloadUrl.substringAfterLast('/')).toString()
             }
         }
         val updatedDokkaConfig = dokkaConfiguration.copy(
@@ -71,10 +72,8 @@ class DokkaCli(
             ),
         )
         logger.d { "Writing dokka config to ${dokkaConfigPath}:\n$updatedDokkaConfig" }
-        fs.createDirectories(dokkaConfigPath.parent!!)
-        fs.write<Unit>(dokkaConfigPath) {
-            writeUtf8(json.encodeToString(updatedDokkaConfig))
-        }
+        SystemFileSystem.createDirectories(dokkaConfigPath.parent!!)
+        dokkaConfigPath.writeUtf8(json.encodeToString(updatedDokkaConfig))
         val result = Dispatchers.IO {
             exec {
                 arg(javaPath.toString())
@@ -89,7 +88,8 @@ class DokkaCli(
             logger.d { result.output }
             logger.d { result.errors }
         } finally {
-            fs.delete(dokkaConfigPath)
+            dokkaConfigPath.delete()
+            SystemFileSystem.delete(dokkaConfigPath)
         }
     }
 
@@ -99,8 +99,8 @@ class DokkaCli(
     }
 
     fun getCli(version: String): Path? {
-        val cliPath = dokkaCliFolder / "dokka-cli-$version.jar"
-        if (fs.exists(cliPath)) {
+        val cliPath = Path(dokkaCliFolder, "dokka-cli-$version.jar")
+        if (cliPath.exists()) {
             return cliPath
         }
         return null
@@ -111,25 +111,25 @@ class DokkaCli(
             logger.w { "Dokka v$version is already downloaded, nothing to do." }
             return false
         }
-        fs.createDirectories(dokkaCliFolder)
+        SystemFileSystem.createDirectories(dokkaCliFolder)
 
         val downloadUrls = getDokkaCliDownloadUrls(version)
         val fileNames = downloadUrls.map { it.substringAfterLast('/') }
         val missing = fileNames.mapNotNull { fileName ->
-            if (fs.exists(dokkaCliFolder / fileName)) {
+            if (Path(dokkaCliFolder, fileName).exists()) {
                 null
             } else {
                 downloadUrls.first { it.endsWith(fileName) }
             }
         }
         missing.forEach { downloadUrl ->
-            val tempPath = TEMP_PATH / downloadUrl.substringAfterLast('/')
+            val tempPath = Path(SystemTemporaryDirectory, downloadUrl.substringAfterLast('/'))
             logger.d { "Downloading $downloadUrl into $tempPath" }
             logger.i("Downloading Dokka dependency: ${tempPath.name}")
             val response = http.prepareGet(downloadUrl).downloadInto(tempPath)
             if (response.status.isSuccess()) {
-                val outPath = dokkaCliFolder / tempPath.name
-                fs.atomicMove(tempPath, outPath)
+                val outPath = Path(dokkaCliFolder, tempPath.name)
+                outPath.renameTo(outPath)
             } else {
                 logger.e { "Failed to download dokka dependency ${response.status} ${response.request.url}" }
                 return false
@@ -154,13 +154,13 @@ class DokkaCli(
     ): HttpResponse {
         return execute { response ->
             val body = response.bodyAsChannel()
-            val sink = fs.appendingSink(outputPath)
-            val bufferedSink = sink.buffer()
+            val sink = SystemFileSystem.sink(outputPath, append = true)
+            val bufferedSink = sink.buffered()
             try {
                 while (!body.isClosedForRead) {
                     val packet = body.readRemaining(bufferSize)
-                    while (packet.isNotEmpty) {
-                        bufferedSink.write(packet.readBytes())
+                    while (!packet.exhausted()) {
+                        bufferedSink.write(packet.readByteArray())
                     }
                 }
             } finally {

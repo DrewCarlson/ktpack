@@ -7,7 +7,6 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(project(":ktpack-internal:platform"))
-                implementation(libs.ktfio)
                 implementation(libs.ksubprocess)
                 implementation(libs.coroutines.core)
                 implementation(libs.serialization.core)

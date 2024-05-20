@@ -7,7 +7,6 @@ plugins {
 allprojects {
     repositories {
         mavenCentral()
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 
     System.getenv("GITHUB_REF_NAME")

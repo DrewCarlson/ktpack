@@ -5,17 +5,18 @@ import com.github.ajalt.clikt.parameters.arguments.*
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.jdk.JdkDistribution
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
-import okio.Path.Companion.toPath
 
-class InstallJdkCommand : CliktCommand(
-    name = "install",
-    help = "Install a new JDK version.",
-) {
+class InstallJdkCommand : CliktCommand(name = "install") {
+
+    override fun help(context: Context): String {
+        return context.theme.info("Install a new JDK version.")
+    }
 
     private val context by requireObject<CliContext>()
 
@@ -32,8 +33,8 @@ class InstallJdkCommand : CliktCommand(
 
     private val path by option()
         .help("The root path to store the JDK installation.")
-        .convert { it.toPath() }
-        .defaultLazy { checkNotNull(context.config.jdk.rootPath).toPath() }
+        .convert { Path(it) }
+        .defaultLazy { Path(checkNotNull(context.config.jdk.rootPath)) }
         .check({ "JDK root path must exist." }) { path ->
             (path.exists() && path.isDirectory()) || path.mkdirs().exists()
         }

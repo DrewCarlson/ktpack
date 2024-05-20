@@ -1,11 +1,10 @@
 [versions]
-kotlin = { strictly = "1.9.24" }
+kotlin = { strictly = "2.0.21" }
 dokka = "1.9.20"
-coroutines = "1.8.1"
-serialization = "1.6.3"
-ktorio = "2.3.11"
-binary_compat = "0.15.0-Beta.2"
-okio = "3.9.0"
+coroutines = "1.9.0"
+serialization = "1.7.3"
+ktorio = "3.0.0"
+binary_compat = "0.16.3"
 spotless = "6.25.0"
 ktlint = "1.2.1"
 
@@ -24,6 +23,7 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 coroutines-turbine = { module = "app.cash.turbine:turbine", version = "1.1.0" }
+kotlin-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.5.4" }
 
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
@@ -38,19 +38,23 @@ ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktorio"
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktorio" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 
-kermit = { module = "co.touchlab:kermit", version = "2.0.3" }
-clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.4.0" }
-mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.5.0" }
-ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktorio" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktorio" }
+ktor-server-tests = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorio" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorio" }
+ktor-server-autoHeadResponse = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktorio" }
+ktor-server-defaultHeaders = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktorio" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio" }
+
+kermit = { module = "co.touchlab:kermit", version = "2.0.4" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version = "5.0.1" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version = "3.0.0" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
-cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.3" }
+cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "1.0.2" }
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.90.2" }
 semver = { module = "io.github.z4kn4fein:semver", version = "2.0.0" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.4" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.0-RC.2" }
-kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.16.0" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.1" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version = "2.0.0" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
 ivy = { module = "org.apache.ivy:ivy", version = "2.5.2" }
-tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.3.7" }
+tomlkt = { module = "net.peanuuutz.tomlkt:tomlkt", version = "0.4.0" }

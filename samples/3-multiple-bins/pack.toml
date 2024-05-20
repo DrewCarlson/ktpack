@@ -1,5 +1,12 @@
 [module]
 name = "hello_world"
 version = "0.0.1"
-kotlin_version = "1.9.24"
+kotlin_version = "2.0.0"
 description = "A sample that produces multiple binary executables."
+
+[module.output]
+type = "bin"
+
+[module.outputs.otherbin]
+type = "bin"
+main = "bin.MainKt"

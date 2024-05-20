@@ -1,23 +1,27 @@
 [module]
-name = "hello_world"
+name = "6-dependencies"
 version = "0.0.1"
-kotlin_version = "1.9.24"
+kotlin_version = "2.0.0"
 description = "A sample that uses multiple KMP libraries."
 authors = ["Alice <a@example.com>", "Bob <b@example.com>"]
 
 [versions]
-ktor = "2.3.8"
+ktor = "2.3.11"
 
 [dependencies.common]
 kermit = { maven = "co.touchlab:kermit", version = "2.0.3" }
-coingecko = { maven = "org.drewcarlson:coingecko", version = "1.0.0-beta02" }
+coingecko = { maven = "org.drewcarlson:coingecko", version = "1.0.0-rc01" }
 ktor = { maven = "io.ktor:ktor-client-core" }
+ktor-content-negotiation = { maven = "io.ktor:ktor-client-core" }
+coroutines = { maven = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.8.1" }
 
 [dependencies.js]
 ktor-js = { maven = "io.ktor:ktor-client-js" }
+kotlin-dom-api-compat = { maven = "org.jetbrains.kotlin:kotlin-dom-api-compat", version = "2.0.0" }
 
 [dependencies.jvm]
 ktor-cio = { maven = "io.ktor:ktor-client-cio" }
+slf4j = { maven = "org.slf4j:slf4j-simple", version = "1.7.36" }
 
 [dependencies.linux]
 ktor-curl = { maven = "io.ktor:ktor-client-curl" }
