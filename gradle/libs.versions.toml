@@ -43,7 +43,7 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.4.0" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.5.0" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
-cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
+cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "1.0.2" }
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version = "0.86.3" }
 semver = { module = "io.github.z4kn4fein:semver", version = "2.0.0" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
