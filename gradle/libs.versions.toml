@@ -40,7 +40,7 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorio" }
 
 kermit = { module = "co.touchlab:kermit", version = "2.0.3" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "4.4.0" }
-mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.5.0" }
+mordant = { module = "com.github.ajalt.mordant:mordant", version = "2.7.2" }
 ktfio = { module = "org.drewcarlson:ktfio", version = "1.0.0-SNAPSHOT" }
 ksubprocess = { module = "org.drewcarlson:ksubprocess", version = "0.6.0" }
 cryptohash = { module = "com.appmattus.crypto:cryptohash", version = "0.10.1" }
