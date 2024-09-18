@@ -48,7 +48,7 @@ xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", v
 semver = { module = "io.github.z4kn4fein:semver", version = "2.0.0" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefs = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.3.4" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.5.4" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.6.0-RC.2" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.16.0" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version = "2.11.5" }
