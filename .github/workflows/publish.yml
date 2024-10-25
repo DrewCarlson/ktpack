@@ -49,10 +49,9 @@ jobs:
       - name: Install Python dependencies
         run: python3 -m pip install -r ./docs/requirements.txt
 
-#      - uses: gradle/gradle-build-action@v3
-#        name: Build KDocs
-#        with:
-#          arguments: clean dokkaHtmlMultiModule
+#      - uses: gradle/actions/setup-gradle@v4
+#      - name: Build KDocs
+#        run: ./gradlew clean dokkaHtmlMultiModule
 
 #      - name: Move KDoc build
 #        run: mv build/dokka/htmlMultiModule docs/kdoc
@@ -85,6 +84,8 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Cache Build files
         uses: actions/cache@v4
         with:
@@ -93,10 +94,8 @@ jobs:
             %USERPROFILE%\.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v3
-        name: Build CLI
-        with:
-          arguments: packageReleaseWindows
+      - name: Build CLI
+        run: ./gradlew packageReleaseWindows
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v2
@@ -129,6 +128,8 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Cache Build files
         uses: actions/cache@v4
         with:
@@ -137,10 +138,8 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v3
-        name: Build CLI
-        with:
-          arguments: packageReleaseLinux
+      - name: Build CLI
+        run: ./gradlew packageReleaseLinux
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v2
@@ -168,6 +167,8 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Cache Build files
         uses: actions/cache@v4
         with:
@@ -176,10 +177,8 @@ jobs:
             ~/.gradle
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}-v2
 
-      - uses: gradle/gradle-build-action@v3
-        name: Build CLI
-        with:
-          arguments: packageReleaseMacos --no-parallel
+      - name: Build CLI
+        run: ./gradlew packageReleaseMacos --no-parallel
 
       - name: Upload to Github Release
         uses: softprops/action-gh-release@v2
