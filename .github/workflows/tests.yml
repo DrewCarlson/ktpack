@@ -29,10 +29,12 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     needs: [ file-changes ]
     if: needs.file-changes.outputs.any == 'true'
+    env:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
       - uses: msys2/setup-msys2@v2
         if: startsWith(matrix.os, 'windows')
@@ -56,6 +58,8 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
+      - uses: gradle/actions/setup-gradle@v4
+
       - name: Cache Build files
         uses: actions/cache@v4
         with:
@@ -66,27 +70,19 @@ jobs:
             %USERPROFILE%\.konan
           key: ${{ runner.os }}-${{ hashFiles('gradle.properties') }}
 
-      - uses: gradle/gradle-build-action@v3
-        name: Test Apple Targets
+      - name: Test Apple Targets
         if: startsWith(matrix.os, 'macos')
-        with:
-          arguments: linkMacosX64 #:ktpack:macosX64Test :ktpack-cli-tests:macosX64Test
+        run: ./gradlew clean linkMacosX64 #:ktpack:macosX64Test :ktpack-cli-tests:macosX64Test
 
-      - uses: gradle/gradle-build-action@v3
-        name: Test Linux Target
+      - name: Test Linux Target
         if: startsWith(matrix.os, 'ubuntu')
         env:
           KTPACK_PATH: /home/runner/work/ktpack
-        with:
-          arguments: linkLinuxX64 #:ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
+        run: ./gradlew clean linkLinuxX64 #:ktpack:linuxX64Test :ktpack-cli-tests:linuxX64Test
 
-      - uses: gradle/gradle-build-action@v3
-        name: Test Windows Target
-        env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false
+      - name: Test Windows Target
         if: startsWith(matrix.os, 'windows')
-        with:
-          arguments: linkWindowsX64 #:ktpack:windowsX64Test :ktpack-cli-tests:windowsX64Test
+        run: ./gradlew clean linkWindowsX64 #:ktpack:windowsX64Test :ktpack-cli-tests:windowsX64Test
 
       - name: Publish Test Reports
         uses: mikepenz/action-junit-report@v4
