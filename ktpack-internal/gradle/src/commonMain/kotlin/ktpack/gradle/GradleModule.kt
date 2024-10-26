@@ -65,7 +65,7 @@ data class GradleModule(
         data class Dependency(
             val group: String,
             val module: String,
-            val version: Version,
+            val version: Version? = null,
             val excludes: List<Excludes>? = null,
             val reason: String? = null,
             val attributes: Attributes? = null,

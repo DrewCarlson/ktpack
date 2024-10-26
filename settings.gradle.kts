@@ -6,6 +6,7 @@ include(
     ":ktpack-internal:core",
     ":ktpack-internal:compression",
     ":ktpack-internal:dependency-resolver",
+    ":ktpack-internal:dependency-resolver-public",
     ":ktpack-internal:dokka",
     ":ktpack-internal:git",
     ":ktpack-internal:gradle",

@@ -12,7 +12,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktpack.*
@@ -76,11 +75,7 @@ class KtpackCommand(
 
     override fun loadManifestToml(filePath: String): ManifestToml {
         val path = Path(filePath).let { path ->
-            if (path.isAbsolute) {
-                path
-            } else {
-                SystemFileSystem.resolve(Path(workingDirectory, path.toString()))
-            }
+            Path(workingDirectory, path.toString()).resolve()
         }
         check(path.exists()) { "No $MANIFEST_FILENAME file found in '${path.parent}'" }
         return toml.decodeFromString<ManifestToml>(path.readString())

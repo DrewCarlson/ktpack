@@ -14,13 +14,11 @@ import ktpack.configuration.*
 import ktpack.gradle.GradleModule
 import ktpack.json
 import ktpack.manifest.DependencyToml
-import ktpack.manifest.ManifestToml
 import ktpack.maven.MavenProject
 import ktpack.util.*
 import ktpack.xml
 
 class MavenDependencyResolver(
-    override val manifest: ManifestToml,
     private val http: HttpClient,
 ) : DependencyResolver() {
     // TODO: Support list of maven urls and local repo folders
@@ -141,14 +139,18 @@ class MavenDependencyResolver(
         target: KotlinTarget,
     ): List<DependencyNode> {
         return targetVariant.dependencies
-            // TODO: Explicit stdlib version handling
-            .filter { !it.module.startsWith("kotlin-stdlib") && !it.module.endsWith("-bom") }
+            // TODO: Explicit stdlib/reflect version handling
+            .filter {
+                !it.module.startsWith("kotlin-stdlib") &&
+                        !it.module.endsWith("-bom") &&
+                        !it.module.startsWith("kotlin-reflect")
+            }
             .map { gradleDep ->
                 val newNode = DependencyNode(
                     localManifest = null,
                     dependencyConf = DependencyToml.Maven(
                         maven = "${gradleDep.group}:${gradleDep.module}",
-                        version = gradleDep.version.requires,
+                        version = gradleDep.version?.requires,
                     ),
                     children = emptyList(),
                     artifacts = emptyList(),

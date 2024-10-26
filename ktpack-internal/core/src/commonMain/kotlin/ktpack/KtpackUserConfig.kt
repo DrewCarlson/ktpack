@@ -11,6 +11,7 @@ data class KtpackUserConfig(
     val kotlin: KotlinConfig = KotlinConfig(),
     val jdk: JdkConfig = JdkConfig(),
     val nodejs: NodejsConfig = NodejsConfig(),
+    val dokkaVersion: String = Ktpack.DOKKA_VERSION,
 ) {
     @Serializable
     data class KotlinConfig(

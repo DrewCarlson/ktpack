@@ -49,16 +49,18 @@ class DokkaCli(
         javaPath: Path,
         outPath: Path,
         dokkaConfiguration: DokkaConfiguration,
+        dokkaVersion: String,
     ) {
         require(javaPath.isAbsolute) { "Dokka javaPath must be an absolute directory $javaPath" }
         require(outPath.isAbsolute) { "Dokka outPath must be an absolute directory $outPath" }
-        val cli = getDefaultCli() ?: return // TODO: Handle this case
+
+        val cli = getCli(dokkaVersion) ?: return // TODO: Handle this case
         val dokkaConfigPath = Path(outPath, "dokka", "config-${dokkaConfiguration.moduleName}.json")
-        val pluginClasspath = getDokkaCliDownloadUrls("1.9.10").mapNotNull { downloadUrl ->
+        val pluginClasspath = getDokkaCliDownloadUrls(dokkaVersion).mapNotNull { downloadUrl ->
             if (downloadUrl.contains("dokka-cli")) {
                 null
             } else {
-                Path(dokkaCliFolder, downloadUrl.substringAfterLast('/')).toString()
+                Path(dokkaCliFolder, dokkaVersion, downloadUrl.substringAfterLast('/')).toString()
             }
         }
         val updatedDokkaConfig = dokkaConfiguration.copy(
@@ -91,13 +93,8 @@ class DokkaCli(
         }
     }
 
-    fun getDefaultCli(): Path? {
-        // TODO: get dokka version from config
-        return getCli("1.9.10")
-    }
-
     fun getCli(version: String): Path? {
-        val cliPath = Path(dokkaCliFolder, "dokka-cli-$version.jar")
+        val cliPath = Path(dokkaCliFolder, version, "dokka-cli-$version.jar")
         if (cliPath.exists()) {
             return cliPath
         }
@@ -109,12 +106,13 @@ class DokkaCli(
             logger.w { "Dokka v$version is already downloaded, nothing to do." }
             return false
         }
-        SystemFileSystem.createDirectories(dokkaCliFolder)
+        val dokkaVersionPath = Path(dokkaCliFolder, version)
+        SystemFileSystem.createDirectories(dokkaVersionPath)
 
         val downloadUrls = getDokkaCliDownloadUrls(version)
         val fileNames = downloadUrls.map { it.substringAfterLast('/') }
         val missing = fileNames.mapNotNull { fileName ->
-            if (Path(dokkaCliFolder, fileName).exists()) {
+            if (Path(dokkaVersionPath, fileName).exists()) {
                 null
             } else {
                 downloadUrls.first { it.endsWith(fileName) }
@@ -126,8 +124,9 @@ class DokkaCli(
             logger.i("Downloading Dokka dependency: ${tempPath.name}")
             val response = http.prepareGet(downloadUrl).downloadInto(tempPath)
             if (response.status.isSuccess()) {
-                val outPath = Path(dokkaCliFolder, tempPath.name)
-                outPath.renameTo(outPath)
+                val outPath = Path(dokkaVersionPath, tempPath.name)
+                logger.d { "Download complete moving to $outPath" }
+                tempPath.renameTo(outPath)
             } else {
                 logger.e { "Failed to download dokka dependency ${response.status} ${response.request.url}" }
                 return false
@@ -138,8 +137,8 @@ class DokkaCli(
 
     private fun getDokkaCliDownloadUrls(version: String): List<String> {
         return listOf(
-            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-html-jvm/0.8.0/kotlinx-html-jvm-0.8.0.jar",
-            "https://repo1.maven.org/maven2/org/freemarker/freemarker/2.3.31/freemarker-2.3.31.jar",
+            "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-html-jvm/0.9.1/kotlinx-html-jvm-0.9.1.jar",
+            "https://repo1.maven.org/maven2/org/freemarker/freemarker/2.3.32/freemarker-2.3.32.jar",
             "https://repo1.maven.org/maven2/org/jetbrains/dokka/analysis-kotlin-descriptors/$version/analysis-kotlin-descriptors-$version.jar",
             "https://repo1.maven.org/maven2/org/jetbrains/dokka/dokka-base/$version/dokka-base-$version.jar",
             "https://repo1.maven.org/maven2/org/jetbrains/dokka/dokka-cli/$version/dokka-cli-$version.jar",

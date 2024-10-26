@@ -2,7 +2,6 @@ package ktpack.util
 
 import kotlinx.cinterop.*
 import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
 import platform.posix.*
 import platform.posix.NULL
 import platform.windows.*
@@ -16,6 +15,6 @@ actual fun getHomePath(): Path? {
             null
         }
     }
-    return result?.run(::Path)?.run(SystemFileSystem::resolve)
+    return result?.run(::Path)?.resolve()
 }
 

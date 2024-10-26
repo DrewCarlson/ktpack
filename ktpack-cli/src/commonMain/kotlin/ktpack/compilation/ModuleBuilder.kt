@@ -46,7 +46,7 @@ class ModuleBuilder(
     private val srcFolder = Path(modulePath, "src")
 
     private val module = manifest.module
-    private val resolver = MavenDependencyResolver(manifest, context.http)
+    private val resolver = MavenDependencyResolver(context.http)
     internal val sourceCollector = KtpackSourceCollector(srcFolder)
 
     init {

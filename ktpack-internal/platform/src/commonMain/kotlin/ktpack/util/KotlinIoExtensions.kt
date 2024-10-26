@@ -138,11 +138,6 @@ fun Path.createNewFile(): Boolean {
     }
 }
 
-fun Path.renameTo(path: Path): Boolean {
-    return try {
-        SystemFileSystem.atomicMove(this, path)
-        true
-    } catch (_: Exception) {
-        false
-    }
+fun Path.renameTo(path: Path) {
+    SystemFileSystem.atomicMove(this, path)
 }

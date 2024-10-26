@@ -39,6 +39,7 @@ val buildRuntimeConstants by tasks.creating {
                |    const val KTOR_VERSION = "${libs.versions.ktorio.get()}"
                |    const val COROUTINES_VERSION = "${libs.versions.coroutines.get()}"
                |    const val SERIALIZATION_VERSION = "${libs.versions.serialization.get()}"
+               |    const val DOKKA_VERSION = "${libs.versions.dokka.get()}"
                |}
                |""".trimMargin(),
         )

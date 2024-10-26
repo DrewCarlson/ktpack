@@ -11,11 +11,10 @@ data class ManifestToml(
     val module: ModuleToml,
     val versions: Map<String, String> = emptyMap(),
     val dependencies: DependenciesToml = emptyMap(),
+    val docs: DocsToml = DocsToml(),
 ) {
     fun resolveDependencyShorthand(): ManifestToml {
-        return ManifestToml(
-            module = module,
-            versions = versions,
+        return copy(
             dependencies = dependencies.mapValues { (_, dependenciesMap) ->
                 dependenciesMap.mapValues { (key, dependency) ->
                     val versionKey = key.substringBefore('-')
@@ -30,7 +29,7 @@ data class ManifestToml(
     fun dependenciesFor(
         scopes: List<DependencyScope>,
         targets: List<KotlinTarget> = emptyList(),
-        includeCommon: Boolean = false
+        includeCommon: Boolean = false,
     ): Map<String, TargetDependenciesToml> {
         return dependencies
             .filter { (targetName, _) ->
@@ -68,7 +67,7 @@ sealed class OutputToml {
     @Serializable
     data class Lib(
         override val name: String? = null,
-        override val targets: List<KotlinTarget> = KotlinTarget.entries
+        override val targets: List<KotlinTarget> = KotlinTarget.entries,
     ) : OutputToml()
 
     @Serializable
@@ -78,7 +77,7 @@ sealed class OutputToml {
         data class Bin(
             val main: String = "MainKt",
             override val name: String? = null,
-            override val targets: List<KotlinTarget> = KotlinTarget.entries
+            override val targets: List<KotlinTarget> = KotlinTarget.entries,
         ) : BinCommon()
 
         @SerialName("macos-bin")
@@ -86,7 +85,7 @@ sealed class OutputToml {
         data class MacosBin(
             val main: String,
             override val name: String? = null,
-            override val targets: List<KotlinTarget> = KotlinTarget.ALL_MACOS
+            override val targets: List<KotlinTarget> = KotlinTarget.ALL_MACOS,
         ) : BinCommon()
 
         @SerialName("windows-bin")
@@ -94,7 +93,7 @@ sealed class OutputToml {
         data class WindowsBin(
             val main: String,
             override val name: String? = null,
-            override val targets: List<KotlinTarget> = KotlinTarget.ALL_WINDOWS
+            override val targets: List<KotlinTarget> = KotlinTarget.ALL_WINDOWS,
         ) : BinCommon()
 
         @SerialName("linux-bin")
@@ -102,7 +101,7 @@ sealed class OutputToml {
         data class LinuxBin(
             val main: String,
             override val name: String? = null,
-            override val targets: List<KotlinTarget> = KotlinTarget.ALL_LINUX
+            override val targets: List<KotlinTarget> = KotlinTarget.ALL_LINUX,
         ) : BinCommon()
 
         @SerialName("jvm-bin")
@@ -110,7 +109,7 @@ sealed class OutputToml {
         data class JvmBin(
             val main: String,
             override val name: String? = null,
-            override val targets: List<KotlinTarget> = KotlinTarget.ALL_JVM
+            override val targets: List<KotlinTarget> = KotlinTarget.ALL_JVM,
         ) : BinCommon()
     }
 }

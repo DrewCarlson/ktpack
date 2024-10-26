@@ -39,10 +39,11 @@ class DocCommand : CliktCommand(name = "doc") {
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val moduleConf = context.loadManifestToml().module
+        val manifest = context.loadManifestToml()
         val jdk = checkNotNull(context.jdkInstalls.getDefaultJdk())
-        if (context.dokka.getDefaultCli() == null) {
-            if (!context.dokka.download("1.9.10")) {
+        val dokkaVersion = manifest.docs.version ?: context.config.dokkaVersion
+        if (context.dokka.getCli(dokkaVersion) == null) {
+            if (!context.dokka.download(dokkaVersion)) {
                 logger.i("${failed("Failed")} Dokka is missing and failed to download")
                 return@runBlocking
             }
@@ -50,10 +51,10 @@ class DocCommand : CliktCommand(name = "doc") {
         val docOutputDir = Path(workingDirectory, "out", "docs").toString()
 
         val configuration = DokkaConfiguration(
-            moduleName = moduleConf.name,
-            moduleVersion = moduleConf.version,
+            moduleName = manifest.module.name,
+            moduleVersion = manifest.module.version,
             outputDir = docOutputDir,
-            sourceSets = createSourceSets(moduleConf),
+            sourceSets = createSourceSets(manifest.module),
         )
         logger.i("${info("Doc")} Building docs into $docOutputDir")
         val (_, duration) = measureSeconds {
@@ -62,6 +63,7 @@ class DocCommand : CliktCommand(name = "doc") {
                     javaPath = Path(jdk.path, "bin", "java"),
                     outPath = Path(workingDirectory, "out"),
                     dokkaConfiguration = configuration,
+                    dokkaVersion = dokkaVersion
                 )
             }
         }

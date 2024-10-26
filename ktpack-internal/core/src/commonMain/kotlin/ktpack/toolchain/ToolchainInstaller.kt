@@ -9,6 +9,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.io.IOException
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemTemporaryDirectory
 import ktpack.util.*
@@ -112,10 +113,14 @@ abstract class ToolchainInstaller<I : InstallDetails>(
         val target = extractPath.list().singleOrNull() ?: extractPath
         return if (newFolderPath.exists() && newFolderPath.list().isNotEmpty()) {
             ToolchainInstallResult.FileIOError(newFolderPath, "Folder already exists")
-        } else if (target.renameTo(newFolderPath)) {
-            ToolchainInstallResult.Success(installDetails)
         } else {
-            ToolchainInstallResult.FileIOError(target, "Unable to move folder.")
+            try {
+                target.renameTo(newFolderPath)
+                ToolchainInstallResult.Success(installDetails)
+            } catch (e: IOException) {
+                logger.e(e) { "Failed to move folder" }
+                ToolchainInstallResult.FileIOError(target, "Unable to move folder.")
+            }
         }
     }
 }
