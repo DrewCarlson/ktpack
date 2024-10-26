@@ -56,6 +56,7 @@ val installKotlincForTests by tasks.creating {
     val compilerDir = File(konanDir, compilerFolderName)
     onlyIf { !compilerDir.exists() || compilerDir.listFiles().orEmpty().isEmpty() }
     doFirst {
+        konanDir.mkdirs()
         val downloadFile = File(konanDir, "kotlin-compiler-jvm.zip")
         val downloadUrl =
             URL("https://github.com/JetBrains/kotlin/releases/download/v$ktVersion/kotlin-compiler-${ktVersion}.zip")
