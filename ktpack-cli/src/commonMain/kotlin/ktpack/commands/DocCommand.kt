@@ -10,10 +10,6 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
-import com.github.ajalt.mordant.rendering.TextColors.brightWhite
-import com.github.ajalt.mordant.rendering.TextColors.white
-import com.github.ajalt.mordant.rendering.TextStyles.bold
-import com.github.ajalt.mordant.rendering.TextStyles.reset
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
 import ktpack.CliContext
@@ -22,7 +18,7 @@ import ktpack.compilation.tools.models.SourceSet
 import ktpack.compilation.tools.models.SourceSetID
 import ktpack.manifest.ModuleToml
 import ktpack.util.*
-import mongoose.runWebServer
+import webserver.runWebServer
 
 class DocCommand : CliktCommand(name = "doc") {
 
@@ -78,7 +74,7 @@ class DocCommand : CliktCommand(name = "doc") {
                     logger.i("${info("HTTP Server")} Available at http://localhost:$httpPort")
                 },
             ) {
-                route { respondDirectory(docOutputDir) }
+                route("{...}") { respondDirectory(docOutputDir) }
             }
         }
     }

@@ -116,7 +116,7 @@ class NewCommand : CliktCommand(name = "new") {
         checkMakeDir(folder)
 
         val packFile = Path(folder, MANIFEST_FILENAME)
-        packFile.writeUtf8(toml.encodeToString(generateKtpackConf())) { error ->
+        packFile.writeString(toml.encodeToString(generateKtpackConf())) { error ->
             context.term.println("${failed("Failed")} package could not be generated for `$packFile`.")
             context.logError(error)
             exitProcess(1)
@@ -139,7 +139,7 @@ class NewCommand : CliktCommand(name = "new") {
                 context.gitCli.initRepository(folder.toString())
                 context.term.println("${info("Initialized")} ${VcsType.GIT} repository")
                 val gitignorePath = Path(folder, ".gitignore")
-                gitignorePath.writeUtf8(NEW_GITIGNORE_SOURCE) { error ->
+                gitignorePath.writeString(NEW_GITIGNORE_SOURCE) { error ->
                     context.term.println("${failed("Failed")} Could not write .gitignore")
                     context.logError(error)
                 }
@@ -240,7 +240,7 @@ class NewCommand : CliktCommand(name = "new") {
 
 fun Path.generateSourceFile(context: CliContext, fileName: String, contents: String) {
     val sourceFile = Path(this, fileName)
-    sourceFile.writeUtf8(contents) { error ->
+    sourceFile.writeString(contents) { error ->
         context.term.println("${failed("Failed")} source could not be created at `$sourceFile`.")
         context.logError(error)
         exitProcess(1)

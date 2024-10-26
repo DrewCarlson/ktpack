@@ -61,7 +61,7 @@ class GitCli {
     fun discoverAuthorDetails(): Map<String, String> {
         val gitconfig = Path(USER_HOME, ".gitconfig")
         if (!gitconfig.exists()) return emptyMap()
-        return gitconfig.readUtf8Lines()
+        return gitconfig.readLinesStrict()
             .filter(gitconfigRegex::containsMatchIn)
             .mapNotNull { config ->
                 val result = checkNotNull(gitconfigRegex.find(config))

@@ -71,7 +71,7 @@ class KtpackCommand(
             "Failed to create Ktpack folder $KTPACK_ROOT"
         }
         val encodedConfig = jsonPretty.encodeToString(_config)
-        configPath.writeUtf8(encodedConfig, ::logError)
+        configPath.writeString(encodedConfig, ::logError)
     }
 
     override fun loadManifestToml(filePath: String): ManifestToml {
@@ -83,7 +83,7 @@ class KtpackCommand(
             }
         }
         check(path.exists()) { "No $MANIFEST_FILENAME file found in '${path.parent}'" }
-        return toml.decodeFromString<ManifestToml>(path.readUtf8())
+        return toml.decodeFromString<ManifestToml>(path.readString())
             .resolveDependencyShorthand()
     }
 
@@ -113,7 +113,7 @@ class KtpackCommand(
     private fun loadConfig() {
         _config = if (configPath.exists()) {
             logger.d("Loading existing KtpackUserConfig at $configPath")
-            json.decodeFromString(configPath.readUtf8())
+            json.decodeFromString(configPath.readString())
         } else {
             logger.d("Creating default KtpackUserConfig at $configPath")
             check(KTPACK_ROOT.mkdirs().exists()) {
@@ -121,7 +121,7 @@ class KtpackCommand(
             }
             val defaultConfig = KtpackUserConfig()
             val encodedConfig = jsonPretty.encodeToString(defaultConfig)
-            configPath.writeUtf8(encodedConfig, ::logError)
+            configPath.writeString(encodedConfig, ::logError)
             defaultConfig
         }
     }

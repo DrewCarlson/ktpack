@@ -22,7 +22,7 @@ import ktpack.configuration.KotlinTarget
 import ktpack.manifest.ModuleToml
 import ktpack.manifest.OutputToml
 import ktpack.util.*
-import mongoose.*
+import webserver.*
 
 class RunCommand : CliktCommand() {
 
@@ -185,7 +185,7 @@ class RunCommand : CliktCommand() {
                 )
             }
             route("/${Path(artifactPath).name}") { respondFile(artifactPath) }
-            route("/*") { respondDirectory(".") }
+            route("{...}") { respondDirectory(".") }
         }
     }
 }

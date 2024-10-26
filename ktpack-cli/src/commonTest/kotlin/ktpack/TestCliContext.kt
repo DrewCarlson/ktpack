@@ -46,7 +46,7 @@ class TestCliContext : CliContext {
         check(path.exists()) {
             "No $MANIFEST_FILENAME file found in '${path.parent}'"
         }
-        return toml.decodeFromString<ManifestToml>(path.readUtf8())
+        return toml.decodeFromString<ManifestToml>(path.readString())
             .resolveDependencyShorthand()
     }
 }

@@ -53,7 +53,7 @@ class DokkaCli(
         require(javaPath.isAbsolute) { "Dokka javaPath must be an absolute directory $javaPath" }
         require(outPath.isAbsolute) { "Dokka outPath must be an absolute directory $outPath" }
         val cli = getDefaultCli() ?: return // TODO: Handle this case
-        val dokkaConfigPath = Path(outPath, "config-${dokkaConfiguration.moduleName}.json")
+        val dokkaConfigPath = Path(outPath, "dokka", "config-${dokkaConfiguration.moduleName}.json")
         val pluginClasspath = getDokkaCliDownloadUrls("1.9.10").mapNotNull { downloadUrl ->
             if (downloadUrl.contains("dokka-cli")) {
                 null
@@ -73,23 +73,21 @@ class DokkaCli(
         )
         logger.d { "Writing dokka config to ${dokkaConfigPath}:\n$updatedDokkaConfig" }
         SystemFileSystem.createDirectories(dokkaConfigPath.parent!!)
-        dokkaConfigPath.writeUtf8(json.encodeToString(updatedDokkaConfig))
-        val result = Dispatchers.IO {
-            exec {
-                arg(javaPath.toString())
-                arg("-jar")
-                arg(cli.toString())
-                arg(dokkaConfigPath.toString())
-                logger.d { "Launching dokka cli:\n${arguments.joinToString("\n")}" }
-            }
-        }
-
+        dokkaConfigPath.writeString(json.encodeToString(updatedDokkaConfig))
         try {
+            val result = Dispatchers.IO {
+                exec {
+                    arg(javaPath.toString())
+                    arg("-jar")
+                    arg(cli.toString())
+                    arg(dokkaConfigPath.toString())
+                    logger.d { "Launching dokka cli:\n${arguments.joinToString(" ")}" }
+                }
+            }
             logger.d { result.output }
             logger.d { result.errors }
         } finally {
             dokkaConfigPath.delete()
-            SystemFileSystem.delete(dokkaConfigPath)
         }
     }
 

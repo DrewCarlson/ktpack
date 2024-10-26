@@ -11,9 +11,9 @@ include(
     ":ktpack-internal:gradle",
     ":ktpack-internal:maven",
     ":ktpack-internal:models",
-    ":ktpack-internal:mongoose",
     ":ktpack-internal:platform",
     ":ktpack-internal:test-utils",
+    ":ktpack-internal:webserver",
     ":libs:zip",
 )
 

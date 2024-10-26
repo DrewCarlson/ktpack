@@ -7,7 +7,7 @@ import kotlinx.io.files.SystemFileSystem
 val Path.nameWithoutExtension: String
     get() = name.substringBeforeLast(".")
 
-fun Path.writeUtf8(
+fun Path.writeString(
     string: String,
     onError: ((error: IOException) -> Unit)? = null,
 ) {
@@ -20,7 +20,7 @@ fun Path.writeUtf8(
     }
 }
 
-fun Path.appendUtf8(
+fun Path.appendString(
     string: String,
     onError: (error: IOException) -> Unit,
 ) {
@@ -46,9 +46,13 @@ fun Path.writeBytes(
     }
 }
 
-fun Path.readUtf8Lines(): Sequence<String> {
+fun Path.source(): RawSource {
+    return SystemFileSystem.source(this)
+}
+
+fun Path.readLinesStrict(): Sequence<String> {
     return sequence {
-        SystemFileSystem.source(this@readUtf8Lines)
+        SystemFileSystem.source(this@readLinesStrict)
             .use { source ->
                 source.buffered().use { bufferedSource ->
                     while (!bufferedSource.exhausted()) {
@@ -59,7 +63,7 @@ fun Path.readUtf8Lines(): Sequence<String> {
     }
 }
 
-fun Path.readUtf8(): String {
+fun Path.readString(): String {
     return SystemFileSystem.source(this).use { source ->
         source.buffered().use { it.readString() }
     }

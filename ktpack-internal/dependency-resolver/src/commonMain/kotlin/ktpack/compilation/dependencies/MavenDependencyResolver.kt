@@ -189,7 +189,7 @@ class MavenDependencyResolver(
 
         return if (pomFileNameCacheFile.exists()) {
             logger.d { "Found cached POM for '${dependency.toMavenString()}': $pomFileNameCacheFile" }
-            xml.decodeFromString(pomFileNameCacheFile.readUtf8())
+            xml.decodeFromString(pomFileNameCacheFile.readString())
         } else {
             null
         }
@@ -222,7 +222,7 @@ class MavenDependencyResolver(
         pomFileNameCacheFile.apply {
             parent?.mkdirs()
             createNewFile()
-            writeUtf8(pomBody) { error ->
+            writeString(pomBody) { error ->
                 throw error
             }
         }
@@ -301,7 +301,7 @@ class MavenDependencyResolver(
         val artifactModuleCacheFile = Path(cacheRoot, artifactRemotePath.urlAsPath(), artifactModuleName)
         return if (artifactModuleCacheFile.exists()) {
             logger.d { "Read cached Gradle module: $artifactModuleCacheFile" }
-            json.decodeFromString<GradleModule?>(artifactModuleCacheFile.readUtf8())
+            json.decodeFromString<GradleModule?>(artifactModuleCacheFile.readString())
                 ?.also { gradleModuleCache[artifactRemotePath] = it }
         } else {
             null
@@ -331,7 +331,7 @@ class MavenDependencyResolver(
         artifactModuleCacheFile.apply {
             parent?.mkdirs()
             createNewFile()
-            writeUtf8(bodyText) { throw it }
+            writeString(bodyText) { throw it }
         }
         return json.decodeFromString<GradleModule>(bodyText)
             .also { gradleModuleCache[artifactRemotePath] = it }

@@ -1,15 +1,15 @@
-package mongoose
+package webserver
 
 import io.ktor.http.*
 
 
-typealias MongooseRouteHandler = MongooseRoute.() -> Unit
+typealias WebserverRouteHandler = WebserverRoute.() -> Unit
 
-class MongooseRouting {
+class WebserverRouting {
 
-    internal val routes = mutableMapOf<String, MongooseRouteHandler>()
+    internal val routes = mutableMapOf<String, WebserverRouteHandler>()
 
-    internal fun getGlobal(): MongooseRouteHandler? {
+    internal fun getGlobal(): WebserverRouteHandler? {
         return routes.firstNotNullOfOrNull { (key, handler) ->
             if (key.isBlank()) {
                 handler
@@ -19,12 +19,12 @@ class MongooseRouting {
         }
     }
 
-    fun route(path: String = "", handler: MongooseRouteHandler) {
+    fun route(path: String, handler: WebserverRouteHandler) {
         require(!routes.contains(path)) { "A route is already defined for path '$path'" }
         routes[path] = handler
     }
 
-    fun indexRoute(handler: MongooseRouteHandler) {
+    fun indexRoute(handler: WebserverRouteHandler) {
         require(!routes.contains("/") && !routes.contains("/")) {
             "A route is already defined for path `/` or `/index.html`"
         }
@@ -33,7 +33,7 @@ class MongooseRouting {
     }
 }
 
-class MongooseRoute {
+class WebserverRoute {
     internal var contentType: ContentType? = null
     internal var bodyType: BodyType? = null
 

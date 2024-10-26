@@ -45,6 +45,7 @@ ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotia
 ktor-server-autoHeadResponse = { module = "io.ktor:ktor-server-auto-head-response", version.ref = "ktorio" }
 ktor-server-defaultHeaders = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktorio" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktorio" }
+ktor-server-callLogging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktorio" }
 
 kermit = { module = "co.touchlab:kermit", version = "2.0.4" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version = "5.0.1" }
