@@ -11,9 +11,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.kotlin.KotlinInstallDetails
-import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
+import ktpack.toolchain.kotlin.KotlinInstallDetails.CompilerType
 import ktpack.util.*
 
 class InstallKotlinCommand : CliktCommand(name = "install") {
@@ -22,7 +22,7 @@ class InstallKotlinCommand : CliktCommand(name = "install") {
     }
 
     private val context by requireObject<CliContext>()
-    private val logger = Logger.withTag(InstallKotlinCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<InstallKotlinCommand>()
 
     private val version by argument()
         .help("The Kotlin version to install, can be a partial or full version. Example: 1.8 or 1.8.20.")
@@ -42,25 +42,25 @@ class InstallKotlinCommand : CliktCommand(name = "install") {
         }
 
     private val compilerType by option("--compiler", "-c")
-        .enum<KotlincInstalls.CompilerType> { it.name.lowercase() }
+        .enum<CompilerType> { it.name.lowercase() }
 
     override fun run() = runBlocking {
         // TODO: Resolve partial version to latest patch release (ex 1.8 -> 1.8.20)
         val existingInstalls = context.kotlinInstalls.discover(path)
         val matchedInstalls = existingInstalls.filter { it.version == version }
         if (matchedInstalls.size == 2 || existingInstalls.any { it.type == compilerType }) {
-            logger.i("${warn("Warning")} Existing installation found for ${compilerType?.let(::listOf) ?: KotlincInstalls.CompilerType.entries}, nothing to do")
+            logger.i("${warn("Warning")} Existing installation found for ${compilerType?.let(::listOf) ?: CompilerType.entries}, nothing to do")
             return@runBlocking
         }
 
         val newInstalls = mutableListOf<Pair<KotlinInstallDetails, Double>>()
         val compilerType = compilerType
         if (compilerType == null) {
-            if (matchedInstalls.none { it.type == KotlincInstalls.CompilerType.JVM }) {
-                downloadAndSetupKotlin(KotlincInstalls.CompilerType.JVM)?.run(newInstalls::add)
+            if (matchedInstalls.none { it.type == CompilerType.JVM }) {
+                downloadAndSetupKotlin(CompilerType.JVM)?.run(newInstalls::add)
             }
-            if (matchedInstalls.none { it.type == KotlincInstalls.CompilerType.NATIVE }) {
-                downloadAndSetupKotlin(KotlincInstalls.CompilerType.NATIVE)?.run(newInstalls::add)
+            if (matchedInstalls.none { it.type == CompilerType.NATIVE }) {
+                downloadAndSetupKotlin(CompilerType.NATIVE)?.run(newInstalls::add)
             }
         } else {
             downloadAndSetupKotlin(compilerType)?.run(newInstalls::add)
@@ -71,7 +71,7 @@ class InstallKotlinCommand : CliktCommand(name = "install") {
     }
 
     private suspend fun downloadAndSetupKotlin(
-        compilerType: KotlincInstalls.CompilerType
+        compilerType: CompilerType
     ): Pair<KotlinInstallDetails, Double>? {
         logger.i("${info("Kotlin")} Downloading compiler for $compilerType")
         val (installResult, duration) = measureSeconds {

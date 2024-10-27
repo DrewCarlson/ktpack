@@ -5,17 +5,17 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.io.files.Path
-import ktpack.CliContext
+import ktpack.KtpackUserConfig
+import ktpack.github.models.GhRelease
 import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
 import ktpack.util.*
 
 class JdkInstalls(
-    private val context: CliContext,
-) : ToolchainInstaller<JdkInstallDetails>(context.http) {
-
-    private val config = context.config.jdk
+    private val config: KtpackUserConfig.JdkConfig,
+    http: HttpClient
+) : ToolchainInstaller<JdkInstallDetails>(http) {
 
     fun getDefaultJdk(): JdkInstallDetails? {
         return findJdk(

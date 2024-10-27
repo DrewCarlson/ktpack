@@ -26,7 +26,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     sourceSets {
-        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+        //val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         all {
             languageSettings {
                 optIn("kotlin.ExperimentalStdlibApi")
@@ -40,7 +40,9 @@ kotlin {
 
         named("commonMain") {
             dependencies {
-                api(libs.findLibrary("kermit").get())
+                if (project.name != "base") {
+                    implementation(project(":ktpack-internal:base"))
+                }
             }
         }
 

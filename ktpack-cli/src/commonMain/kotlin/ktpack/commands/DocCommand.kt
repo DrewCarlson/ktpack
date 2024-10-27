@@ -27,7 +27,7 @@ class DocCommand : CliktCommand(name = "doc") {
     }
 
     private val context by requireObject<CliContext>()
-    private val logger = Logger.withTag(DocCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<DocCommand>()
 
     private val serve by option("--serve", "-s")
         .help("After building docs, start a web server to view them.")

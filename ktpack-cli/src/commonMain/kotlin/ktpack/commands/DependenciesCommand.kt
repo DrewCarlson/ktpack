@@ -19,6 +19,7 @@ import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.DependencyScope
 import ktpack.configuration.KotlinTarget
 import ktpack.util.PlatformUtils
+import ktpack.util.forClass
 import ktpack.util.workingDirectory
 
 class DependenciesCommand : CliktCommand() {
@@ -27,7 +28,7 @@ class DependenciesCommand : CliktCommand() {
         return context.theme.info("Manage project dependencies.")
     }
 
-    private val logger = Logger.withTag(DependenciesCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<DependenciesCommand>()
     private val context by requireObject<CliContext>()
     private val target by option("--target", "-t")
         .help("The target platform to list dependencies for.")

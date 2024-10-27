@@ -4,6 +4,7 @@ import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import ktpack.CliContext
 import ktpack.Ktpack
+import ktpack.util.forClass
 import ktpack.util.info
 import ktpack.util.verbose
 
@@ -13,7 +14,7 @@ class VersionCommand : CliktCommand() {
     }
 
     private val context by requireObject<CliContext>()
-    private val logger = Logger.withTag(VersionCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<VersionCommand>()
 
     override fun run() {
         logger.i("${info("Ktpack")} v${verbose(Ktpack.VERSION)}")

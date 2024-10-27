@@ -24,7 +24,7 @@ class MavenDependencyResolver(
     // TODO: Support list of maven urls and local repo folders
     private val mavenRepoUrl = "https://repo1.maven.org/maven2"
     private val cacheRoot = Path(KTPACK_ROOT, "maven-cache")
-    private val logger = Logger.withTag(MavenDependencyResolver::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<MavenDependencyResolver>()
 
     private val nodeCache = mutableMapOf<String, DependencyNode>()
     private val gradleModuleCache = mutableMapOf<String, GradleModule>()

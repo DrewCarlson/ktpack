@@ -30,7 +30,7 @@ class RunCommand : CliktCommand() {
         return context.theme.info("Compile and run binary packages.")
     }
 
-    private val logger = Logger.withTag(RunCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<RunCommand>()
     private val context by requireObject<CliContext>()
 
     private val releaseMode by option("--release")

@@ -7,6 +7,7 @@ import com.github.ajalt.mordant.table.Borders
 import com.github.ajalt.mordant.table.table
 import kotlinx.coroutines.*
 import ktpack.CliContext
+import ktpack.github.models.GhTag
 import ktpack.util.*
 
 private enum class Channel {

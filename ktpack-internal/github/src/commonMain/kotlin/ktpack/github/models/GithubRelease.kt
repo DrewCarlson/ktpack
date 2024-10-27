@@ -1,4 +1,4 @@
-package ktpack.util
+package ktpack.github.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

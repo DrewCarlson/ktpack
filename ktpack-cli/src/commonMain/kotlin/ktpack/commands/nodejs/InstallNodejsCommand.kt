@@ -19,7 +19,7 @@ class InstallNodejsCommand : CliktCommand(name = "install") {
     }
 
     private val context by requireObject<CliContext>()
-    private val logger = Logger.withTag(InstallNodejsCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<InstallNodejsCommand>()
 
     private val version by argument()
         .help("The Nodejs version to install, can be a partial or full version. Example: 20 or 20.9.")

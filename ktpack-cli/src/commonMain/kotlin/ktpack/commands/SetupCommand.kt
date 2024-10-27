@@ -14,10 +14,10 @@ import kotlinx.io.files.Path
 import ktpack.CliContext
 import ktpack.toolchain.jdk.JdkInstallDetails
 import ktpack.toolchain.kotlin.KotlinInstallDetails
-import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchain.nodejs.NodejsInstallDetails
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
+import ktpack.toolchain.kotlin.KotlinInstallDetails.CompilerType
 import ktpack.util.*
 
 class SetupCommand : CliktCommand(name = "setup") {
@@ -26,7 +26,7 @@ class SetupCommand : CliktCommand(name = "setup") {
         return context.theme.info("Setup your environment to build and run packages.")
     }
 
-    private val logger = Logger.withTag(SetupCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<SetupCommand>()
     private val context by requireObject<CliContext>()
 
     private val autoInstall by option("--install", "-i")
@@ -107,7 +107,7 @@ class SetupCommand : CliktCommand(name = "setup") {
         val root = Path(context.config.kotlin.rootPath)
         val version = context.config.kotlin.version
         val existingKotlinJvm: KotlinInstallDetails? =
-            context.kotlinInstalls.getDefaultKotlin(KotlincInstalls.CompilerType.JVM)
+            context.kotlinInstalls.getDefaultKotlin(CompilerType.JVM)
         if (existingKotlinJvm == null) {
             logger.i("${warn("Setup")} No default Kotlin JVM installation found")
             val answer = if (autoInstall) {
@@ -125,7 +125,7 @@ class SetupCommand : CliktCommand(name = "setup") {
                 val result = context.kotlinInstalls.findAndInstallKotlin(
                     root,
                     version,
-                    KotlincInstalls.CompilerType.JVM,
+                    CompilerType.JVM,
                     progressLog,
                 )
                 when (result) {
@@ -148,7 +148,7 @@ class SetupCommand : CliktCommand(name = "setup") {
             logger.i("${success("Setup")} Default Kotlin JVM installation found")
         }
         val existingKotlinNative: KotlinInstallDetails? =
-            context.kotlinInstalls.getDefaultKotlin(KotlincInstalls.CompilerType.NATIVE)
+            context.kotlinInstalls.getDefaultKotlin(CompilerType.NATIVE)
         if (existingKotlinNative == null) {
             logger.i("${warn("Setup")} No default Kotlin Native installation found")
             val answer = if (autoInstall) {
@@ -166,7 +166,7 @@ class SetupCommand : CliktCommand(name = "setup") {
                 val result = context.kotlinInstalls.findAndInstallKotlin(
                     root,
                     version,
-                    KotlincInstalls.CompilerType.NATIVE,
+                    CompilerType.NATIVE,
                     progressLog,
                 )
                 when (result) {

@@ -7,10 +7,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.coroutines.core)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                implementation(libs.xmlutil.serialization)
+                implementation(libs.ktor.serialization)
             }
         }
 

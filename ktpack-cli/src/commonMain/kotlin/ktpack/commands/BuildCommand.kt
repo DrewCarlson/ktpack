@@ -18,7 +18,7 @@ class BuildCommand : CliktCommand() {
         return context. theme. info("Compile packages and dependencies.")
     }
 
-    private val logger = Logger.withTag(BuildCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<BuildCommand>()
     private val context by requireObject<CliContext>()
 
     private val releaseMode by option("--release", "-r")

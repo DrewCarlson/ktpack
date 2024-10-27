@@ -8,13 +8,8 @@ kotlin {
             dependencies {
                 implementation(project(":ktpack-internal:platform"))
                 implementation(libs.ksubprocess)
-                implementation(libs.coroutines.core)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.serialization)
-                //implementation(libs.kotlinx.datetime)
             }
         }
 

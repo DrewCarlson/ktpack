@@ -8,6 +8,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                implementation(project(":ktpack-internal:platform"))
                 implementation(libs.serialization.core)
                 implementation(libs.tomlkt)
             }

@@ -31,7 +31,7 @@ class KtpackCommand(
         return context.theme.info("A simple tool for building and publishing Kotlin software.")
     }
 
-    private val logger = Logger.withTag(KtpackCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<KtpackCommand>()
 
     private val configPath = Path(KTPACK_ROOT, "config.json")
     private lateinit var _config: KtpackUserConfig
@@ -39,11 +39,23 @@ class KtpackCommand(
     override val config: KtpackUserConfig
         get() = _config
 
-    override val jdkInstalls: JdkInstalls by lazy { JdkInstalls(this) }
+    override val jdkInstalls: JdkInstalls by lazy {
+        JdkInstalls(config = config.jdk, http = http)
+    }
 
-    override val kotlinInstalls: KotlincInstalls by lazy { KotlincInstalls(this) }
+    override val kotlinInstalls: KotlincInstalls by lazy {
+        KotlincInstalls(
+            config = config,
+            http = http,
+        )
+    }
 
-    override val nodejsInstalls: NodejsInstalls by lazy { NodejsInstalls(this) }
+    override val nodejsInstalls: NodejsInstalls by lazy {
+        NodejsInstalls(
+            config = config,
+            http = http,
+        )
+    }
 
     override val dokka: DokkaCli by lazy {
         DokkaCli(

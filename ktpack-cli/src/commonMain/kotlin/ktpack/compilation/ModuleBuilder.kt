@@ -41,7 +41,7 @@ class ModuleBuilder(
 
     enum class BuildType { BIN, LIB, TEST }
 
-    private val logger = Logger.withTag(ModuleBuilder::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<ModuleBuilder>()
     private val outFolder = Path(modulePath, "out")
     private val srcFolder = Path(modulePath, "src")
 

@@ -5,10 +5,7 @@ import kotlinx.io.files.Path
 import ktpack.compilation.ModuleBuilder.BuildType
 import ktpack.configuration.KotlinTarget
 import ktpack.manifest.OutputToml
-import ktpack.util.PlatformUtils
-import ktpack.util.exists
-import ktpack.util.isDirectory
-import ktpack.util.listRecursively
+import ktpack.util.*
 
 
 data class CollectedSource(
@@ -32,7 +29,7 @@ interface SourceCollector {
 class KtpackSourceCollector(
     private val srcFolder: Path,
 ) : SourceCollector {
-    private val logger = Logger.withTag(SourceCollector::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<SourceCollector>()
 
     fun getDefaultOutput(selectTarget: KotlinTarget? = null): OutputToml {
         val targetList = listOf(selectTarget ?: PlatformUtils.getHostTarget())

@@ -1,36 +1,36 @@
 package ktpack.toolchain.kotlin
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemPathSeparator
-import ktpack.CliContext
+import ktpack.KtpackUserConfig
 import ktpack.configuration.KotlinTarget
+import ktpack.github.models.GhTag
 import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchain.ToolchainInstallProgress
 import ktpack.toolchain.ToolchainInstallResult
+import ktpack.toolchain.kotlin.KotlinInstallDetails.CompilerType
 import ktpack.util.*
 
 private val FILE_VERSION_REGEX = """\d+\.\d+\.\d+(?:-\w+)?""".toRegex()
 
-data class KotlincInstalls(
-    private val context: CliContext
-): ToolchainInstaller<KotlinInstallDetails>(context.http) {
-
-    enum class CompilerType {
-        JVM, NATIVE
-    }
+class KotlincInstalls(
+    private val config: KtpackUserConfig,
+    http: HttpClient,
+): ToolchainInstaller<KotlinInstallDetails>(http) {
 
     suspend fun getCompilerReleases(page: Int): List<GhTag> {
-        return context.http.get("https://api.github.com/repos/Jetbrains/kotlin/tags?per_page=100") {
+        return http.get("https://api.github.com/repos/Jetbrains/kotlin/tags?per_page=100") {
             parameter("page", page)
         }.body()
     }
 
     fun getDefaultKotlin(type: CompilerType): KotlinInstallDetails? {
         return findKotlin(
-            Path(context.config.kotlin.rootPath),
-            context.config.kotlin.version,
+            Path(config.kotlin.rootPath),
+            config.kotlin.version,
             type
         )
     }
@@ -69,7 +69,7 @@ data class KotlincInstalls(
     }
 
     private fun findNonNativeBin(version: String): String = buildString {
-        append(context.config.kotlin.rootPath)
+        append(config.kotlin.rootPath)
         append(SystemPathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
@@ -79,7 +79,7 @@ data class KotlincInstalls(
     }
 
     fun findKotlinHome(version: String): String = buildString {
-        append(context.config.kotlin.rootPath)
+        append(config.kotlin.rootPath)
         append(SystemPathSeparator)
         append("kotlin-compiler-prebuilt-")
         append(version)
@@ -111,7 +111,7 @@ data class KotlincInstalls(
 
     fun findKotlincNative(version: String): String = buildString {
         val (major, minor, _) = version.split('.').mapNotNull(String::toIntOrNull)
-        append(context.config.kotlin.rootPath)
+        append(config.kotlin.rootPath)
         append(SystemPathSeparator)
         append("kotlin-native-prebuilt-")
         when (Platform.osFamily) {

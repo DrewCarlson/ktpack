@@ -26,13 +26,19 @@ class TestCliContext : CliContext {
         get() = TODO("Not yet implemented")
     override var config: KtpackUserConfig = KtpackUserConfig()
         private set
-    override val jdkInstalls: JdkInstalls = JdkInstalls(this)
-    override val kotlinInstalls: KotlincInstalls = KotlincInstalls(this)
-    override val nodejsInstalls: NodejsInstalls = NodejsInstalls(this)
+    override val jdkInstalls: JdkInstalls by lazy {
+        JdkInstalls(config = config.jdk, http = http)
+    }
+    override val kotlinInstalls: KotlincInstalls by lazy {
+        KotlincInstalls(config = config, http = http)
+    }
+    override val nodejsInstalls: NodejsInstalls by lazy {
+        NodejsInstalls(config = config, http = http)
+    }
     override val dokka: DokkaCli by lazy {
         DokkaCli(
             dokkaCliFolder = Path(KTPACK_ROOT, "dokka"),
-            http = http
+            http = http,
         )
     }
     override val gitCli: GitCli = GitCli()

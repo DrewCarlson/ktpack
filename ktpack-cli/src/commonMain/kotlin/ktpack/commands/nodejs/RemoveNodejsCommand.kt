@@ -16,7 +16,7 @@ class RemoveNodejsCommand : CliktCommand(name = "remove") {
         return context.theme.info("Remove an existing Nodejs version.")
     }
 
-    private val logger = Logger.withTag(RemoveNodejsCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<RemoveNodejsCommand>()
     private val context by requireObject<CliContext>()
 
     private val version by argument()

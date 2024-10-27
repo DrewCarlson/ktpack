@@ -16,7 +16,7 @@ class RemoveKotlinCommand : CliktCommand(name = "remove") {
         return context.theme.info("Remove an existing Kotlin Compiler version.")
     }
 
-    private val logger = Logger.withTag(RemoveKotlinCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<RemoveKotlinCommand>()
     private val context by requireObject<CliContext>()
 
     private val version by argument()

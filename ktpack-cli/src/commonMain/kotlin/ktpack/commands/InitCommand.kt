@@ -7,6 +7,7 @@ import ktpack.CliContext
 import ktpack.MANIFEST_FILENAME
 import ktpack.util.exists
 import ktpack.util.failed
+import ktpack.util.forClass
 import ktpack.util.workingDirectory
 
 class InitCommand : CliktCommand() {
@@ -16,7 +17,7 @@ class InitCommand : CliktCommand() {
     }
 
     private val context by requireObject<CliContext>()
-    private val logger = Logger.withTag(InitCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<InitCommand>()
 
     override fun run() {
         val packFile = Path(workingDirectory, MANIFEST_FILENAME)

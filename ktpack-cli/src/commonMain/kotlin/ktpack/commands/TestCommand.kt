@@ -32,7 +32,7 @@ class TestCommand : CliktCommand() {
         return context.theme.info("Compile and run test suites.")
     }
 
-    private val logger = Logger.withTag(TestCommand::class.simpleName.orEmpty())
+    private val logger = Logger.forClass<TestCommand>()
     private val context by requireObject<CliContext>()
 
     private val userTargets by option("--target", "-t")

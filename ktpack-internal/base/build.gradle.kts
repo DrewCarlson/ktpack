@@ -1,12 +1,12 @@
-import org.gradle.nativeplatform.platform.internal.*
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import java.io.ByteArrayOutputStream
 import java.time.Clock
 import java.time.OffsetDateTime
-import java.io.ByteArrayOutputStream
 
 plugins {
     id("internal-lib")
-    alias(libs.plugins.serialization)
 }
+
 
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
@@ -46,7 +46,8 @@ val buildRuntimeConstants by tasks.creating {
     }
 }
 
-val buildRuntimeBundle by tasks.creating {
+
+/*val buildRuntimeBundle by tasks.creating {
     val debug = (version as String).endsWith("-SNAPSHOT")
     val bundledFile = file("${mainGenSrcPath}/manifest.kt")
     onlyIf { !bundledFile.exists() || !debug }
@@ -68,7 +69,7 @@ val buildRuntimeBundle by tasks.creating {
                |""".trimMargin(),
         )*/
     }
-}
+}*/
 
 kotlin {
     configure(targets) {
@@ -76,7 +77,7 @@ kotlin {
             compileTaskProvider.configure {
                 dependsOn(
                     buildRuntimeConstants,
-                    buildRuntimeBundle,
+                    //buildRuntimeBundle,
                 )
             }
         }
@@ -86,33 +87,15 @@ kotlin {
         commonMain {
             kotlin.srcDir(mainGenSrcPath)
             dependencies {
+                api(libs.coroutines.core)
+                api(libs.kotlin.io)
+                api(libs.ktor.client.core)
+                api(libs.serialization.core)
+                api(libs.serialization.json)
                 api(libs.xmlutil.serialization)
-                api(project(":ktpack-internal:platform"))
-                implementation(project(":ktpack-internal:compression"))
-                implementation(project(":ktpack-internal:git"))
-                implementation(project(":ktpack-internal:dokka"))
-                implementation(project(":ktpack-internal:models"))
-                implementation(libs.kotlin.io)
-                implementation(libs.ksubprocess)
-                implementation(libs.mordant)
-                implementation(libs.clikt)
-                implementation(libs.cryptohash)
-                implementation(libs.semver)
-                implementation(libs.coroutines.core)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.contentNegotiation)
-                implementation(libs.ktor.serialization)
-                //implementation(libs.kotlinx.datetime)
                 api(libs.tomlkt)
-            }
-        }
-
-        commonTest {
-            dependencies {
-                implementation(project(":ktpack-internal:test-utils"))
-                implementation(libs.coroutines.test)
+                api(libs.kermit)
+                api(libs.cryptohash)
             }
         }
 

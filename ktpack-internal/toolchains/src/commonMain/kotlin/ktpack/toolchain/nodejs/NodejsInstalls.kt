@@ -1,7 +1,8 @@
 package ktpack.toolchain.nodejs
 
+import io.ktor.client.*
 import kotlinx.io.files.Path
-import ktpack.CliContext
+import ktpack.KtpackUserConfig
 import ktpack.configuration.KotlinTarget
 import ktpack.toolchain.ToolchainInstaller
 import ktpack.toolchain.ToolchainInstallProgress
@@ -12,13 +13,14 @@ import ktpack.util.isDirectory
 import ktpack.util.list
 
 class NodejsInstalls(
-    private val context: CliContext
-) : ToolchainInstaller<NodejsInstallDetails>(context.http) {
+    private val config: KtpackUserConfig,
+    http: HttpClient,
+) : ToolchainInstaller<NodejsInstallDetails>(http) {
 
     fun getDefaultNodejs(): NodejsInstallDetails? {
         return findNodejs(
-            Path(context.config.nodejs.rootPath),
-            context.config.nodejs.version
+            Path(config.nodejs.rootPath),
+            config.nodejs.version
         )
     }
 
@@ -63,12 +65,12 @@ class NodejsInstalls(
         } else {
             "node"
         }
-        return Path(context.config.nodejs.rootPath, "v$version", exe)
+        return Path(config.nodejs.rootPath, "v$version", exe)
             .takeIf(Path::exists)
     }
 
     fun findNodejs(version: String): NodejsInstallDetails? {
-        return Path(context.config.nodejs.rootPath, "v$version")
+        return Path(config.nodejs.rootPath, "v$version")
             .takeIf(Path::exists)
             ?.let(::createInstallDetails)
     }

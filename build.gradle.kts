@@ -5,10 +5,6 @@ plugins {
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-    }
-
     System.getenv("GITHUB_REF_NAME")
         ?.takeIf { it.startsWith("v") }
         ?.let { version = it.removePrefix("v") }

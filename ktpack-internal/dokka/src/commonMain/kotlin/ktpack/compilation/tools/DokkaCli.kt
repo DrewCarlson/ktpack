@@ -5,23 +5,18 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.invoke
-import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
-import kotlinx.io.readByteArray
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import ksubprocess.exec
 import ktpack.compilation.tools.models.DokkaConfiguration
 import ktpack.compilation.tools.models.PluginsConfiguration
+import ktpack.json
 import ktpack.util.*
-
-private const val DOWNLOAD_BUFFER_SIZE = 12_294L
 
 // https://kotlinlang.org/docs/dokka-cli.html
 // https://kotlin.github.io/dokka/1.7.10/user_guide/cli/usage/
@@ -30,10 +25,7 @@ class DokkaCli(
     private val http: HttpClient,
 ) {
 
-    private val logger = Logger.withTag(DokkaCli::class.simpleName.orEmpty())
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val logger = Logger.forClass<DokkaCli>()
 
     /**
      * Run Dokka with the provided configuration.
@@ -143,28 +135,5 @@ class DokkaCli(
             "https://repo1.maven.org/maven2/org/jetbrains/dokka/dokka-base/$version/dokka-base-$version.jar",
             "https://repo1.maven.org/maven2/org/jetbrains/dokka/dokka-cli/$version/dokka-cli-$version.jar",
         )
-    }
-
-    private suspend fun HttpStatement.downloadInto(
-        outputPath: Path,
-        bufferSize: Long = DOWNLOAD_BUFFER_SIZE,
-    ): HttpResponse {
-        return execute { response ->
-            val body = response.bodyAsChannel()
-            val sink = SystemFileSystem.sink(outputPath, append = true)
-            val bufferedSink = sink.buffered()
-            try {
-                while (!body.isClosedForRead) {
-                    val packet = body.readRemaining(bufferSize)
-                    while (!packet.exhausted()) {
-                        bufferedSink.write(packet.readByteArray())
-                    }
-                }
-            } finally {
-                bufferedSink.close()
-                sink.close()
-            }
-            response
-        }
     }
 }

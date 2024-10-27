@@ -7,16 +7,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(project(":ktpack-internal:core"))
                 implementation(project(":ktpack-internal:maven"))
                 implementation(project(":ktpack-internal:gradle"))
                 implementation(project(":ktpack-internal:models"))
-                implementation(libs.coroutines.core)
-                implementation(libs.serialization.core)
-                implementation(libs.serialization.json)
-                //implementation(libs.kotlinx.datetime)
-                implementation(libs.ktor.client.core)
-                implementation(libs.kotlin.io)
+                implementation(project(":ktpack-internal:platform"))
                 implementation(libs.semver)
             }
         }
