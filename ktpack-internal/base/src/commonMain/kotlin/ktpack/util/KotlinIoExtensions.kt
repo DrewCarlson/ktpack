@@ -46,6 +46,10 @@ fun Path.writeBytes(
     }
 }
 
+fun Path.sink(): RawSink {
+    return SystemFileSystem.sink(this)
+}
+
 fun Path.source(): RawSource {
     return SystemFileSystem.source(this)
 }
