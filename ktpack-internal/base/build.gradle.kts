@@ -7,45 +7,39 @@ plugins {
     id("internal-lib")
 }
 
-
 val hostOs = DefaultNativePlatform.getCurrentOperatingSystem()
 
 val mainGenSrcPath = "build/ktgen-main"
 
 val buildRuntimeConstants by tasks.creating {
-    val constantsFile = file("${mainGenSrcPath}/constants.kt")
-    onlyIf { !constantsFile.exists() }
     doFirst {
         file(mainGenSrcPath).mkdirs()
         val git = if (hostOs.isWindows) "git.exe" else "git"
-        val sha = ByteArrayOutputStream().also { out ->
-            exec {
-                commandLine(git, "rev-parse", "HEAD")
-                standardOutput = out
-            }.assertNormalExitValue()
-        }.toString(Charsets.UTF_8).trim()
+        val sha = ByteArrayOutputStream()
+            .also { out ->
+                exec {
+                    commandLine(git, "rev-parse", "HEAD")
+                    standardOutput = out
+                }.assertNormalExitValue()
+            }.toString(Charsets.UTF_8)
+            .trim()
         val isDirty = exec {
             commandLine(git, "diff", "--quiet")
             isIgnoreExitValue = true
         }.exitValue == 1
-        constantsFile.writeText(
-            """|package ktpack
-               |
-               |object Ktpack {
-               |    const val VERSION = "$version"
-               |    const val BUILD_SHA = "$sha${if (isDirty) "-dirty" else ""}"
-               |    const val BUILD_DATE = "${OffsetDateTime.now(Clock.systemUTC())}"
-               |    const val KOTLIN_VERSION = "${libs.versions.kotlin.get()}"
-               |    const val KTOR_VERSION = "${libs.versions.ktorio.get()}"
-               |    const val COROUTINES_VERSION = "${libs.versions.coroutines.get()}"
-               |    const val SERIALIZATION_VERSION = "${libs.versions.serialization.get()}"
-               |    const val DOKKA_VERSION = "${libs.versions.dokka.get()}"
-               |}
-               |""".trimMargin(),
-        )
+
+        buildConstFile("ktpack", "Ktpack") {
+            add("VERSION", version.toString())
+            add("BUILD_SHA", sha + if (isDirty) "-dirty" else "")
+            add("BUILD_DATE", OffsetDateTime.now(Clock.systemUTC()).toString())
+            add("KOTLIN_VERSION", libs.versions.kotlin)
+            add("KTOR_VERSION", libs.versions.ktorio)
+            add("COROUTINES_VERSION", libs.versions.coroutines)
+            add("SERIALIZATION_VERSION", libs.versions.serialization)
+            add("DOKKA_VERSION", libs.versions.dokka)
+        }.writeTo(file(mainGenSrcPath))
     }
 }
-
 
 /*val buildRuntimeBundle by tasks.creating {
     val debug = (version as String).endsWith("-SNAPSHOT")
@@ -77,7 +71,7 @@ kotlin {
             compileTaskProvider.configure {
                 dependsOn(
                     buildRuntimeConstants,
-                    //buildRuntimeBundle,
+                    // buildRuntimeBundle,
                 )
             }
         }
