@@ -2,9 +2,11 @@ package ktpack
 
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.logging.*
 import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
+import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.manifest.ManifestToml
@@ -12,6 +14,7 @@ import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
+import kotlin.time.Duration.Companion.seconds
 
 class TestCliContext : CliContext {
     override val stacktrace: Boolean = true
@@ -20,6 +23,10 @@ class TestCliContext : CliContext {
         install(Logging) {
             logger = Logger.SIMPLE
             level = LogLevel.ALL
+        }
+        install(HttpTimeout) {
+            socketTimeoutMillis = 60.seconds.inWholeMilliseconds
+            requestTimeoutMillis = 60.seconds.inWholeMilliseconds
         }
     }
     override val term: Terminal
@@ -37,8 +44,7 @@ class TestCliContext : CliContext {
     }
     override val dokka: DokkaCli by lazy {
         DokkaCli(
-            dokkaCliFolder = Path(KTPACK_ROOT, "dokka"),
-            http = http,
+            mavenResolver = MavenDependencyResolver(http)
         )
     }
     override val gitCli: GitCli = GitCli()
