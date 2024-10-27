@@ -42,14 +42,7 @@ class DocCommand : CliktCommand(name = "doc") {
         val manifest = context.loadManifestToml()
         val jdk = checkNotNull(context.jdkInstalls.getDefaultJdk())
         val dokkaVersion = manifest.docs.version ?: context.config.dokkaVersion
-        if (context.dokka.getCli(dokkaVersion) == null) {
-            if (!context.dokka.download(dokkaVersion)) {
-                logger.i("${failed("Failed")} Dokka is missing and failed to download")
-                return@runBlocking
-            }
-        }
         val docOutputDir = Path(workingDirectory, "out", "docs").toString()
-
         val configuration = DokkaConfiguration(
             moduleName = manifest.module.name,
             moduleVersion = manifest.module.version,

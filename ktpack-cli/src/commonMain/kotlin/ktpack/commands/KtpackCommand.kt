@@ -15,6 +15,7 @@ import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktpack.*
+import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.tools.DokkaCli
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.manifest.ManifestToml
@@ -58,10 +59,7 @@ class KtpackCommand(
     }
 
     override val dokka: DokkaCli by lazy {
-        DokkaCli(
-            dokkaCliFolder = Path(KTPACK_ROOT, "dokka"),
-            http = http,
-        )
+        DokkaCli(mavenResolver = MavenDependencyResolver(http))
     }
 
     override val gitCli: GitCli = GitCli()

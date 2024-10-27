@@ -5,16 +5,16 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemPathSeparator
-import kotlinx.serialization.decodeFromString
 import ktpack.compilation.dependencies.models.DependencyNode
 import ktpack.configuration.*
+import ktpack.decodeFromString
 import ktpack.gradle.GradleModule
 import ktpack.json
 import ktpack.manifest.DependencyToml
 import ktpack.maven.MavenProject
+import ktpack.maven.POM_NAMESPACE
 import ktpack.util.*
 import ktpack.xml
 
@@ -191,7 +191,7 @@ class MavenDependencyResolver(
 
         return if (pomFileNameCacheFile.exists()) {
             logger.d { "Found cached POM for '${dependency.toMavenString()}': $pomFileNameCacheFile" }
-            xml.decodeFromString(pomFileNameCacheFile.readString())
+            xml.decodeFromString(POM_NAMESPACE, pomFileNameCacheFile.readString())
         } else {
             null
         }
@@ -229,7 +229,7 @@ class MavenDependencyResolver(
             }
         }
 
-        return xml.decodeFromString<MavenProject>(pomBody).also {
+        return xml.decodeFromString<MavenProject>(POM_NAMESPACE, pomBody).also {
             mavenProjectCache[artifactRemotePath] = it
         }
     }
@@ -271,17 +271,14 @@ class MavenDependencyResolver(
             return cacheFile
         }
         val moduleUrl = "$mavenRepoUrl/$artifactUrlPath"
-        val response = http.get(moduleUrl)
-        if (!response.status.isSuccess()) {
-            error("Failed: Could not find module at $moduleUrl")
+        cacheFile.parent!!.mkdirs()
+        val response = http.prepareGet(moduleUrl)
+            .downloadInto(cacheFile)
+
+        check(response.status.isSuccess()) {
+            "Failed to download module '${response.status}': $moduleUrl"
         }
-        return cacheFile.apply {
-            parent?.mkdirs()
-            createNewFile()
-            writeBytes(response.bodyAsChannel().toByteArray()) { error ->
-                throw error
-            }
-        }
+        return cacheFile
     }
 
     private fun readCachedGradleModule(
@@ -321,7 +318,7 @@ class MavenDependencyResolver(
         val moduleUrl = "$mavenRepoUrl/$artifactRemotePath/$artifactName"
         val response = http.get(moduleUrl)
         if (response.status.value == 404) {
-            logger.w { "Gradle module not found: $moduleUrl" }
+            logger.d { "Gradle module not found: $moduleUrl" }
             return null
         }
         if (!response.status.isSuccess()) {
