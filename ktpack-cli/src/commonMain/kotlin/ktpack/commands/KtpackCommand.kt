@@ -12,21 +12,22 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.io.files.Path
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import ktpack.*
 import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.tools.DokkaCli
+import ktpack.manifest.DefaultManifestLoader
+import ktpack.manifest.ManifestLoader
 import ktpack.toolchain.kotlin.KotlincInstalls
-import ktpack.manifest.ManifestToml
-import ktpack.manifest.toml
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.*
 
 class KtpackCommand(
     override val term: Terminal,
-) : CliktCommand(), CliContext {
+) : CliktCommand(),
+    CliContext,
+    ManifestLoader by DefaultManifestLoader() {
 
     override fun help(context: Context): String {
         return context.theme.info("A simple tool for building and publishing Kotlin software.")
@@ -81,15 +82,6 @@ class KtpackCommand(
         }
         val encodedConfig = jsonPretty.encodeToString(_config)
         configPath.writeString(encodedConfig, ::logError)
-    }
-
-    override fun loadManifestToml(filePath: String): ManifestToml {
-        val path = Path(filePath).let { path ->
-            Path(workingDirectory, path.toString()).resolve()
-        }
-        check(path.exists()) { "No $MANIFEST_FILENAME file found in '${path.parent}'" }
-        return toml.decodeFromString<ManifestToml>(path.readString())
-            .resolveDependencyShorthand()
     }
 
     override val http: HttpClient by lazy {

@@ -37,11 +37,15 @@ class BuildCommand : CliktCommand() {
         .flag()
 
     override fun run() = runBlocking {
-        val manifest = context.loadManifestToml()
+        val manifest = context.load()
         val module = manifest.module
         val output =
             manifest.module.output ?: KtpackSourceCollector(Path(workingDirectory, "src")).getDefaultOutput(userTarget)
-        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
+        val moduleBuilder = ModuleBuilder(
+            manifest = manifest,
+            modulePath = workingDirectory,
+            context = context.createBuildContext()
+        )
 
         logger.i {
             "{} {} v{} ({})".format(
@@ -110,7 +114,7 @@ class BuildCommand : CliktCommand() {
             is ArtifactResult.ProcessError -> {
                 logger.i { "${failed("Failed")} failed to compile selected target(s)" }
                 if (!artifact.message.isNullOrBlank()) {
-                    logger.i(artifact.message)
+                    logger.i(artifact.message!!)
                 }
                 exitProcess(1)
             }

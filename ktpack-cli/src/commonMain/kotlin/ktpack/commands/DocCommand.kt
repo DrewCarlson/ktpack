@@ -39,7 +39,7 @@ class DocCommand : CliktCommand(name = "doc") {
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val manifest = context.loadManifestToml()
+        val manifest = context.load()
         val jdk = checkNotNull(context.jdkInstalls.getDefaultJdk())
         val dokkaVersion = manifest.docs.version ?: context.config.dokkaVersion
         val docOutputDir = Path(workingDirectory, "out", "docs").toString()

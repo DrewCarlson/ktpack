@@ -50,13 +50,17 @@ class RunCommand : CliktCommand() {
         .default(9543)
 
     override fun run(): Unit = runBlocking {
-        val manifest = context.loadManifestToml()
+        val manifest = context.load()
+        val targetBin = targetBin ?: manifest.module.name
         val output = manifest.module.output
             ?: OutputToml.BinCommon.Bin(
                 targets = PlatformUtils.getHostSupportedTargets(),
             )
-        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
-        val targetBin = targetBin ?: manifest.module.name
+        val moduleBuilder = ModuleBuilder(
+            manifest = manifest,
+            modulePath = workingDirectory,
+            context = context.createBuildContext()
+        )
 
         logger.i {
             val name = manifest.module.name

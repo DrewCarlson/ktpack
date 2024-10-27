@@ -11,8 +11,8 @@ import kotlinx.io.files.Path
 import kotlinx.serialization.encodeToString
 import ktpack.CliContext
 import ktpack.Ktpack
-import ktpack.MANIFEST_FILENAME
 import ktpack.configuration.KotlinTarget
+import ktpack.manifest.MANIFEST_FILENAME
 import ktpack.manifest.ManifestToml
 import ktpack.manifest.ModuleToml
 import ktpack.manifest.toml

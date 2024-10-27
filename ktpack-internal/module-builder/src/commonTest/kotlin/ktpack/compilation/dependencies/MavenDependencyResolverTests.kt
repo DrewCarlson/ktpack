@@ -1,15 +1,21 @@
 package ktpack.compilation.dependencies
 
+import io.ktor.client.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.files.Path
-import ktpack.MANIFEST_FILENAME
-import ktpack.TestCliContext
+import ktpack.KtpackUserConfig
+import ktpack.compilation.BuildContext
 import ktpack.compilation.ModuleBuilder
 import ktpack.compilation.dependencies.models.resolveAndFlatten
 import ktpack.configuration.KotlinTarget
+import ktpack.manifest.DefaultManifestLoader
+import ktpack.manifest.MANIFEST_FILENAME
 import ktpack.manifest.ManifestToml
 import ktpack.sampleDir
+import ktpack.toolchain.jdk.JdkInstalls
+import ktpack.toolchain.kotlin.KotlincInstalls
 import okio.Path.Companion.DIRECTORY_SEPARATOR
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -19,23 +25,35 @@ private val timeout = 2.minutes
 
 class MavenDependencyResolverTests {
 
-    private lateinit var module: ManifestToml
-    private lateinit var context: TestCliContext
+    private lateinit var http: HttpClient
+    private lateinit var manifest: ManifestToml
+    private lateinit var context: BuildContext
     private lateinit var builder: ModuleBuilder
-    private lateinit var resolver: MavenDependencyResolver
 
     @BeforeTest
-    fun setup() = runTest {
+    fun setup() {
         val sampleRoot = Path(sampleDir, "6-dependencies")
         val packScript = Path(sampleRoot, MANIFEST_FILENAME)
-        context = TestCliContext()
-        module = context.loadManifestToml(packScript.toString())
-        builder = ModuleBuilder(
-            module,
-            context,
-            modulePath = sampleRoot,
+        http = HttpClient()
+        val config = KtpackUserConfig()
+        context = BuildContext(
+            manifestLoader = DefaultManifestLoader(),
+            resolver = MavenDependencyResolver(http),
+            jdk = JdkInstalls(config = config.jdk, http = http),
+            kotlinc = KotlincInstalls(config = config, http = http),
+            debug = true,
         )
-        resolver = MavenDependencyResolver(context.http)
+        manifest = context.load(packScript.toString())
+        builder = ModuleBuilder(
+            manifest = manifest,
+            modulePath = sampleRoot,
+            context = context,
+        )
+    }
+
+    @AfterTest
+    fun cleanup() {
+        http.close()
     }
 
     @Test
@@ -43,7 +61,8 @@ class MavenDependencyResolverTests {
         val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.JS_BROWSER))
 
         val flatTree = depTree.resolveAndFlatten()
-        val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JS_BROWSER)
+        val children =
+            context.resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JS_BROWSER)
         val actual = children
             .flatMap { it.artifacts }
             .map { it.substringAfterLast(DIRECTORY_SEPARATOR) }
@@ -82,7 +101,7 @@ class MavenDependencyResolverTests {
         val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.JVM))
 
         val flatTree = depTree.resolveAndFlatten()
-        val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JVM)
+        val children = context.resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.JVM)
         val actual = children
             .flatMap { it.artifacts }
             .map { it.substringAfterLast(DIRECTORY_SEPARATOR) }
@@ -126,7 +145,7 @@ class MavenDependencyResolverTests {
         val depTree = builder.resolveRootDependencyTree(listOf(KotlinTarget.MINGW_X64))
 
         val flatTree = depTree.resolveAndFlatten()
-        val children = resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.MINGW_X64)
+        val children = context.resolver.resolveArtifacts(flatTree, releaseMode = false, target = KotlinTarget.MINGW_X64)
         val actual = children
             .flatMap { it.artifacts }
             .map { it.substringAfterLast(DIRECTORY_SEPARATOR) }

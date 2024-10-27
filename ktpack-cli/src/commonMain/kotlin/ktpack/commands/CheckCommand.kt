@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.*
 import com.github.ajalt.clikt.parameters.arguments.*
 import kotlinx.coroutines.runBlocking
 import ktpack.*
+import ktpack.manifest.MANIFEST_FILENAME
 
 class CheckCommand : CliktCommand() {
 
@@ -18,7 +19,7 @@ class CheckCommand : CliktCommand() {
     private val context by requireObject<CliContext>()
 
     override fun run() = runBlocking {
-        val packageConf = context.loadManifestToml(filePath)
+        val packageConf = context.load(filePath)
         // TODO: Validate all package properties
         println(packageConf)
     }

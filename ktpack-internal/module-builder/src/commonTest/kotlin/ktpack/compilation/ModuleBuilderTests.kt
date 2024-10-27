@@ -1,17 +1,49 @@
 package ktpack.compilation
 
+import io.ktor.client.*
 import kotlinx.io.files.Path
-import ktpack.TestCliContext
+import ktpack.KtpackUserConfig
 import ktpack.compilation.ModuleBuilder.BuildType
+import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.configuration.KotlinTarget
+import ktpack.manifest.DefaultManifestLoader
+import ktpack.manifest.MANIFEST_FILENAME
 import ktpack.manifest.ManifestToml
 import ktpack.manifest.ModuleToml
 import ktpack.sampleDir
+import ktpack.toolchain.jdk.JdkInstalls
+import ktpack.toolchain.kotlin.KotlincInstalls
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class ModuleBuilderTests {
 
-    lateinit var builder: ModuleBuilder
+    private lateinit var http: HttpClient
+    private lateinit var manifest: ManifestToml
+    private lateinit var context: BuildContext
+    private lateinit var builder: ModuleBuilder
+
+    @BeforeTest
+    fun setup() {
+        val sampleRoot = Path(sampleDir, "6-dependencies")
+        val packScript = Path(sampleRoot, MANIFEST_FILENAME)
+        http = HttpClient()
+        val config = KtpackUserConfig()
+        context = BuildContext(
+            manifestLoader = DefaultManifestLoader(),
+            resolver = MavenDependencyResolver(http),
+            jdk = JdkInstalls(config = config.jdk, http = http),
+            kotlinc = KotlincInstalls(config = config, http = http),
+            debug = true
+        )
+        manifest = context.load(packScript.toString())
+    }
+
+    @AfterTest
+    fun cleanup() {
+        http.close()
+    }
 
     @Test
     fun testCollectSourceFiles_1_basic() {
@@ -55,9 +87,9 @@ class ModuleBuilderTests {
         body: CollectedSource.() -> Unit,
     ) {
         builder = ModuleBuilder(
-            ManifestToml(ModuleToml("test", "0.0.0")),
-            TestCliContext(),
+            manifest = ManifestToml(ModuleToml("test", "0.0.0")),
             modulePath = Path(sampleDir, sample),
+            context = context,
         )
 
         if (target == null) {

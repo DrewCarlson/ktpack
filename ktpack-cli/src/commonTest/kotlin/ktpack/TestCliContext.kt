@@ -8,6 +8,7 @@ import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
 import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.tools.DokkaCli
+import ktpack.manifest.MANIFEST_FILENAME
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.manifest.ManifestToml
 import ktpack.manifest.toml
@@ -53,7 +54,7 @@ class TestCliContext : CliContext {
         config = config.run(body)
     }
 
-    override fun loadManifestToml(filePath: String): ManifestToml {
+    override fun load(filePath: String): ManifestToml {
         val path = Path(filePath).resolve()
         check(path.exists()) {
             "No $MANIFEST_FILENAME file found in '${path.parent}'"

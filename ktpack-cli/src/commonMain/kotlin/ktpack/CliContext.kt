@@ -2,16 +2,16 @@ package ktpack
 
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.client.HttpClient
+import ktpack.compilation.BuildContext
+import ktpack.compilation.dependencies.MavenDependencyResolver
 import ktpack.compilation.tools.DokkaCli
-import ktpack.manifest.ManifestToml
+import ktpack.manifest.ManifestLoader
 import ktpack.toolchain.jdk.JdkInstalls
 import ktpack.toolchain.kotlin.KotlincInstalls
 import ktpack.toolchain.nodejs.NodejsInstalls
 import ktpack.util.GitCli
 
-const val MANIFEST_FILENAME = "pack.toml"
-
-interface CliContext {
+interface CliContext : ManifestLoader {
 
     /**
      * When true, print the full stacktrace in the case of an uncaught
@@ -33,7 +33,15 @@ interface CliContext {
     val dokka: DokkaCli
     val gitCli: GitCli
 
-    fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig)
+    fun createBuildContext(): BuildContext {
+        return BuildContext(
+            manifestLoader = this,
+            resolver = MavenDependencyResolver(http),
+            jdk = jdkInstalls,
+            kotlinc = kotlinInstalls,
+            debug = debug,
+        )
+    }
 
-    fun loadManifestToml(filePath: String = MANIFEST_FILENAME): ManifestToml
+    fun updateConfig(body: KtpackUserConfig.() -> KtpackUserConfig)
 }

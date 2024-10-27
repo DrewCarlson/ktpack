@@ -41,8 +41,12 @@ class TestCommand : CliktCommand() {
         .multiple(listOf(PlatformUtils.getHostTarget()))
 
     override fun run(): Unit = runBlocking {
-        val manifest = context.loadManifestToml()
-        val moduleBuilder = ModuleBuilder(manifest, context, workingDirectory)
+        val manifest = context.load()
+        val moduleBuilder = ModuleBuilder(
+            manifest = manifest,
+            modulePath = workingDirectory,
+            context = context.createBuildContext()
+        )
 
         userTargets.forEach { target ->
             buildAndRunTests(manifest, moduleBuilder, target)

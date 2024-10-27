@@ -4,7 +4,7 @@ import co.touchlab.kermit.Logger
 import com.github.ajalt.clikt.core.*
 import kotlinx.io.files.Path
 import ktpack.CliContext
-import ktpack.MANIFEST_FILENAME
+import ktpack.manifest.MANIFEST_FILENAME
 import ktpack.util.exists
 import ktpack.util.failed
 import ktpack.util.forClass
